@@ -14,7 +14,6 @@ import VoiceCollectionScreen from '../screens/VoiceCollection/VoiceCollectionScr
 import HistoryScreen from '../screens/History/HistoryScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
-import VoiceSettingsScreen from '../screens/VoiceSettings/VoiceSettingsScreen';
 
 // Types
 export type MainTabParamList = {
@@ -28,7 +27,6 @@ export type MainTabParamList = {
 export type MainStackParamList = {
   Main: undefined;
   Profile: undefined;
-  VoiceSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -109,7 +107,6 @@ export const MainNavigator = () => {
     >
       <Stack.Screen name="Main" component={MainTabs} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="VoiceSettings" component={VoiceSettingsScreen} />
     </Stack.Navigator>
   );
 }; 

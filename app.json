@@ -27,7 +27,11 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "permissions": ["INTERNET"]
+      "permissions": [
+        "INTERNET",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "ios": {
       "bundleIdentifier": "com.naqued.speechlinkmobile",
@@ -35,6 +39,9 @@
     },
     "cli": {
       "appVersionSource": "remote"
-    }
+    },
+    "plugins": [
+      "./app.plugin.js"
+    ]
   }
 }

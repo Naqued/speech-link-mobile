@@ -370,6 +370,8 @@
     "retry": "Réessayer",
     "back": "Retour",
     "ok": "OK",
+    "enable": "Activer",
+    "disable": "Désactiver",
     "notSpecified": "Non spécifié",
     "general": "Général",
     "error": {
@@ -438,5 +440,16 @@
   "comingSoon": "Bientôt Disponible",
   "comingSoonDescription": "Nous travaillons sur quelque chose de spécial. Soyez parmi les premiers à l'expérimenter.",
   "comingSoonNotification": "Cette fonctionnalité sera bientôt disponible ! Nous vous informerons lorsqu'elle sera prête.",
-  "getNotified": "Restez à l'écoute !"
+  "getNotified": "Restez à l'écoute !",
+  "voice_settings": {
+    "audio_routing": {
+      "title": "Router l'Audio vers le Microphone",
+      "description": "Lorsque cette option est activée, la voix synthétisée sera dirigée vers votre microphone et pourra être utilisée dans d'autres applications comme Discord ou Google Meet.",
+      "warning": "Attention : Lorsque cette option est activée, les autres applications recevront votre voix synthétisée au lieu de votre voix réelle.",
+      "confirmation_title": "Activer le Routage Audio",
+      "confirmation_message": "Cela va router l'audio vers votre microphone. Les autres applications comme Discord ou Google Meet recevront votre voix synthétisée au lieu de votre voix réelle. Continuer ?",
+      "enable_failed": "Échec de l'activation du routage audio",
+      "disable_failed": "Échec de la désactivation du routage audio"
+    }
+  }
 } 

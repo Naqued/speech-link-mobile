@@ -369,6 +369,8 @@
     "retry": "Retry",
     "back": "Back",
     "ok": "OK",
+    "enable": "Enable",
+    "disable": "Disable",
     "notSpecified": "Not specified",
     "general": "General",
     "error": {
@@ -437,5 +439,16 @@
   "comingSoon": "Coming Soon",
   "comingSoonDescription": "We're working on something special. Be among the first to experience it.",
   "comingSoonNotification": "This feature is coming soon! We'll notify you when it's ready.",
-  "getNotified": "Wait for it!"
+  "getNotified": "Wait for it!",
+  "voice_settings": {
+    "audio_routing": {
+      "title": "Route Audio to Microphone",
+      "description": "When enabled, synthesized speech will be routed to your microphone and can be used in other applications like Discord or Google Meet.",
+      "warning": "Warning: When enabled, other apps will receive your synthesized voice instead of your real voice.",
+      "confirmation_title": "Enable Audio Routing",
+      "confirmation_message": "This will route audio to your microphone. Other apps like Discord or Google Meet will receive your synthesized voice instead of your real voice. Continue?",
+      "enable_failed": "Failed to enable audio routing",
+      "disable_failed": "Failed to disable audio routing"
+    }
+  }
 } 

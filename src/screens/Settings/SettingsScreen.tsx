@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 
+// Hooks
+import { useVoiceSettings } from '../../hooks/useVoiceSettings';
+import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+
 // Components
 import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
 
@@ -33,6 +37,17 @@ const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { signOut } = useContext(AuthContext);
+  
+  const { 
+    userSettings, 
+    isLoading, 
+    updateVoiceSettings,
+  } = useVoiceSettings();
+
+  const { 
+    isAudioRoutingEnabled,
+    toggleAudioRouting 
+  } = useTextToSpeech();
   
   const isDarkMode = theme.background === themes.dark.background;
 
@@ -63,6 +78,50 @@ const SettingsScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleToggleAutoSpeakSetting = async (value: boolean) => {
+    if (!userSettings?.voiceSettings) return;
+    
+    try {
+      await updateVoiceSettings({
+        ...userSettings.voiceSettings,
+        autoSpeakEnabled: value
+      });
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update auto-speak setting');
+    }
+  };
+
+  const handleToggleAudioRouting = async (value: boolean) => {
+    if (value) {
+      // Show confirmation dialog when enabling
+      Alert.alert(
+        t('voice_settings.audio_routing.confirmation_title'),
+        t('voice_settings.audio_routing.confirmation_message'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('general.enable'),
+            onPress: async () => {
+              const success = await toggleAudioRouting(true);
+              if (!success) {
+                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed'));
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // No confirmation needed when disabling
+      const success = await toggleAudioRouting(false);
+      if (!success) {
+        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed'));
+      }
+    }
   };
 
   const renderSettingItem = (
@@ -140,15 +199,37 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('voice.settings.title')}</Text>
           {renderSettingItem(
-            'mic-outline',
-            t('voice.settings.manage'),
+            'refresh-circle-outline',
+            t('settings.autoSpeakEnabled', 'Auto-Speak'),
+            <Switch
+              value={userSettings?.voiceSettings?.autoSpeakEnabled ?? false}
+              onValueChange={handleToggleAutoSpeakSetting}
+              disabled={isLoading}
+              trackColor={{ false: theme.border, true: theme.primary + '80' }}
+              thumbColor={userSettings?.voiceSettings?.autoSpeakEnabled ? theme.primary : '#f4f3f4'}
+            />,
             undefined,
-            () => navigation.navigate('VoiceSettings' as never)
+            false
           )}
           {renderSettingItem(
-            'speedometer-outline',
-            t('voice.settings.speed'),
-            <Text style={styles.settingValueText}>Normal</Text>
+            'mic-outline',
+            t('voice_settings.audio_routing.title'),
+            <Switch
+              value={isAudioRoutingEnabled}
+              onValueChange={handleToggleAudioRouting}
+              disabled={isLoading}
+              trackColor={{ false: theme.border, true: theme.primary + '80' }}
+              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
+            />,
+            undefined,
+            false
+          )}
+          {isAudioRoutingEnabled && (
+            <View style={styles.warningContainer}>
+              <Text style={styles.warningText}>
+                {t('voice_settings.audio_routing.warning')}
+              </Text>
+            </View>
           )}
           {renderSettingItem(
             'trending-up-outline',
@@ -294,6 +375,16 @@ const makeStyles = (theme: any) => StyleSheet.create({
   languageText: {
     fontSize: 16,
     color: theme.text,
+  },
+  warningContainer: {
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: theme.error + '20',
+    borderRadius: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: theme.error,
   },
   premiumBadge: {
     backgroundColor: theme.primary,

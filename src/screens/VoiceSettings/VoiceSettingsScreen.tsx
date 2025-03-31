@@ -20,9 +20,11 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 import { VoiceSettings } from '../../services/voiceSettingsService';
 import { Audio } from 'expo-av';
 import { apiService } from '../../services/apiService';
+import { useTranslation } from 'react-i18next';
 
 const VoiceSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
   const { 
     userSettings, 
     availableVoices, 
@@ -34,7 +36,13 @@ const VoiceSettingsScreen: React.FC = () => {
     refreshSettings
   } = useVoiceSettings();
   
-  const { speak, isLoading: isSpeaking, previewVoice } = useTextToSpeech();
+  const { 
+    speak, 
+    isLoading: isSpeaking, 
+    previewVoice,
+    isAudioRoutingEnabled,
+    toggleAudioRouting 
+  } = useTextToSpeech();
   
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -151,6 +159,37 @@ const VoiceSettingsScreen: React.FC = () => {
     }
   };
 
+  const handleToggleAudioRouting = async (value: boolean) => {
+    if (value) {
+      // Show confirmation dialog when enabling
+      Alert.alert(
+        t('voice_settings.audio_routing.confirmation_title'),
+        t('voice_settings.audio_routing.confirmation_message'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('general.enable'),
+            onPress: async () => {
+              const success = await toggleAudioRouting(true);
+              if (!success) {
+                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed', 'Failed to enable audio routing'));
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // No confirmation needed when disabling
+      const success = await toggleAudioRouting(false);
+      if (!success) {
+        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed', 'Failed to disable audio routing'));
+      }
+    }
+  };
+
   const renderVoiceItem = ({ item }: { item: Voice }) => {
     const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
     // Only use API favorites (from userSettings.favorites.voices), not the item.isFavorite property
@@ -252,6 +291,32 @@ const VoiceSettingsScreen: React.FC = () => {
               thumbColor={userSettings?.voiceSettings?.enhancementEnabled ? theme.primary : '#f4f3f4'}
             />
           </View>
+          
+          <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+            <View style={styles.settingLabelContainer}>
+              <Text style={[styles.settingLabel, { color: theme.text }]}>
+                Route Audio to Microphone
+              </Text>
+              <Text style={[styles.settingDescription, { color: theme.text + '80' }]}>
+                Send synthesized speech to the microphone for use in other apps
+              </Text>
+            </View>
+            <Switch
+              value={isAudioRoutingEnabled}
+              onValueChange={handleToggleAudioRouting}
+              disabled={isLoading}
+              trackColor={{ false: '#767577', true: theme.primary + '50' }}
+              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
+            />
+          </View>
+          
+          {isAudioRoutingEnabled && (
+            <View style={styles.warningContainer}>
+              <Text style={[styles.warningText, { color: '#FF9500' }]}>
+                This feature routes audio to your microphone, allowing other apps to receive your synthesized voice.
+              </Text>
+            </View>
+          )}
         </View>
         
         <View style={styles.section}>
@@ -333,6 +398,23 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
+  },
+  settingLabelContainer: {
+    flex: 1,
+  },
+  settingDescription: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  warningContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
   },
   filterButton: {
     flexDirection: 'row',
