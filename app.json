@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Speech Link",
+    "slug": "speech-link-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4A6FEA"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6fc68554-48d3-4b26-a2a9-c4fae0ab35d0"
+      }
+    },
+    "newArchEnabled": true,
+    "scheme": "speechlinkmobile",
+    "owner": "naqued",
+    "android": {
+      "package": "com.naqued.speechlinkmobile",
+      "permissions": ["INTERNET"]
+    },
+    "ios": {
+      "bundleIdentifier": "com.naqued.speechlinkmobile",
+      "supportsTablet": true
+    },
+    "cli": {
+      "appVersionSource": "remote"
+    }
+  }
+}
