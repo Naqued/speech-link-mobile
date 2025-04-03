@@ -9,7 +9,10 @@ import {
   Switch,
   Alert,
   Platform,
-  Linking
+  Linking,
+  Modal,
+  FlatList,
+  TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -27,10 +30,37 @@ import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 // Components
 import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
 
-// Language options
+// Language options with native names and flags
 const LANGUAGE_OPTIONS = [
-  { id: 'en', name: 'English' },
-  { id: 'fr', name: 'French' },
+  { id: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
+  { id: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  { id: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵' },
+  { id: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
+  { id: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+  { id: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳' },
+  { id: 'ko', name: 'Korean', nativeName: '한국어', flag: '🇰🇷' },
+  { id: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹' },
+  { id: 'it', name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹' },
+  { id: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  { id: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia', flag: '🇮🇩' },
+  { id: 'nl', name: 'Dutch', nativeName: 'Nederlands', flag: '🇳🇱' },
+  { id: 'tr', name: 'Turkish', nativeName: 'Türkçe', flag: '🇹🇷' },
+  { id: 'fil', name: 'Filipino', nativeName: 'Filipino', flag: '🇵🇭' },
+  { id: 'pl', name: 'Polish', nativeName: 'Polski', flag: '🇵🇱' },
+  { id: 'sv', name: 'Swedish', nativeName: 'Svenska', flag: '🇸🇪' },
+  { id: 'bg', name: 'Bulgarian', nativeName: 'Български', flag: '🇧🇬' },
+  { id: 'ro', name: 'Romanian', nativeName: 'Română', flag: '🇷🇴' },
+  { id: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦' },
+  { id: 'cs', name: 'Czech', nativeName: 'Čeština', flag: '🇨🇿' },
+  { id: 'el', name: 'Greek', nativeName: 'Ελληνικά', flag: '🇬🇷' },
+  { id: 'fi', name: 'Finnish', nativeName: 'Suomi', flag: '🇫🇮' },
+  { id: 'hr', name: 'Croatian', nativeName: 'Hrvatski', flag: '🇭🇷' },
+  { id: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu', flag: '🇲🇾' },
+  { id: 'sk', name: 'Slovak', nativeName: 'Slovenčina', flag: '🇸🇰' },
+  { id: 'da', name: 'Danish', nativeName: 'Dansk', flag: '🇩🇰' },
+  { id: 'ta', name: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳' },
+  { id: 'uk', name: 'Ukrainian', nativeName: 'Українська', flag: '🇺🇦' },
+  { id: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' }
 ];
 
 const SettingsScreen: React.FC = () => {
@@ -51,8 +81,16 @@ const SettingsScreen: React.FC = () => {
   } = useTextToSpeech();
   
   const isDarkMode = theme.background === themes.dark.background;
+  const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const styles = makeStyles(theme);
+
+  const filteredLanguages = searchQuery 
+    ? LANGUAGE_OPTIONS.filter(lang => 
+        lang.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        lang.nativeName.toLowerCase().includes(searchQuery.toLowerCase()))
+    : LANGUAGE_OPTIONS;
 
   const handleChangeLanguage = async (languageCode: string) => {
     try {
@@ -165,6 +203,57 @@ const SettingsScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  const renderLanguageModal = () => (
+    <Modal
+      visible={isLanguageModalVisible}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={() => setLanguageModalVisible(false)}
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+            <Ionicons name="close" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>{t('language.select')}</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('general.search')}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor={theme.text + '50'}
+        />
+        <FlatList
+          data={filteredLanguages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.languageOption}
+              onPress={() => {
+                handleChangeLanguage(item.id);
+                setLanguageModalVisible(false);
+                setSearchQuery('');
+              }}
+            >
+              <View style={styles.languageRow}>
+                <Text style={styles.languageFlag}>{item.flag}</Text>
+                <View style={styles.languageTextContainer}>
+                  <Text style={styles.languageText}>{item.nativeName}</Text>
+                  <Text style={styles.languageSubtext}>{t(`languages.${item.id}`)}</Text>
+                </View>
+              </View>
+              {i18n.language === item.id && (
+                <Ionicons name="checkmark" size={22} color={theme.primary} />
+              )}
+            </TouchableOpacity>
+          )}
+        />
+      </SafeAreaView>
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -191,18 +280,15 @@ const SettingsScreen: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-          {LANGUAGE_OPTIONS.map((language) => (
-            <TouchableOpacity
-              key={language.id}
-              style={styles.languageOption}
-              onPress={() => handleChangeLanguage(language.id)}
-            >
-              <Text style={styles.languageText}>{t(`languages.${language.id}`)}</Text>
-              {i18n.language === language.id && (
-                <Ionicons name="checkmark" size={22} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-          ))}
+          {renderSettingItem(
+            'language-outline',
+            t('language.select'),
+            <Text style={styles.settingValueText}>
+              {LANGUAGE_OPTIONS.find(l => l.id === i18n.language)?.nativeName || 'English'}
+            </Text>,
+            () => setLanguageModalVisible(true)
+          )}
+          {renderLanguageModal()}
         </View>
 
         <View style={styles.section}>
@@ -392,6 +478,7 @@ const makeStyles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 15,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
   },
@@ -444,6 +531,50 @@ const makeStyles = (theme: any) => StyleSheet.create({
   versionText: {
     fontSize: 14,
     color: theme.text + '50',
+  },
+  // Modal-specific styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: theme.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    height: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  searchInput: {
+    margin: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: theme.inputBackground || theme.background + '30',
+    borderRadius: 8,
+    color: theme.text,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  languageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageFlag: {
+    fontSize: 22,
+    marginRight: 15,
+  },
+  languageTextContainer: {
+    flexDirection: 'column',
+  },
+  languageSubtext: {
+    fontSize: 14,
+    color: theme.text + '80',
   },
 });
 

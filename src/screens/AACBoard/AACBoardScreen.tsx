@@ -674,7 +674,7 @@ const AACBoardScreen: React.FC = () => {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="chatbubble-outline" size={40} color={theme.text} />
-        <Text style={styles.emptyText}>No phrases in this category</Text>
+        <Text style={styles.emptyText}>{t('aacBoard.noPhrases')}</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleAddPhrase}>
           <Ionicons name="add-outline" size={20} color="#FFFFFF" />
           <Text style={styles.addButtonText}>{t('aac.phrases.add')}</Text>
