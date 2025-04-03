@@ -98,7 +98,16 @@
       "age": "Leeftijd",
       "category": "Categorie",
       "useCase": "Gebruikssituatie",
-      "descriptives": "Stemstijl",
+      "descriptives": {
+        "all": "Alle beschrijvingen",
+        "calm": "Kalm",
+        "energetic": "Energiek",
+        "professional": "Professioneel",
+        "friendly": "Vriendelijk",
+        "authoritative": "Gezaghebbend",
+        "cheerful": "Vrolijk",
+        "serious": "Serieus"
+      },
       "applyWithCount": "{{count}} filters toepassen",
       "apply": "Filters toepassen",
       "activeFilters": "Actieve filters",
@@ -168,16 +177,6 @@
         "gaming": "Gaming",
         "narration": "Vertelling",
         "advertisement": "Reclame"
-      },
-      "descriptives": {
-        "all": "Alle beschrijvingen",
-        "calm": "Kalm",
-        "energetic": "Energiek",
-        "professional": "Professioneel",
-        "friendly": "Vriendelijk",
-        "authoritative": "Gezaghebbend",
-        "cheerful": "Vrolijk",
-        "serious": "Serieus"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Selecteren",
       "selected": "Geselecteerd",
       "stop": "Stoppen",
-      "processing": "Verwerken..."
+      "processing": "Verwerken...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expressief en dynamisch",
@@ -303,7 +305,6 @@
       "questions": "Vragen",
       "medical": "Medisch",
       "activities": "Activiteiten",
-      
       "cat_basic_needs_en": "Basisbehoeften",
       "cat_basic_needs_fr": "Basisbehoeften",
       "cat_social_interaction_en": "Sociale interactie",
@@ -405,7 +406,10 @@
     "create": "Aanmaken",
     "search": "Zoeken",
     "loading": "Laden...",
-    "error": "Fout",
+    "error": {
+      "required": "Dit veld is verplicht",
+      "maxLength": "Maximaal {{max}} tekens toegestaan"
+    },
     "success": "Succes",
     "retry": "Opnieuw proberen",
     "back": "Terug",
@@ -413,11 +417,7 @@
     "enable": "Inschakelen",
     "disable": "Uitschakelen",
     "notSpecified": "Niet gespecificeerd",
-    "general": "Algemeen",
-    "error": {
-      "required": "Dit veld is verplicht",
-      "maxLength": "Maximaal {{max}} tekens toegestaan"
-    }
+    "general": "Algemeen"
   },
   "language": {
     "select": "Taal selecteren",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Snelle toegang tot veelgebruikte zinnen",
     "legal": "Juridisch"
   }
-} 
+}

@@ -98,7 +98,16 @@
       "age": "Idade",
       "category": "Categoria",
       "useCase": "Caso de Uso",
-      "descriptives": "Estilo de Voz",
+      "descriptives": {
+        "all": "Todos os Descritivos",
+        "calm": "Calma",
+        "energetic": "Energética",
+        "professional": "Profissional",
+        "friendly": "Amigável",
+        "authoritative": "Autoritária",
+        "cheerful": "Alegre",
+        "serious": "Séria"
+      },
       "applyWithCount": "Aplicar {{count}} Filtros",
       "apply": "Aplicar Filtros",
       "activeFilters": "Filtros Ativos",
@@ -168,16 +177,6 @@
         "gaming": "Jogos",
         "narration": "Narração",
         "advertisement": "Publicidade"
-      },
-      "descriptives": {
-        "all": "Todos os Descritivos",
-        "calm": "Calma",
-        "energetic": "Energética",
-        "professional": "Profissional",
-        "friendly": "Amigável",
-        "authoritative": "Autoritária",
-        "cheerful": "Alegre",
-        "serious": "Séria"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Selecionar",
       "selected": "Selecionada",
       "stop": "Parar",
-      "processing": "Processando..."
+      "processing": "Processando...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expressiva e Dinâmica",
@@ -303,7 +305,6 @@
       "questions": "Perguntas",
       "medical": "Médico",
       "activities": "Atividades",
-      
       "cat_basic_needs_en": "Necessidades Básicas",
       "cat_basic_needs_fr": "Necessidades Básicas",
       "cat_social_interaction_en": "Interação Social",
@@ -405,7 +406,10 @@
     "create": "Criar",
     "search": "Pesquisar",
     "loading": "Carregando...",
-    "error": "Erro",
+    "error": {
+      "required": "Este campo é obrigatório",
+      "maxLength": "Máximo de {{max}} caracteres permitidos"
+    },
     "success": "Sucesso",
     "retry": "Tentar Novamente",
     "back": "Voltar",
@@ -413,11 +417,7 @@
     "enable": "Ativar",
     "disable": "Desativar",
     "notSpecified": "Não especificado",
-    "general": "Geral",
-    "error": {
-      "required": "Este campo é obrigatório",
-      "maxLength": "Máximo de {{max}} caracteres permitidos"
-    }
+    "general": "Geral"
   },
   "language": {
     "select": "Selecionar Idioma",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Acesso rápido a frases comumente usadas",
     "legal": "Legal"
   }
-} 
+}

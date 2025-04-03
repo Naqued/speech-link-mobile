@@ -242,7 +242,10 @@
       "select": "चुनें",
       "selected": "चुना गया",
       "stop": "रोकें",
-      "processing": "प्रोसेसिंग..."
+      "processing": "प्रोसेसिंग...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "अभिव्यंजक और गतिशील",
@@ -302,7 +305,6 @@
       "questions": "प्रश्न",
       "medical": "मेडिकल",
       "activities": "गतिविधियाँ",
-      
       "cat_basic_needs_en": "बुनियादी ज़रूरतें",
       "cat_basic_needs_fr": "बुनियादी ज़रूरतें",
       "cat_social_interaction_en": "सामाजिक संवाद",
@@ -502,4 +504,4 @@
     "aacBoardDesc": "आमतौर पर उपयोग किए जाने वाले वाक्यांशों तक त्वरित पहुंच",
     "legal": "कानूनी"
   }
-} 
+}

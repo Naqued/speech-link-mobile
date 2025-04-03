@@ -87,6 +87,11 @@
       "male": "Mies",
       "female": "Nainen",
       "neutral": "Neutraali"
+    },
+    "actions": {
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     }
   },
   "settings": {
@@ -164,4 +169,4 @@
     "history": "Historia",
     "settings": "Asetukset"
   }
-} 
+}

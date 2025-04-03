@@ -27,9 +27,6 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 
-// Components
-import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
-
 // Language options with native names and flags
 const LANGUAGE_OPTIONS = [
   { id: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
@@ -71,7 +68,8 @@ const SettingsScreen: React.FC = () => {
   
   const { 
     userSettings, 
-    isLoading, 
+    isLoading,
+    availableVoices,
     updateVoiceSettings,
   } = useVoiceSettings();
 
@@ -83,6 +81,20 @@ const SettingsScreen: React.FC = () => {
   const isDarkMode = theme.background === themes.dark.background;
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Find the currently selected voice
+  // Handle both voiceId (from TypeScript interface) and selectedVoice (from API response)
+  const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
+    (userSettings?.voiceSettings as any)?.selectedVoice;
+  
+  // First try to find in availableVoices
+  let currentVoice = availableVoices.find(voice => voice.id === selectedVoiceId);
+  
+  // If not found, try to find in the voices array from the API response
+  if (!currentVoice && (userSettings?.voiceSettings as any)?.voices) {
+    const apiVoices = (userSettings?.voiceSettings as any)?.voices || [];
+    currentVoice = apiVoices.find((voice: any) => voice.id === selectedVoiceId);
+  }
 
   const styles = makeStyles(theme);
 
@@ -170,6 +182,25 @@ const SettingsScreen: React.FC = () => {
       Alert.alert(t('general.error'), 'Failed to open subscription page');
     });
   };
+
+  // Add navigation to the Voice Collection screen
+  const handleVoiceSelectionPress = () => {
+    navigation.navigate('VoiceCollection' as never);
+  };
+
+  // Add debug logging for voice selection
+  useEffect(() => {
+    console.log("Voice Settings Debug:");
+    console.log("Selected voice ID:", selectedVoiceId);
+    console.log("Current voice found:", currentVoice ? {
+      id: currentVoice.id,
+      name: currentVoice.name,
+      provider: currentVoice.provider
+    } : "No voice found");
+    console.log("Available voices count:", availableVoices.length);
+    console.log("API voices:", (userSettings?.voiceSettings as any)?.voices ? 
+      (userSettings?.voiceSettings as any)?.voices.length : "Not available");
+  }, [selectedVoiceId, currentVoice, availableVoices, userSettings]);
 
   const renderSettingItem = (
     icon: string,
@@ -293,6 +324,42 @@ const SettingsScreen: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('voice.settings.title')}</Text>
+          
+          {/* Current voice selection setting with a better icon and display */}
+          {renderSettingItem(
+            'mic-circle-outline',
+            t('voice.settings.currentVoice', 'Voice'),
+            currentVoice ? (
+              <View style={styles.voiceValueContainer}>
+                <Text style={styles.settingValueText}>
+                  {currentVoice.name}
+                </Text>
+                <View style={styles.voiceProviderBadge}>
+                  <Text style={styles.voiceProviderText}>
+                    {currentVoice.provider}
+                  </Text>
+                </View>
+              </View>
+            ) : selectedVoiceId ? (
+              <View style={styles.voiceValueContainer}>
+                <Text style={styles.settingValueText}>
+                  ID: {selectedVoiceId}
+                </Text>
+                <View style={styles.voiceProviderBadge}>
+                  <Text style={styles.voiceProviderText}>
+                    {(userSettings?.voiceSettings as any)?.provider || 'UNKNOWN'}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={[styles.settingValueText, {color: theme.error + '80'}]}>
+                {t('voice.settings.noVoiceSelected', 'Not selected')}
+              </Text>
+            ),
+            handleVoiceSelectionPress
+          )}
+          
+          {/* Auto-speak setting */}
           {renderSettingItem(
             'refresh-circle-outline',
             t('settings.autoSpeakEnabled', 'Auto-Speak'),
@@ -376,11 +443,6 @@ const SettingsScreen: React.FC = () => {
           )}
         </View>
         
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Developer</Text>
-          <DeveloperSettings />
-        </View>
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
           <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
@@ -575,6 +637,23 @@ const makeStyles = (theme: any) => StyleSheet.create({
   languageSubtext: {
     fontSize: 14,
     color: theme.text + '80',
+  },
+  voiceValueContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  voiceProviderBadge: {
+    backgroundColor: theme.primary + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginTop: 2,
+  },
+  voiceProviderText: {
+    fontSize: 10,
+    color: theme.primary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
 });
 

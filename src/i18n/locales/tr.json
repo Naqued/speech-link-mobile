@@ -98,7 +98,16 @@
       "age": "Yaş",
       "category": "Kategori",
       "useCase": "Kullanım Alanı",
-      "descriptives": "Ses Stili",
+      "descriptives": {
+        "all": "Tüm Tanımlayıcılar",
+        "calm": "Sakin",
+        "energetic": "Enerjik",
+        "professional": "Profesyonel",
+        "friendly": "Arkadaşça",
+        "authoritative": "Otoriter",
+        "cheerful": "Neşeli",
+        "serious": "Ciddi"
+      },
       "applyWithCount": "{{count}} Filtreyi Uygula",
       "apply": "Filtreleri Uygula",
       "activeFilters": "Aktif Filtreler",
@@ -168,16 +177,6 @@
         "gaming": "Oyun",
         "narration": "Anlatım",
         "advertisement": "Reklam"
-      },
-      "descriptives": {
-        "all": "Tüm Tanımlayıcılar",
-        "calm": "Sakin",
-        "energetic": "Enerjik",
-        "professional": "Profesyonel",
-        "friendly": "Arkadaşça",
-        "authoritative": "Otoriter",
-        "cheerful": "Neşeli",
-        "serious": "Ciddi"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Seç",
       "selected": "Seçildi",
       "stop": "Durdur",
-      "processing": "İşleniyor..."
+      "processing": "İşleniyor...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "İfadeli ve Dinamik",
@@ -303,7 +305,6 @@
       "questions": "Sorular",
       "medical": "Tıbbi",
       "activities": "Aktiviteler",
-      
       "cat_basic_needs_en": "Temel İhtiyaçlar",
       "cat_basic_needs_fr": "Temel İhtiyaçlar",
       "cat_social_interaction_en": "Sosyal Etkileşim",
@@ -405,7 +406,10 @@
     "create": "Oluştur",
     "search": "Ara",
     "loading": "Yükleniyor...",
-    "error": "Hata",
+    "error": {
+      "required": "Bu alan zorunludur",
+      "maxLength": "Maksimum {{max}} karakter izin verilir"
+    },
     "success": "Başarılı",
     "retry": "Tekrar Dene",
     "back": "Geri",
@@ -413,11 +417,7 @@
     "enable": "Etkinleştir",
     "disable": "Devre Dışı Bırak",
     "notSpecified": "Belirtilmemiş",
-    "general": "Genel",
-    "error": {
-      "required": "Bu alan zorunludur",
-      "maxLength": "Maksimum {{max}} karakter izin verilir"
-    }
+    "general": "Genel"
   },
   "language": {
     "select": "Dil Seç",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Sık kullanılan cümlelere hızlı erişim",
     "legal": "Yasal"
   }
-} 
+}

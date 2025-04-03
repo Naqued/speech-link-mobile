@@ -96,7 +96,16 @@
       "age": "Edad",
       "category": "Categoría",
       "useCase": "Caso de uso",
-      "descriptives": "Estilo de voz",
+      "descriptives": {
+        "all": "Todos los Estilos",
+        "calm": "Tranquilo",
+        "energetic": "Enérgico",
+        "professional": "Profesional",
+        "friendly": "Amigable",
+        "authoritative": "Autoritario",
+        "cheerful": "Alegre",
+        "serious": "Serio"
+      },
       "applyWithCount": "Aplicar {{count}} filtros",
       "apply": "Aplicar filtros",
       "activeFilters": "Filtros activos",
@@ -166,16 +175,6 @@
         "gaming": "Juegos",
         "narration": "Narración",
         "advertisement": "Publicidad"
-      },
-      "descriptives": {
-        "all": "Todos los Estilos",
-        "calm": "Tranquilo",
-        "energetic": "Enérgico",
-        "professional": "Profesional",
-        "friendly": "Amigable",
-        "authoritative": "Autoritario",
-        "cheerful": "Alegre",
-        "serious": "Serio"
       }
     },
     "metadata": {
@@ -304,7 +303,6 @@
       "questions": "Preguntas",
       "medical": "Médico",
       "activities": "Actividades",
-      
       "cat_basic_needs_en": "Necesidades Básicas",
       "cat_basic_needs_fr": "Necesidades Básicas",
       "cat_social_interaction_en": "Interacción Social",
@@ -406,7 +404,10 @@
     "create": "Crear",
     "search": "Buscar",
     "loading": "Cargando...",
-    "error": "Error",
+    "error": {
+      "required": "Este campo es obligatorio",
+      "maxLength": "Máximo {{max}} caracteres permitidos"
+    },
     "success": "Éxito",
     "retry": "Reintentar",
     "back": "Atrás",
@@ -414,11 +415,7 @@
     "enable": "Activar",
     "disable": "Desactivar",
     "notSpecified": "No especificado",
-    "general": "General",
-    "error": {
-      "required": "Este campo es obligatorio",
-      "maxLength": "Máximo {{max}} caracteres permitidos"
-    }
+    "general": "General"
   },
   "language": {
     "select": "Seleccionar Idioma",
@@ -505,4 +502,4 @@
     "aacBoardDesc": "Acceso rápido a frases utilizadas frecuentemente",
     "legal": "Información Legal"
   }
-} 
+}

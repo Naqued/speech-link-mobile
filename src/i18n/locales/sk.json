@@ -87,6 +87,11 @@
       "male": "Mužský",
       "female": "Ženský",
       "neutral": "Neutrálny"
+    },
+    "actions": {
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     }
   },
   "settings": {
@@ -164,4 +169,4 @@
     "history": "História",
     "settings": "Nastavenia"
   }
-} 
+}

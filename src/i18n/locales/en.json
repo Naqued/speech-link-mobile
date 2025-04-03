@@ -98,7 +98,16 @@
       "age": "Age",
       "category": "Category",
       "useCase": "Use Case",
-      "descriptives": "Voice Style",
+      "descriptives": {
+        "all": "All Descriptives",
+        "calm": "Calm",
+        "energetic": "Energetic",
+        "professional": "Professional",
+        "friendly": "Friendly",
+        "authoritative": "Authoritative",
+        "cheerful": "Cheerful",
+        "serious": "Serious"
+      },
       "applyWithCount": "Apply {{count}} Filters",
       "apply": "Apply Filters",
       "activeFilters": "Active Filters",
@@ -168,16 +177,6 @@
         "gaming": "Gaming",
         "narration": "Narration",
         "advertisement": "Advertisement"
-      },
-      "descriptives": {
-        "all": "All Descriptives",
-        "calm": "Calm",
-        "energetic": "Energetic",
-        "professional": "Professional",
-        "friendly": "Friendly",
-        "authoritative": "Authoritative",
-        "cheerful": "Cheerful",
-        "serious": "Serious"
       }
     },
     "metadata": {
@@ -306,7 +305,6 @@
       "questions": "Questions",
       "medical": "Medical",
       "activities": "Activities",
-      
       "cat_basic_needs_en": "Basic Needs",
       "cat_basic_needs_fr": "Basic Needs",
       "cat_social_interaction_en": "Social Interaction",
@@ -408,7 +406,10 @@
     "create": "Create",
     "search": "Search",
     "loading": "Loading...",
-    "error": "Error",
+    "error": {
+      "required": "This field is required",
+      "maxLength": "Maximum {{max}} characters allowed"
+    },
     "success": "Success",
     "retry": "Retry",
     "back": "Back",
@@ -416,11 +417,7 @@
     "enable": "Enable",
     "disable": "Disable",
     "notSpecified": "Not specified",
-    "general": "General",
-    "error": {
-      "required": "This field is required",
-      "maxLength": "Maximum {{max}} characters allowed"
-    }
+    "general": "General"
   },
   "language": {
     "select": "Select Language",
@@ -507,4 +504,4 @@
     "aacBoardDesc": "Quick access to commonly used phrases",
     "legal": "Legal"
   }
-} 
+}

@@ -98,7 +98,16 @@
       "age": "Usia",
       "category": "Kategori",
       "useCase": "Kasus Penggunaan",
-      "descriptives": "Gaya Suara",
+      "descriptives": {
+        "all": "Semua Deskriptif",
+        "calm": "Tenang",
+        "energetic": "Energik",
+        "professional": "Profesional",
+        "friendly": "Ramah",
+        "authoritative": "Berwibawa",
+        "cheerful": "Ceria",
+        "serious": "Serius"
+      },
       "applyWithCount": "Terapkan {{count}} Filter",
       "apply": "Terapkan Filter",
       "activeFilters": "Filter Aktif",
@@ -168,16 +177,6 @@
         "gaming": "Gaming",
         "narration": "Narasi",
         "advertisement": "Iklan"
-      },
-      "descriptives": {
-        "all": "Semua Deskriptif",
-        "calm": "Tenang",
-        "energetic": "Energik",
-        "professional": "Profesional",
-        "friendly": "Ramah",
-        "authoritative": "Berwibawa",
-        "cheerful": "Ceria",
-        "serious": "Serius"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Pilih",
       "selected": "Dipilih",
       "stop": "Berhenti",
-      "processing": "Memproses..."
+      "processing": "Memproses...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Ekspresif dan Dinamis",
@@ -303,7 +305,6 @@
       "questions": "Pertanyaan",
       "medical": "Medis",
       "activities": "Aktivitas",
-      
       "cat_basic_needs_en": "Kebutuhan Dasar",
       "cat_basic_needs_fr": "Kebutuhan Dasar",
       "cat_social_interaction_en": "Interaksi Sosial",
@@ -405,7 +406,10 @@
     "create": "Buat",
     "search": "Cari",
     "loading": "Memuat...",
-    "error": "Error",
+    "error": {
+      "required": "Bidang ini wajib diisi",
+      "maxLength": "Maksimal {{max}} karakter diperbolehkan"
+    },
     "success": "Berhasil",
     "retry": "Coba Lagi",
     "back": "Kembali",
@@ -413,11 +417,7 @@
     "enable": "Aktifkan",
     "disable": "Nonaktifkan",
     "notSpecified": "Tidak ditentukan",
-    "general": "Umum",
-    "error": {
-      "required": "Bidang ini wajib diisi",
-      "maxLength": "Maksimal {{max}} karakter diperbolehkan"
-    }
+    "general": "Umum"
   },
   "language": {
     "select": "Pilih Bahasa",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Akses cepat ke frasa yang sering digunakan",
     "legal": "Legal"
   }
-} 
+}

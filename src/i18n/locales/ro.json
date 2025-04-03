@@ -98,7 +98,16 @@
       "age": "Vârstă",
       "category": "Categorie",
       "useCase": "Utilizare",
-      "descriptives": "Stil de voce",
+      "descriptives": {
+        "all": "Toate stilurile",
+        "calm": "Calm",
+        "energetic": "Energic",
+        "professional": "Profesional",
+        "friendly": "Prietenos",
+        "authoritative": "Autoritar",
+        "cheerful": "Vesel",
+        "serious": "Serios"
+      },
       "applyWithCount": "Aplică {{count}} filtre",
       "apply": "Aplică filtrele",
       "activeFilters": "Filtre active",
@@ -168,16 +177,6 @@
         "gaming": "Jocuri",
         "narration": "Narațiune",
         "advertisement": "Publicitate"
-      },
-      "descriptives": {
-        "all": "Toate stilurile",
-        "calm": "Calm",
-        "energetic": "Energic",
-        "professional": "Profesional",
-        "friendly": "Prietenos",
-        "authoritative": "Autoritar",
-        "cheerful": "Vesel",
-        "serious": "Serios"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Selectează",
       "selected": "Selectat",
       "stop": "Oprește",
-      "processing": "Se procesează..."
+      "processing": "Se procesează...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expresiv și dinamic",
@@ -303,7 +305,6 @@
       "questions": "Întrebări",
       "medical": "Medical",
       "activities": "Activități",
-      
       "cat_basic_needs_en": "Nevoi de bază",
       "cat_basic_needs_fr": "Nevoi de bază",
       "cat_social_interaction_en": "Interacțiune socială",
@@ -405,7 +406,10 @@
     "create": "Creează",
     "search": "Caută",
     "loading": "Se încarcă...",
-    "error": "Eroare",
+    "error": {
+      "required": "Acest câmp este obligatoriu",
+      "maxLength": "Maximum {{max}} caractere permise"
+    },
     "success": "Succes",
     "retry": "Încearcă din nou",
     "back": "Înapoi",
@@ -413,11 +417,7 @@
     "enable": "Activează",
     "disable": "Dezactivează",
     "notSpecified": "Nespecificat",
-    "general": "General",
-    "error": {
-      "required": "Acest câmp este obligatoriu",
-      "maxLength": "Maximum {{max}} caractere permise"
-    }
+    "general": "General"
   },
   "language": {
     "select": "Selectează limba",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Acces rapid la fraze utilizate frecvent",
     "legal": "Juridic"
   }
-} 
+}

@@ -96,7 +96,16 @@
       "age": "Alter",
       "category": "Kategorie",
       "useCase": "Anwendungsfall",
-      "descriptives": "Stimmstil",
+      "descriptives": {
+        "all": "Alle Stile",
+        "calm": "Ruhig",
+        "energetic": "Energisch",
+        "professional": "Professionell",
+        "friendly": "Freundlich",
+        "authoritative": "Autoritär",
+        "cheerful": "Fröhlich",
+        "serious": "Ernst"
+      },
       "applyWithCount": "{{count}} Filter anwenden",
       "apply": "Filter anwenden",
       "activeFilters": "Aktive Filter",
@@ -166,16 +175,6 @@
         "gaming": "Spiele",
         "narration": "Erzählung",
         "advertisement": "Werbung"
-      },
-      "descriptives": {
-        "all": "Alle Stile",
-        "calm": "Ruhig",
-        "energetic": "Energisch",
-        "professional": "Professionell",
-        "friendly": "Freundlich",
-        "authoritative": "Autoritär",
-        "cheerful": "Fröhlich",
-        "serious": "Ernst"
       }
     },
     "metadata": {
@@ -304,7 +303,6 @@
       "questions": "Fragen",
       "medical": "Medizinisch",
       "activities": "Aktivitäten",
-      
       "cat_basic_needs_en": "Grundbedürfnisse",
       "cat_basic_needs_fr": "Grundbedürfnisse",
       "cat_social_interaction_en": "Soziale Interaktion",
@@ -406,7 +404,10 @@
     "create": "Erstellen",
     "search": "Suchen",
     "loading": "Laden...",
-    "error": "Fehler",
+    "error": {
+      "required": "Dieses Feld ist erforderlich",
+      "maxLength": "Maximal {{max}} Zeichen erlaubt"
+    },
     "success": "Erfolg",
     "retry": "Wiederholen",
     "back": "Zurück",
@@ -414,11 +415,7 @@
     "enable": "Aktivieren",
     "disable": "Deaktivieren",
     "notSpecified": "Nicht angegeben",
-    "general": "Allgemein",
-    "error": {
-      "required": "Dieses Feld ist erforderlich",
-      "maxLength": "Maximal {{max}} Zeichen erlaubt"
-    }
+    "general": "Allgemein"
   },
   "language": {
     "select": "Sprache auswählen",
@@ -505,4 +502,4 @@
     "aacBoardDesc": "Schneller Zugriff auf häufig verwendete Sätze",
     "legal": "Rechtliche Hinweise"
   }
-} 
+}

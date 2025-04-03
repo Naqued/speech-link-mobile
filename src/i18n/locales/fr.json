@@ -96,7 +96,16 @@
       "age": "Âge",
       "category": "Catégorie",
       "useCase": "Cas d'utilisation",
-      "descriptives": "Style de voix",
+      "descriptives": {
+        "all": "Tous les Styles",
+        "calm": "Calme",
+        "energetic": "Énergique",
+        "professional": "Professionnel",
+        "friendly": "Amical",
+        "authoritative": "Autoritaire",
+        "cheerful": "Joyeux",
+        "serious": "Sérieux"
+      },
       "applyWithCount": "Appliquer {{count}} filtres",
       "apply": "Appliquer les filtres",
       "activeFilters": "Filtres actifs",
@@ -166,16 +175,6 @@
         "gaming": "Jeux Vidéo",
         "narration": "Narration",
         "advertisement": "Publicité"
-      },
-      "descriptives": {
-        "all": "Tous les Styles",
-        "calm": "Calme",
-        "energetic": "Énergique",
-        "professional": "Professionnel",
-        "friendly": "Amical",
-        "authoritative": "Autoritaire",
-        "cheerful": "Joyeux",
-        "serious": "Sérieux"
       }
     },
     "metadata": {
@@ -304,7 +303,6 @@
       "questions": "Questions",
       "medical": "Médical",
       "activities": "Activités",
-      
       "cat_basic_needs_en": "Besoins Essentiels",
       "cat_basic_needs_fr": "Besoins Essentiels",
       "cat_social_interaction_en": "Interaction Sociale",
@@ -316,7 +314,6 @@
       "cat_all_en": "Toutes les Phrases",
       "cat_all_fr": "Toutes les Phrases",
       "all": "Toutes les Phrases"
-      
     },
     "phrases": {
       "add": "Ajouter une Phrase",
@@ -407,7 +404,10 @@
     "create": "Créer",
     "search": "Rechercher",
     "loading": "Chargement...",
-    "error": "Erreur",
+    "error": {
+      "required": "Ce champ est obligatoire",
+      "maxLength": "Maximum {{max}} caractères autorisés"
+    },
     "success": "Succès",
     "retry": "Réessayer",
     "back": "Retour",
@@ -415,11 +415,7 @@
     "enable": "Activer",
     "disable": "Désactiver",
     "notSpecified": "Non spécifié",
-    "general": "Général",
-    "error": {
-      "required": "Ce champ est obligatoire",
-      "maxLength": "Maximum {{max}} caractères autorisés"
-    }
+    "general": "Général"
   },
   "language": {
     "select": "Sélectionner la Langue",
@@ -506,4 +502,4 @@
     "aacBoardDesc": "Accès rapide aux phrases fréquemment utilisées",
     "legal": "Mentions Légales"
   }
-} 
+}

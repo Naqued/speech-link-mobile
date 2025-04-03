@@ -98,7 +98,16 @@
       "age": "Wiek",
       "category": "Kategoria",
       "useCase": "Zastosowanie",
-      "descriptives": "Styl głosu",
+      "descriptives": {
+        "all": "Wszystkie deskryptory",
+        "calm": "Spokojny",
+        "energetic": "Energiczny",
+        "professional": "Profesjonalny",
+        "friendly": "Przyjazny",
+        "authoritative": "Autorytatywny",
+        "cheerful": "Radosny",
+        "serious": "Poważny"
+      },
       "applyWithCount": "Zastosuj {{count}} filtrów",
       "apply": "Zastosuj filtry",
       "activeFilters": "Aktywne filtry",
@@ -168,16 +177,6 @@
         "gaming": "Gry",
         "narration": "Narracja",
         "advertisement": "Reklama"
-      },
-      "descriptives": {
-        "all": "Wszystkie deskryptory",
-        "calm": "Spokojny",
-        "energetic": "Energiczny",
-        "professional": "Profesjonalny",
-        "friendly": "Przyjazny",
-        "authoritative": "Autorytatywny",
-        "cheerful": "Radosny",
-        "serious": "Poważny"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Wybierz",
       "selected": "Wybrano",
       "stop": "Stop",
-      "processing": "Przetwarzanie..."
+      "processing": "Przetwarzanie...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Ekspresyjny i dynamiczny",
@@ -303,7 +305,6 @@
       "questions": "Pytania",
       "medical": "Medyczne",
       "activities": "Aktywności",
-      
       "cat_basic_needs_en": "Podstawowe potrzeby",
       "cat_basic_needs_fr": "Podstawowe potrzeby",
       "cat_social_interaction_en": "Interakcje społeczne",
@@ -405,7 +406,10 @@
     "create": "Utwórz",
     "search": "Szukaj",
     "loading": "Ładowanie...",
-    "error": "Błąd",
+    "error": {
+      "required": "To pole jest wymagane",
+      "maxLength": "Maksymalnie {{max}} znaków dozwolonych"
+    },
     "success": "Sukces",
     "retry": "Ponów",
     "back": "Wstecz",
@@ -413,11 +417,7 @@
     "enable": "Włącz",
     "disable": "Wyłącz",
     "notSpecified": "Nie określono",
-    "general": "Ogólne",
-    "error": {
-      "required": "To pole jest wymagane",
-      "maxLength": "Maksymalnie {{max}} znaków dozwolonych"
-    }
+    "general": "Ogólne"
   },
   "language": {
     "select": "Wybierz język",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Szybki dostęp do często używanych fraz",
     "legal": "Informacje prawne"
   }
-} 
+}

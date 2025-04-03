@@ -96,7 +96,16 @@
       "age": "年龄",
       "category": "类别",
       "useCase": "使用场景",
-      "descriptives": "语音风格",
+      "descriptives": {
+        "all": "所有风格",
+        "calm": "平静",
+        "energetic": "充满活力",
+        "professional": "专业",
+        "friendly": "友好",
+        "authoritative": "权威",
+        "cheerful": "愉快",
+        "serious": "严肃"
+      },
       "applyWithCount": "应用{{count}}个筛选条件",
       "apply": "应用筛选条件",
       "activeFilters": "已激活的筛选条件",
@@ -166,16 +175,6 @@
         "gaming": "游戏",
         "narration": "旁白",
         "advertisement": "广告"
-      },
-      "descriptives": {
-        "all": "所有风格",
-        "calm": "平静",
-        "energetic": "充满活力",
-        "professional": "专业",
-        "friendly": "友好",
-        "authoritative": "权威",
-        "cheerful": "愉快",
-        "serious": "严肃"
       }
     },
     "metadata": {
@@ -241,7 +240,10 @@
       "select": "选择",
       "selected": "已选择",
       "stop": "停止",
-      "processing": "处理中..."
+      "processing": "处理中...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "富有表现力且动态",
@@ -301,7 +303,6 @@
       "questions": "问题",
       "medical": "医疗",
       "activities": "活动",
-      
       "cat_basic_needs_en": "基本需求",
       "cat_basic_needs_fr": "基本需求",
       "cat_social_interaction_en": "社交互动",
@@ -403,7 +404,10 @@
     "create": "创建",
     "search": "搜索",
     "loading": "加载中...",
-    "error": "错误",
+    "error": {
+      "required": "此字段为必填项",
+      "maxLength": "最多允许{{max}}个字符"
+    },
     "success": "成功",
     "retry": "重试",
     "back": "返回",
@@ -411,11 +415,7 @@
     "enable": "启用",
     "disable": "禁用",
     "notSpecified": "未指定",
-    "general": "通用",
-    "error": {
-      "required": "此字段为必填项",
-      "maxLength": "最多允许{{max}}个字符"
-    }
+    "general": "通用"
   },
   "language": {
     "select": "选择语言",
@@ -502,4 +502,4 @@
     "aacBoardDesc": "快速访问常用短语",
     "legal": "法律信息"
   }
-} 
+}

@@ -98,7 +98,16 @@
       "age": "Ålder",
       "category": "Kategori",
       "useCase": "Användningsområde",
-      "descriptives": "Röststil",
+      "descriptives": {
+        "all": "Alla beskrivningar",
+        "calm": "Lugn",
+        "energetic": "Energisk",
+        "professional": "Professionell",
+        "friendly": "Vänlig",
+        "authoritative": "Auktoritativ",
+        "cheerful": "Glad",
+        "serious": "Allvarlig"
+      },
       "applyWithCount": "Tillämpa {{count}} filter",
       "apply": "Tillämpa filter",
       "activeFilters": "Aktiva filter",
@@ -168,16 +177,6 @@
         "gaming": "Spel",
         "narration": "Berättande",
         "advertisement": "Reklam"
-      },
-      "descriptives": {
-        "all": "Alla beskrivningar",
-        "calm": "Lugn",
-        "energetic": "Energisk",
-        "professional": "Professionell",
-        "friendly": "Vänlig",
-        "authoritative": "Auktoritativ",
-        "cheerful": "Glad",
-        "serious": "Allvarlig"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Välj",
       "selected": "Vald",
       "stop": "Stoppa",
-      "processing": "Bearbetar..."
+      "processing": "Bearbetar...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Uttrycksfull och dynamisk",
@@ -303,7 +305,6 @@
       "questions": "Frågor",
       "medical": "Medicinskt",
       "activities": "Aktiviteter",
-      
       "cat_basic_needs_en": "Grundläggande behov",
       "cat_basic_needs_fr": "Grundläggande behov",
       "cat_social_interaction_en": "Social interaktion",
@@ -405,7 +406,10 @@
     "create": "Skapa",
     "search": "Sök",
     "loading": "Laddar...",
-    "error": "Fel",
+    "error": {
+      "required": "Detta fält är obligatoriskt",
+      "maxLength": "Maximalt {{max}} tecken tillåtna"
+    },
     "success": "Framgång",
     "retry": "Försök igen",
     "back": "Tillbaka",
@@ -413,11 +417,7 @@
     "enable": "Aktivera",
     "disable": "Inaktivera",
     "notSpecified": "Ej specificerat",
-    "general": "Allmänt",
-    "error": {
-      "required": "Detta fält är obligatoriskt",
-      "maxLength": "Maximalt {{max}} tecken tillåtna"
-    }
+    "general": "Allmänt"
   },
   "language": {
     "select": "Välj språk",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Snabb åtkomst till vanligt använda fraser",
     "legal": "Juridiskt"
   }
-} 
+}

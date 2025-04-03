@@ -98,7 +98,16 @@
       "age": "Věk",
       "category": "Kategorie",
       "useCase": "Použití",
-      "descriptives": "Styl hlasu",
+      "descriptives": {
+        "all": "Všechny styly",
+        "calm": "Klidný",
+        "energetic": "Energický",
+        "professional": "Profesionální",
+        "friendly": "Přátelský",
+        "authoritative": "Autoritativní",
+        "cheerful": "Veselý",
+        "serious": "Vážný"
+      },
       "applyWithCount": "Použít {{count}} filtrů",
       "apply": "Použít filtry",
       "activeFilters": "Aktivní filtry",
@@ -168,16 +177,6 @@
         "gaming": "Hry",
         "narration": "Vyprávění",
         "advertisement": "Reklama"
-      },
-      "descriptives": {
-        "all": "Všechny styly",
-        "calm": "Klidný",
-        "energetic": "Energický",
-        "professional": "Profesionální",
-        "friendly": "Přátelský",
-        "authoritative": "Autoritativní",
-        "cheerful": "Veselý",
-        "serious": "Vážný"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Vybrat",
       "selected": "Vybráno",
       "stop": "Zastavit",
-      "processing": "Zpracování..."
+      "processing": "Zpracování...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expresivní a dynamický",
@@ -303,7 +305,6 @@
       "questions": "Otázky",
       "medical": "Zdravotní",
       "activities": "Aktivity",
-      
       "cat_basic_needs_en": "Základní potřeby",
       "cat_basic_needs_fr": "Základní potřeby",
       "cat_social_interaction_en": "Sociální interakce",
@@ -405,7 +406,10 @@
     "create": "Vytvořit",
     "search": "Hledat",
     "loading": "Načítání...",
-    "error": "Chyba",
+    "error": {
+      "required": "Toto pole je povinné",
+      "maxLength": "Maximum {{max}} povolených znaků"
+    },
     "success": "Úspěch",
     "retry": "Zkusit znovu",
     "back": "Zpět",
@@ -413,11 +417,7 @@
     "enable": "Povolit",
     "disable": "Zakázat",
     "notSpecified": "Nespecifikováno",
-    "general": "Obecné",
-    "error": {
-      "required": "Toto pole je povinné",
-      "maxLength": "Maximum {{max}} povolených znaků"
-    }
+    "general": "Obecné"
   },
   "language": {
     "select": "Vyberte jazyk",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Rychlý přístup k často používaným frázím",
     "legal": "Právní informace"
   }
-} 
+}

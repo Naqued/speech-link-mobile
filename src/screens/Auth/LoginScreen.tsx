@@ -297,13 +297,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity
-        style={styles.devButton}
-        onPress={handleDevLogin}
-        disabled={isLoading}
-      >
-        <Text style={styles.devButtonText}>🔧 Dev Login</Text>
-      </TouchableOpacity>
+      {/* Dev login button removed for production */}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -377,27 +371,7 @@ const LoginScreen: React.FC = () => {
                 <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
               </TouchableOpacity>
               
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.divider} />
-              </View>
-              
-              <View style={styles.socialButtonsContainer}>
-                <TouchableOpacity 
-                  style={[styles.socialButton, styles.googleButton]}
-                  onPress={handleGoogleSignIn}
-                  disabled={isLoading}
-                >
-                  <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-                  <Text style={styles.socialButtonText}>{t('auth.continueWithGoogle')}</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={[styles.socialButton, styles.appleButton]}>
-                  <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
-                  <Text style={styles.socialButtonText}>{t('auth.continueWithApple')}</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Divider and social login buttons removed for production */}
               
               <View style={styles.signupContainer}>
                 <Text style={styles.signupText}>{t('auth.dontHaveAccount')} </Text>

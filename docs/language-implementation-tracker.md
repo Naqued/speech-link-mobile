@@ -75,4 +75,6 @@ Total languages supported: 29
 
 ### Current (April 2024)
 - Added voice selection success/error messages to all language files
-- Implemented Toast notifications for better user feedback 
+- Implemented Toast notifications for better user feedback
+- Fixed Tamil (ta) translation file with essential translations
+- Updated script to check JSON validity before attempting to modify translation files 

@@ -98,7 +98,16 @@
       "age": "Edad",
       "category": "Kategorya",
       "useCase": "Use Case",
-      "descriptives": "Istilo ng Boses",
+      "descriptives": {
+        "all": "Lahat ng Descriptives",
+        "calm": "Kalmado",
+        "energetic": "Masigla",
+        "professional": "Propesyonal",
+        "friendly": "Palakaibigan",
+        "authoritative": "May Awtoridad",
+        "cheerful": "Masayahin",
+        "serious": "Seryoso"
+      },
       "applyWithCount": "I-apply ang {{count}} Filters",
       "apply": "I-apply ang Mga Filter",
       "activeFilters": "Mga Aktibong Filter",
@@ -168,16 +177,6 @@
         "gaming": "Gaming",
         "narration": "Narration",
         "advertisement": "Advertisement"
-      },
-      "descriptives": {
-        "all": "Lahat ng Descriptives",
-        "calm": "Kalmado",
-        "energetic": "Masigla",
-        "professional": "Propesyonal",
-        "friendly": "Palakaibigan",
-        "authoritative": "May Awtoridad",
-        "cheerful": "Masayahin",
-        "serious": "Seryoso"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Piliin",
       "selected": "Napili",
       "stop": "Ihinto",
-      "processing": "Pinoproseso..."
+      "processing": "Pinoproseso...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Mapahayag at Dinamiko",
@@ -303,7 +305,6 @@
       "questions": "Mga Tanong",
       "medical": "Medikal",
       "activities": "Mga Aktibidad",
-      
       "cat_basic_needs_en": "Pangunahing Pangangailangan",
       "cat_basic_needs_fr": "Pangunahing Pangangailangan",
       "cat_social_interaction_en": "Pakikipag-ugnayan sa Lipunan",
@@ -405,7 +406,10 @@
     "create": "Gumawa",
     "search": "Maghanap",
     "loading": "Naglo-load...",
-    "error": "Error",
+    "error": {
+      "required": "Kinakailangan ang field na ito",
+      "maxLength": "Maximum na {{max}} characters ang pinapayagan"
+    },
     "success": "Tagumpay",
     "retry": "Subukan Muli",
     "back": "Bumalik",
@@ -413,11 +417,7 @@
     "enable": "I-enable",
     "disable": "I-disable",
     "notSpecified": "Hindi natukoy",
-    "general": "Pangkalahatan",
-    "error": {
-      "required": "Kinakailangan ang field na ito",
-      "maxLength": "Maximum na {{max}} characters ang pinapayagan"
-    }
+    "general": "Pangkalahatan"
   },
   "language": {
     "select": "Pumili ng Wika",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Mabilis na access sa mga karaniwang ginagamit na parirala",
     "legal": "Legal"
   }
-} 
+}

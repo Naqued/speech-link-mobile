@@ -98,7 +98,16 @@
       "age": "Възраст",
       "category": "Категория",
       "useCase": "Приложение",
-      "descriptives": "Стил на гласа",
+      "descriptives": {
+        "all": "Всички стилове",
+        "calm": "Спокоен",
+        "energetic": "Енергичен",
+        "professional": "Професионален",
+        "friendly": "Приятелски",
+        "authoritative": "Авторитетен",
+        "cheerful": "Весел",
+        "serious": "Сериозен"
+      },
       "applyWithCount": "Приложи {{count}} филтъра",
       "apply": "Приложи филтрите",
       "activeFilters": "Активни филтри",
@@ -168,16 +177,6 @@
         "gaming": "Игри",
         "narration": "Разказване",
         "advertisement": "Реклама"
-      },
-      "descriptives": {
-        "all": "Всички стилове",
-        "calm": "Спокоен",
-        "energetic": "Енергичен",
-        "professional": "Професионален",
-        "friendly": "Приятелски",
-        "authoritative": "Авторитетен",
-        "cheerful": "Весел",
-        "serious": "Сериозен"
       }
     },
     "metadata": {
@@ -243,7 +242,10 @@
       "select": "Избери",
       "selected": "Избран",
       "stop": "Спри",
-      "processing": "Обработка..."
+      "processing": "Обработка...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Изразителен и динамичен",
@@ -303,7 +305,6 @@
       "questions": "Въпроси",
       "medical": "Медицински",
       "activities": "Дейности",
-      
       "cat_basic_needs_en": "Основни нужди",
       "cat_basic_needs_fr": "Основни нужди",
       "cat_social_interaction_en": "Социално взаимодействие",
@@ -405,7 +406,10 @@
     "create": "Създай",
     "search": "Търси",
     "loading": "Зареждане...",
-    "error": "Грешка",
+    "error": {
+      "required": "Това поле е задължително",
+      "maxLength": "Максимално {{max}} знака разрешени"
+    },
     "success": "Успех",
     "retry": "Опитай отново",
     "back": "Назад",
@@ -413,11 +417,7 @@
     "enable": "Активирай",
     "disable": "Деактивирай",
     "notSpecified": "Не е посочено",
-    "general": "Общи",
-    "error": {
-      "required": "Това поле е задължително",
-      "maxLength": "Максимално {{max}} знака разрешени"
-    }
+    "general": "Общи"
   },
   "language": {
     "select": "Избери език",
@@ -504,4 +504,4 @@
     "aacBoardDesc": "Бърз достъп до често използвани фрази",
     "legal": "Правна информация"
   }
-} 
+}

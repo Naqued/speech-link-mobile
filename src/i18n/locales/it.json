@@ -96,7 +96,16 @@
       "age": "Età",
       "category": "Categoria",
       "useCase": "Caso d'uso",
-      "descriptives": "Stile di voce",
+      "descriptives": {
+        "all": "Tutti gli Stili",
+        "calm": "Calmo",
+        "energetic": "Energico",
+        "professional": "Professionale",
+        "friendly": "Amichevole",
+        "authoritative": "Autorevole",
+        "cheerful": "Allegro",
+        "serious": "Serio"
+      },
       "applyWithCount": "Applica {{count}} filtri",
       "apply": "Applica filtri",
       "activeFilters": "Filtri attivi",
@@ -166,16 +175,6 @@
         "gaming": "Videogiochi",
         "narration": "Narrazione",
         "advertisement": "Pubblicità"
-      },
-      "descriptives": {
-        "all": "Tutti gli Stili",
-        "calm": "Calmo",
-        "energetic": "Energico",
-        "professional": "Professionale",
-        "friendly": "Amichevole",
-        "authoritative": "Autorevole",
-        "cheerful": "Allegro",
-        "serious": "Serio"
       }
     },
     "metadata": {
@@ -241,7 +240,10 @@
       "select": "Seleziona",
       "selected": "Selezionata",
       "stop": "Ferma",
-      "processing": "Elaborazione..."
+      "processing": "Elaborazione...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Espressivo e Dinamico",
@@ -301,7 +303,6 @@
       "questions": "Domande",
       "medical": "Medico",
       "activities": "Attività",
-      
       "cat_basic_needs_en": "Bisogni Essenziali",
       "cat_basic_needs_fr": "Bisogni Essenziali",
       "cat_social_interaction_en": "Interazione Sociale",
@@ -313,7 +314,6 @@
       "cat_all_en": "Tutte le Frasi",
       "cat_all_fr": "Tutte le Frasi",
       "all": "Tutte le Frasi"
-      
     },
     "phrases": {
       "add": "Aggiungi Frase",
@@ -404,7 +404,10 @@
     "create": "Crea",
     "search": "Cerca",
     "loading": "Caricamento...",
-    "error": "Errore",
+    "error": {
+      "required": "Questo campo è obbligatorio",
+      "maxLength": "Massimo {{max}} caratteri consentiti"
+    },
     "success": "Successo",
     "retry": "Riprova",
     "back": "Indietro",
@@ -412,11 +415,7 @@
     "enable": "Attiva",
     "disable": "Disattiva",
     "notSpecified": "Non specificato",
-    "general": "Generale",
-    "error": {
-      "required": "Questo campo è obbligatorio",
-      "maxLength": "Massimo {{max}} caratteri consentiti"
-    }
+    "general": "Generale"
   },
   "language": {
     "select": "Seleziona Lingua",
@@ -503,4 +502,4 @@
     "aacBoardDesc": "Accesso rapido a frasi utilizzate frequentemente",
     "legal": "Note Legali"
   }
-} 
+}

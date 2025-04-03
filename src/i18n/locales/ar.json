@@ -96,7 +96,16 @@
       "age": "العمر",
       "category": "الفئة",
       "useCase": "حالة الاستخدام",
-      "descriptives": "نمط الصوت",
+      "descriptives": {
+        "all": "جميع الأنماط",
+        "calm": "هادئ",
+        "energetic": "نشط",
+        "professional": "احترافي",
+        "friendly": "ودود",
+        "authoritative": "ذو سلطة",
+        "cheerful": "مرح",
+        "serious": "جاد"
+      },
       "applyWithCount": "تطبيق {{count}} من الفلاتر",
       "apply": "تطبيق الفلاتر",
       "activeFilters": "الفلاتر النشطة",
@@ -166,16 +175,6 @@
         "gaming": "ألعاب",
         "narration": "سرد",
         "advertisement": "إعلان"
-      },
-      "descriptives": {
-        "all": "جميع الأنماط",
-        "calm": "هادئ",
-        "energetic": "نشط",
-        "professional": "احترافي",
-        "friendly": "ودود",
-        "authoritative": "ذو سلطة",
-        "cheerful": "مرح",
-        "serious": "جاد"
       }
     },
     "metadata": {
@@ -241,7 +240,10 @@
       "select": "اختيار",
       "selected": "تم الاختيار",
       "stop": "إيقاف",
-      "processing": "جاري المعالجة..."
+      "processing": "جاري المعالجة...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "معبر وديناميكي",
@@ -301,7 +303,6 @@
       "questions": "الأسئلة",
       "medical": "طبي",
       "activities": "الأنشطة",
-      
       "cat_basic_needs_en": "الاحتياجات الأساسية",
       "cat_basic_needs_fr": "الاحتياجات الأساسية",
       "cat_social_interaction_en": "التفاعل الاجتماعي",
@@ -403,7 +404,10 @@
     "create": "إنشاء",
     "search": "بحث",
     "loading": "جاري التحميل...",
-    "error": "خطأ",
+    "error": {
+      "required": "هذا الحقل مطلوب",
+      "maxLength": "الحد الأقصى {{max}} حرف مسموح به"
+    },
     "success": "نجاح",
     "retry": "إعادة المحاولة",
     "back": "رجوع",
@@ -411,11 +415,7 @@
     "enable": "تفعيل",
     "disable": "تعطيل",
     "notSpecified": "غير محدد",
-    "general": "عام",
-    "error": {
-      "required": "هذا الحقل مطلوب",
-      "maxLength": "الحد الأقصى {{max}} حرف مسموح به"
-    }
+    "general": "عام"
   },
   "language": {
     "select": "اختر اللغة",
@@ -502,4 +502,4 @@
     "aacBoardDesc": "وصول سريع للعبارات المستخدمة بشكل متكرر",
     "legal": "المعلومات القانونية"
   }
-} 
+}

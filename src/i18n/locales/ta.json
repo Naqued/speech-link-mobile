@@ -1,1 +1,59 @@
- 
+{
+  "app": {
+    "name": "Speech Link"
+  },
+  "voice": {
+    "actions": {
+      "preview": "முன்னோட்டம்",
+      "stopPreview": "நிறுத்து",
+      "select": "தேர்ந்தெடு",
+      "selected": "தேர்ந்தெடுக்கப்பட்டது",
+      "stop": "நிறுத்து",
+      "processing": "செயலாக்கம்...",
+      "success": "வெற்றி",
+      "voiceSelected": "{{name}} உங்கள் குரலாக தேர்ந்தெடுக்கப்பட்டுள்ளது",
+      "errorSelectingVoice": "குரலைத் தேர்ந்தெடுப்பதில் தோல்வி. மீண்டும் முயற்சிக்கவும்.",
+      "currentVoice": "தற்போதைய குரல்"
+    },
+    "collection": {
+      "title": "குரல் சேகரிப்பு",
+      "currentVoice": "தற்போதைய குரல்",
+      "allVoices": "அனைத்து குரல்கள்"
+    }
+  },
+  "general": {
+    "success": "வெற்றி",
+    "error": "பிழை",
+    "ok": "சரி",
+    "cancel": "ரத்து செய்",
+    "save": "சேமி",
+    "delete": "நீக்கு",
+    "edit": "திருத்து",
+    "create": "உருவாக்கு",
+    "search": "தேடு",
+    "loading": "ஏற்றுகிறது...",
+    "retry": "மீண்டும் முயற்சி",
+    "back": "பின்செல்",
+    "enable": "இயக்கு",
+    "disable": "முடக்கு"
+  },
+  "tabs": {
+    "home": "முகப்பு",
+    "voices": "குரல்கள்",
+    "settings": "அமைப்புகள்"
+  },
+  "voiceCollection": {
+    "title": "குரல் சேகரிப்பு",
+    "searchVoices": "குரல்களைத் தேடு",
+    "filterBy": "வடிகட்டு",
+    "provider": "வழங்குநர்",
+    "language": "மொழி",
+    "allProviders": "அனைத்து வழங்குநர்கள்",
+    "allLanguages": "அனைத்து மொழிகள்",
+    "tryVoice": "குரலை முயற்சிக்க",
+    "addToFavorites": "விருப்பமானவைகளில் சேர்",
+    "removeFromFavorites": "விருப்பமானவைகளிலிருந்து நீக்கு",
+    "favoriteVoices": "விருப்பமான குரல்கள்",
+    "noVoicesFound": "உங்கள் தேடலுக்கு பொருந்தக்கூடிய குரல்கள் எதுவும் இல்லை."
+  }
+} 
