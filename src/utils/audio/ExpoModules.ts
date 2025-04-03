@@ -4,6 +4,17 @@ export interface AudioRouterInterface {
   stopAudioRouting(): Promise<void>;
 }
 
-// The module will be automatically imported by the Expo modules system
-// When it's properly set up in the native code
-export const AudioRouter: AudioRouterInterface | null = null; 
+// Mock implementation of the AudioRouter module
+export const AudioRouter: AudioRouterInterface = {
+  routeAudioToMicrophone: async (filePath: string): Promise<boolean> => {
+    console.log('[MOCK] routeAudioToMicrophone called with path:', filePath);
+    // Always return success in the mock implementation
+    return true;
+  },
+  
+  stopAudioRouting: async (): Promise<void> => {
+    console.log('[MOCK] stopAudioRouting called');
+    // Mock implementation doesn't need to do anything
+    return;
+  }
+}; 

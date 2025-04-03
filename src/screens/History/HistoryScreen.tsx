@@ -137,9 +137,15 @@ const HistoryScreen: React.FC = () => {
       // Use TTS service if we have a voice ID
       if (voiceId) {
         try {
-          await speak(text, voiceId, 'ELEVENLABS');
-          setIsSpeaking(false);
-          setPlayingItemId(null);
+          const soundObject = await speak(text, voiceId, 'ELEVENLABS');
+          
+          // Set up a listener to update state when playback finishes
+          soundObject.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setIsSpeaking(false);
+              setPlayingItemId(null);
+            }
+          });
         } catch (error) {
           // Fallback to default speech if TTS fails
           console.error('Failed to play with TTS, using fallback', error);

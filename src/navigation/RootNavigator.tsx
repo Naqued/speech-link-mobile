@@ -6,7 +6,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { ThemeContext, themes } from '../contexts/ThemeContext';
 
 // Navigators
-import { MainNavigator } from './MainNavigator';
+import MainNavigator from './MainNavigator';
 import { AuthNavigator } from './AuthNavigator';
 
 const RootNavigator: React.FC = () => {

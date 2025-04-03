@@ -341,7 +341,17 @@
     "speechToText": "Parole-à-Texte",
     "textToSpeech": "Texte-à-Parole",
     "totalTime": "Temps Total",
-    "accountCreated": "Compte Créé"
+    "accountCreated": "Compte Créé",
+    "memberSince": "Membre depuis",
+    "creditsUsed": "Crédits Utilisés",
+    "nextReset": "Prochaine Réinitialisation",
+    "freeTier": "Gratuit",
+    "loadError": "Échec du chargement du profil",
+    "updateError": "Échec de la mise à jour du profil",
+    "updateSuccess": "Profil mis à jour avec succès",
+    "requiredFields": "Le nom et l'email sont requis",
+    "namePlaceholder": "Votre nom",
+    "emailPlaceholder": "Votre email"
   },
   "history": {
     "title": "Historique",
@@ -451,5 +461,16 @@
       "enable_failed": "Échec de l'activation du routage audio",
       "disable_failed": "Échec de la désactivation du routage audio"
     }
+  },
+  "about": {
+    "description": "Speech Link est une puissante application d'amélioration vocale qui vous aide à communiquer plus efficacement. Avec des fonctionnalités comme la synthèse vocale, la reconnaissance vocale et la personnalisation de la voix, vous pouvez vous exprimer clairement et avec confiance dans toutes les situations.",
+    "features": "Fonctionnalités",
+    "voiceEnhancement": "Amélioration Vocale",
+    "voiceEnhancementDesc": "Sortie vocale cristalline avec paramètres personnalisables",
+    "textToSpeech": "Synthèse Vocale",
+    "textToSpeechDesc": "Conversion de texte en parole naturelle",
+    "aacBoard": "Tableau AAC",
+    "aacBoardDesc": "Accès rapide aux phrases fréquemment utilisées",
+    "legal": "Mentions Légales"
   }
 } 

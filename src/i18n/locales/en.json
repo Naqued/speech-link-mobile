@@ -17,6 +17,8 @@
     "resetPassword": "Reset Password",
     "confirmPassword": "Confirm Password",
     "name": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "resetPasswordInstructions": "Enter your email address and we'll send you instructions to reset your password.",
     "passwordResetSent": "Password reset instructions have been sent to your email.",
     "signUpSuccess": "Account created successfully! Please sign in."
@@ -340,7 +342,17 @@
     "speechToText": "Speech-to-Text",
     "textToSpeech": "Text-to-Speech",
     "totalTime": "Total Time",
-    "accountCreated": "Account Created"
+    "accountCreated": "Account Created",
+    "memberSince": "Member Since",
+    "creditsUsed": "Credits Used",
+    "nextReset": "Next Reset",
+    "freeTier": "Free",
+    "loadError": "Failed to load profile",
+    "updateError": "Failed to update profile",
+    "updateSuccess": "Profile updated successfully",
+    "requiredFields": "Name and email are required",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "Your email"
   },
   "history": {
     "title": "History",
@@ -450,5 +462,16 @@
       "enable_failed": "Failed to enable audio routing",
       "disable_failed": "Failed to disable audio routing"
     }
+  },
+  "about": {
+    "description": "Speech Link is a powerful voice enhancement application that helps you communicate more effectively. With features like text-to-speech, speech-to-text, and voice customization, you can express yourself clearly and confidently in any situation.",
+    "features": "Features",
+    "voiceEnhancement": "Voice Enhancement",
+    "voiceEnhancementDesc": "Crystal clear voice output with customizable settings",
+    "textToSpeech": "Text to Speech",
+    "textToSpeechDesc": "Convert text to natural-sounding speech",
+    "aacBoard": "AAC Board",
+    "aacBoardDesc": "Quick access to commonly used phrases",
+    "legal": "Legal"
   }
 } 

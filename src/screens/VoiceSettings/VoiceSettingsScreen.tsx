@@ -50,6 +50,17 @@ const VoiceSettingsScreen: React.FC = () => {
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
+  // Clean up audio resources on unmount
+  useEffect(() => {
+    return () => {
+      if (previewSound) {
+        previewSound.unloadAsync().catch(err => {
+          console.error('Error unloading sound on cleanup:', err);
+        });
+      }
+    };
+  }, [previewSound]);
+
   // Filter voices based on current filters
   const filteredVoices = availableVoices.filter(voice => {
     if (showFavoritesOnly && userSettings?.favorites?.voices) {
@@ -117,13 +128,15 @@ const VoiceSettingsScreen: React.FC = () => {
 
       // Use the previewVoice function from useTextToSpeech hook
       // Pass the publicOwnerId and voiceName for shared voices
-      await previewVoice(
+      const sound = await previewVoice(
         voice.id, 
         voice.provider, 
         voice.public_owner_id || voice.publicOwnerId, 
         voice.name
       );
-      
+
+      // Store the sound for cleanup later
+      setPreviewSound(sound);
       setIsPreviewLoading(false);
     } catch (error) {
       console.error('Error previewing voice:', error);
@@ -292,6 +305,7 @@ const VoiceSettingsScreen: React.FC = () => {
             />
           </View>
           
+          {/* Audio routing feature hidden until native implementation is complete
           <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
             <View style={styles.settingLabelContainer}>
               <Text style={[styles.settingLabel, { color: theme.text }]}>
@@ -317,6 +331,7 @@ const VoiceSettingsScreen: React.FC = () => {
               </Text>
             </View>
           )}
+          */}
         </View>
         
         <View style={styles.section}>

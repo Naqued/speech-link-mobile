@@ -5,6 +5,7 @@ import {
   TextInput, 
   TouchableOpacity, 
   StyleSheet, 
+  Image, 
   SafeAreaView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -23,6 +24,9 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 // Types
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 
+// Services
+import { authService } from '../../services/authService';
+
 type ForgotPasswordScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
 
 const ForgotPasswordScreen: React.FC = () => {
@@ -32,25 +36,44 @@ const ForgotPasswordScreen: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
-  const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert(t('general.error'), 'Please enter your email address');
+  const validateEmail = () => {
+    if (!email.trim()) {
+      setResetError('Email is required');
+      return false;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setResetError('Please enter a valid email address');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleResetRequest = async () => {
+    // Validate email
+    if (!validateEmail()) {
       return;
     }
 
     try {
       setIsLoading(true);
-      // For demonstration, we're just showing success
-      // In a real app, you'd make an API call here
-      setTimeout(() => {
-        setResetSent(true);
-        setIsLoading(false);
-      }, 1500);
+      setResetError(null);
+      
+      // Request password reset
+      await authService.requestPasswordReset(email);
+      
+      // Show success state
+      setResetSent(true);
     } catch (error) {
-      Alert.alert(t('general.error'), 'Failed to send reset email');
-      console.error(error);
+      console.error('Password reset request error:', error);
+      setResetError(error instanceof Error ? error.message : 'Password reset request failed');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -65,23 +88,37 @@ const ForgotPasswordScreen: React.FC = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
-            <View style={styles.header}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}
-              >
-                <Ionicons name="arrow-back" size={24} color={theme.text} />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>{t('auth.forgotPassword')}</Text>
-              <View style={styles.emptySpace} />
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back" size={24} color={theme.text} />
+            </TouchableOpacity>
+
+            <View style={styles.logoContainer}>
+              <Image 
+                source={require('../../../assets/images/logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={styles.appName}>{t('app.name')}</Text>
             </View>
 
-            <View style={styles.contentContainer}>
+            <View style={styles.formContainer}>
+              <Text style={styles.welcomeText}>{t('auth.resetPassword')}</Text>
+              
               {!resetSent ? (
                 <>
-                  <Text style={styles.instructionText}>
-                    Enter your email address and we'll send you a link to reset your password.
+                  <Text style={styles.instructions}>
+                    {t('auth.resetPasswordInstructions')}
                   </Text>
+                  
+                  {resetError ? (
+                    <View style={styles.errorContainer}>
+                      <Ionicons name="alert-circle-outline" size={20} color="#FF6B6B" />
+                      <Text style={styles.errorText}>{resetError}</Text>
+                    </View>
+                  ) : null}
                   
                   <View style={styles.inputContainer}>
                     <Ionicons name="mail-outline" size={20} color={theme.text} style={styles.inputIcon} />
@@ -98,27 +135,33 @@ const ForgotPasswordScreen: React.FC = () => {
                   
                   <TouchableOpacity
                     style={styles.resetButton}
-                    onPress={handleResetPassword}
+                    onPress={handleResetRequest}
                     disabled={isLoading}
                   >
-                    <Text style={styles.resetButtonText}>Send Reset Link</Text>
+                    <Text style={styles.resetButtonText}>{t('auth.resetPassword')}</Text>
                   </TouchableOpacity>
                 </>
               ) : (
                 <View style={styles.successContainer}>
-                  <Ionicons name="checkmark-circle" size={80} color={theme.success} style={styles.successIcon} />
-                  <Text style={styles.successTitle}>Reset Email Sent</Text>
+                  <Ionicons name="checkmark-circle" size={60} color={theme.success} />
                   <Text style={styles.successText}>
-                    We've sent a password reset link to your email address. Please check your inbox and follow the instructions.
+                    {t('auth.passwordResetSent')}
                   </Text>
                   <TouchableOpacity
                     style={styles.backToLoginButton}
                     onPress={() => navigation.navigate('Login')}
                   >
-                    <Text style={styles.backToLoginText}>Back to Login</Text>
+                    <Text style={styles.backToLoginText}>{t('auth.signIn')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
+              
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>Remember your password? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                  <Text style={styles.loginLink}>{t('auth.signIn')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -137,40 +180,62 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   inner: {
     flex: 1,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-    paddingTop: 10,
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.text,
-  },
-  emptySpace: {
-    width: 34, // Same width as the back button for proper centering
-  },
-  contentContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    maxWidth: 400,
-    alignSelf: 'center',
-    width: '100%',
+    padding: 20,
   },
-  instructionText: {
-    fontSize: 16,
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    padding: 5,
+    zIndex: 10,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+  },
+  appName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: theme.primary,
+    marginTop: 10,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: 'bold',
     color: theme.text,
-    marginBottom: 30,
-    textAlign: 'center',
-    lineHeight: 22,
+    marginBottom: 15,
+  },
+  instructions: {
+    fontSize: 16,
+    color: theme.text + 'CC',
+    marginBottom: 25,
+    lineHeight: 24,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    marginLeft: 10,
+    flex: 1,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -179,7 +244,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
     borderRadius: 10,
     marginBottom: 25,
     height: 55,
-    width: '100%',
     borderWidth: 1,
     borderColor: theme.border,
   },
@@ -199,7 +263,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
     height: 55,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
     shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -216,29 +279,21 @@ const makeStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  successIcon: {
-    marginBottom: 20,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 15,
-  },
   successText: {
     fontSize: 16,
     color: theme.text,
     textAlign: 'center',
+    marginTop: 20,
     marginBottom: 30,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   backToLoginButton: {
     backgroundColor: theme.primary,
     borderRadius: 10,
     height: 55,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
     shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -248,6 +303,20 @@ const makeStyles = (theme: any) => StyleSheet.create({
   backToLoginText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  loginText: {
+    color: theme.text,
+    fontSize: 14,
+  },
+  loginLink: {
+    color: theme.primary,
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });
