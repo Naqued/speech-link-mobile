@@ -236,12 +236,15 @@
       "description": "Descripción: "
     },
     "actions": {
-      "preview": "Escuchar",
+      "preview": "Vista previa",
       "stopPreview": "Detener",
       "select": "Seleccionar",
       "selected": "Seleccionada",
       "stop": "Detener",
-      "processing": "Procesando..."
+      "processing": "Procesando...",
+      "success": "Éxito",
+      "voiceSelected": "{{name}} ha sido seleccionada como su voz",
+      "errorSelectingVoice": "Error al seleccionar la voz. Inténtelo de nuevo."
     },
     "characteristics": {
       "expressive": "Expresivo y Dinámico",

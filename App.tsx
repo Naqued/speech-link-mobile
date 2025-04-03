@@ -7,6 +7,7 @@ import { I18nextProvider, useTranslation } from 'react-i18next';
 // Providers
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { ToastProvider } from './src/components/UI/ToastProvider';
 
 // Navigation
 import RootNavigator from './src/navigation/RootNavigator';
@@ -42,11 +43,13 @@ export default function App() {
       <SafeAreaProvider>
         <ThemeProvider>
           <AuthProvider>
-            <NavigationContainer>
-              <RTLWrapper>
-                <RootNavigator />
-              </RTLWrapper>
-            </NavigationContainer>
+            <ToastProvider>
+              <NavigationContainer>
+                <RTLWrapper>
+                  <RootNavigator />
+                </RTLWrapper>
+              </NavigationContainer>
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>

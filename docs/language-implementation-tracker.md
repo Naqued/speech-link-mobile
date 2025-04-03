@@ -53,4 +53,26 @@ Total languages supported: 29
 - Updated translations include:
   - "aacBoard.noPhrases" - For the "No phrases in this category" message
   - "settings.autoSpeakEnabled" - For the auto-speak setting
-  - "profile.subscriptionExpiry" - For subscription expiry information 
+  - "profile.subscriptionExpiry" - For subscription expiry information
+  - "voice.actions.success" - For voice selection success message
+  - "voice.actions.voiceSelected" - For voice selection confirmation message
+  - "voice.actions.errorSelectingVoice" - For voice selection error message
+
+## Recent Changes
+
+### June 2023
+- Added support for Bulgarian and Romanian languages
+
+### September 2023
+- Added support for Czech, Greek, and Finnish languages
+
+### February 2024
+- Added 6 new languages: Croatian, Malay, Slovak, Danish, Tamil, and Ukrainian
+
+### March 2024 
+- Added Russian language support
+- Updated all language files with new translations for AAC Board feature
+
+### Current (April 2024)
+- Added voice selection success/error messages to all language files
+- Implemented Toast notifications for better user feedback 

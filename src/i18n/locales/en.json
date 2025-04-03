@@ -238,12 +238,15 @@
       "description": "Description: "
     },
     "actions": {
-      "preview": "Listen",
+      "preview": "Preview",
       "stopPreview": "Stop",
       "select": "Select",
       "selected": "Selected",
       "stop": "Stop",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expressive and Dynamic",
