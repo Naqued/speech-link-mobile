@@ -33,7 +33,9 @@ const VoiceSettingsScreen: React.FC = () => {
     error, 
     updateVoiceSettings,
     toggleFavoriteVoice,
-    refreshSettings
+    refreshSettings,
+    profileData,
+    fetchProfileData
   } = useVoiceSettings();
   
   const { 
@@ -60,6 +62,13 @@ const VoiceSettingsScreen: React.FC = () => {
       }
     };
   }, [previewSound]);
+
+  // Add a useEffect to fetch profile data if needed
+  useEffect(() => {
+    if (!profileData) {
+      fetchProfileData();
+    }
+  }, [profileData, fetchProfileData]);
 
   // Filter voices based on current filters
   const filteredVoices = availableVoices.filter(voice => {
@@ -205,10 +214,25 @@ const VoiceSettingsScreen: React.FC = () => {
   };
 
   const renderVoiceItem = ({ item }: { item: Voice }) => {
-    const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
+    // Check if the voice is selected using both the local userSettings and profileData
+    const isSelectedFromSettings = userSettings?.voiceSettings?.voiceId === item.id;
+    const isSelectedFromProfile = profileData?.voiceSettings?.selectedVoice?.id === item.id;
+    const isSelected = isSelectedFromSettings || isSelectedFromProfile;
+    
     // Only use API favorites (from userSettings.favorites.voices), not the item.isFavorite property
     const isFavorite = userSettings?.favorites?.voices?.includes(item.id);
-    const isPreviewing = isPreviewLoading && userSettings?.voiceSettings?.voiceId === item.id;
+    const isPreviewing = isPreviewLoading && (isSelected);
+    
+    // Get voice name from profile if possible (for more accurate display)
+    let voiceName = item.name;
+    if (profileData?.favoriteVoices) {
+      const profileVoice = profileData.favoriteVoices.find(
+        (voice: any) => voice.voiceId === item.id
+      );
+      if (profileVoice && profileVoice.name) {
+        voiceName = profileVoice.name;
+      }
+    }
     
     return (
       <TouchableOpacity
@@ -220,7 +244,7 @@ const VoiceSettingsScreen: React.FC = () => {
       >
         <View style={styles.voiceInfo}>
           <Text style={[styles.voiceName, { color: theme.text }]}>
-            {item.name}
+            {voiceName}
           </Text>
           <Text style={[styles.voiceDetails, { color: theme.text + '80' }]}>
             {item.provider} • {item.language || 'English'}

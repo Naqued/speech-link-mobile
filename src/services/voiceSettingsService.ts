@@ -17,6 +17,11 @@ export interface VoiceSettings {
   enhancementEnabled?: boolean;
   autoSpeakEnabled?: boolean;
   audioRoutingEnabled?: boolean;
+  selectedVoice?: {
+    id: string;
+    name: string | null;
+    provider: string;
+  } | null;
 }
 
 export interface FavoriteVoice {

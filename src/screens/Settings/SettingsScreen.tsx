@@ -60,6 +60,9 @@ const LANGUAGE_OPTIONS = [
   { id: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' }
 ];
 
+// Add apiService import at the top
+import { apiService } from '../../services/apiService';
+
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation();
@@ -71,6 +74,9 @@ const SettingsScreen: React.FC = () => {
     isLoading,
     availableVoices,
     updateVoiceSettings,
+    profileData,
+    fetchProfileData,
+    refreshSettings
   } = useVoiceSettings();
 
   const { 
@@ -82,19 +88,78 @@ const SettingsScreen: React.FC = () => {
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch profile data if needed
+  useEffect(() => {
+    if (!profileData) {
+      fetchProfileData();
+    }
+  }, [profileData, fetchProfileData]);
+
   // Find the currently selected voice
   // Handle both voiceId (from TypeScript interface) and selectedVoice (from API response)
   const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
     (userSettings?.voiceSettings as any)?.selectedVoice;
   
-  // First try to find in availableVoices
-  let currentVoice = availableVoices.find(voice => voice.id === selectedVoiceId);
+  // First check if the voice exists in profile data's voiceSettings
+  let currentVoice = null;
   
-  // If not found, try to find in the voices array from the API response
+  // Use the new profileData.voiceSettings.selectedVoice if available
+  if (profileData?.voiceSettings?.selectedVoice) {
+    currentVoice = {
+      id: profileData.voiceSettings.selectedVoice.id,
+      name: profileData.voiceSettings.selectedVoice.name || 'Unknown Voice',
+      provider: profileData.voiceSettings.selectedVoice.provider
+    };
+  }
+  // Otherwise check if voice is in favoriteVoices
+  else if (profileData?.favoriteVoices) {
+    const profileVoice = profileData.favoriteVoices.find(
+      (voice: any) => voice.voiceId === selectedVoiceId
+    );
+    
+    if (profileVoice) {
+      currentVoice = {
+        id: profileVoice.voiceId,
+        name: profileVoice.name,
+        provider: profileVoice.provider,
+      };
+    }
+  }
+  
+  // If not found in profile, try to find in availableVoices
+  if (!currentVoice && availableVoices && availableVoices.length > 0) {
+    currentVoice = availableVoices.find(voice => voice.id === selectedVoiceId);
+  }
+  
+  // If still not found, try to find in the voices array from the API response
   if (!currentVoice && (userSettings?.voiceSettings as any)?.voices) {
     const apiVoices = (userSettings?.voiceSettings as any)?.voices || [];
     currentVoice = apiVoices.find((voice: any) => voice.id === selectedVoiceId);
   }
+
+  // Additional check: If using ELEVENLABS but still not found, try searching in API with direct lookup
+  useEffect(() => {
+    const lookupMissingVoice = async () => {
+      if (selectedVoiceId && 
+          !currentVoice && 
+          userSettings?.voiceSettings?.provider === 'ELEVENLABS') {
+        try {
+          // Try to fetch voice details directly from API
+          console.log('Attempting to fetch missing voice details for:', selectedVoiceId);
+          const voiceDetails = await apiService.get<{voices: any[]}>(`/api/shared-voices?voice_id=${selectedVoiceId}`);
+          if (voiceDetails?.voices && voiceDetails.voices.length > 0) {
+            // We found the voice, force an update
+            console.log('Found missing voice details:', voiceDetails.voices[0]);
+            refreshSettings();
+          }
+        } catch (error) {
+          console.error('Failed to lookup missing voice:', error);
+        }
+      }
+    };
+    
+    lookupMissingVoice();
+  }, [selectedVoiceId, currentVoice, userSettings?.voiceSettings?.provider, refreshSettings]);
 
   const styles = makeStyles(theme);
 
@@ -198,9 +263,11 @@ const SettingsScreen: React.FC = () => {
       provider: currentVoice.provider
     } : "No voice found");
     console.log("Available voices count:", availableVoices.length);
+    console.log("Profile favorite voices:", profileData?.favoriteVoices ? 
+      profileData.favoriteVoices.length : "Not available");
     console.log("API voices:", (userSettings?.voiceSettings as any)?.voices ? 
       (userSettings?.voiceSettings as any)?.voices.length : "Not available");
-  }, [selectedVoiceId, currentVoice, availableVoices, userSettings]);
+  }, [selectedVoiceId, currentVoice, availableVoices, userSettings, profileData]);
 
   const renderSettingItem = (
     icon: string,
@@ -285,6 +352,47 @@ const SettingsScreen: React.FC = () => {
     </Modal>
   );
 
+  // Render voice selection with better fallback
+  const renderVoiceSelection = () => {
+    if (isLoading) return <Text style={styles.settingValueText}>Loading...</Text>;
+    
+    if (currentVoice) {
+      return (
+        <View style={styles.voiceValueContainer}>
+          <Text style={styles.settingValueText}>
+            {currentVoice.name}
+          </Text>
+          <View style={styles.voiceProviderBadge}>
+            <Text style={styles.voiceProviderText}>
+              {currentVoice.provider}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    
+    if (selectedVoiceId) {
+      return (
+        <View style={styles.voiceValueContainer}>
+          <Text style={styles.settingValueText}>
+            {t('voice.settings.unknownVoice', 'Unknown Voice')}
+          </Text>
+          <View style={styles.voiceProviderBadge}>
+            <Text style={styles.voiceProviderText}>
+              {(userSettings?.voiceSettings as any)?.provider || 'UNKNOWN'}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    
+    return (
+      <Text style={[styles.settingValueText, {color: theme.error + '80'}]}>
+        {t('voice.settings.noVoiceSelected', 'Not selected')}
+      </Text>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -320,89 +428,6 @@ const SettingsScreen: React.FC = () => {
             () => setLanguageModalVisible(true)
           )}
           {renderLanguageModal()}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('voice.settings.title')}</Text>
-          
-          {/* Current voice selection setting with a better icon and display */}
-          {renderSettingItem(
-            'mic-circle-outline',
-            t('voice.settings.currentVoice', 'Voice'),
-            currentVoice ? (
-              <View style={styles.voiceValueContainer}>
-                <Text style={styles.settingValueText}>
-                  {currentVoice.name}
-                </Text>
-                <View style={styles.voiceProviderBadge}>
-                  <Text style={styles.voiceProviderText}>
-                    {currentVoice.provider}
-                  </Text>
-                </View>
-              </View>
-            ) : selectedVoiceId ? (
-              <View style={styles.voiceValueContainer}>
-                <Text style={styles.settingValueText}>
-                  ID: {selectedVoiceId}
-                </Text>
-                <View style={styles.voiceProviderBadge}>
-                  <Text style={styles.voiceProviderText}>
-                    {(userSettings?.voiceSettings as any)?.provider || 'UNKNOWN'}
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <Text style={[styles.settingValueText, {color: theme.error + '80'}]}>
-                {t('voice.settings.noVoiceSelected', 'Not selected')}
-              </Text>
-            ),
-            handleVoiceSelectionPress
-          )}
-          
-          {/* Auto-speak setting */}
-          {renderSettingItem(
-            'refresh-circle-outline',
-            t('settings.autoSpeakEnabled', 'Auto-Speak'),
-            <Switch
-              value={userSettings?.voiceSettings?.autoSpeakEnabled ?? false}
-              onValueChange={handleToggleAutoSpeakSetting}
-              disabled={isLoading}
-              trackColor={{ false: theme.border, true: theme.primary + '80' }}
-              thumbColor={userSettings?.voiceSettings?.autoSpeakEnabled ? theme.primary : '#f4f3f4'}
-            />,
-            undefined,
-            false
-          )}
-          {/* {renderSettingItem(
-            'mic-outline',
-            t('voice_settings.audio_routing.title'),
-            <Switch
-              value={isAudioRoutingEnabled}
-              onValueChange={handleToggleAudioRouting}
-              disabled={isLoading}
-              trackColor={{ false: theme.border, true: theme.primary + '80' }}
-              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
-            />,
-            undefined,
-            false
-          )}
-          {isAudioRoutingEnabled && (
-            <View style={styles.warningContainer}>
-              <Text style={styles.warningText}>
-                {t('voice_settings.audio_routing.warning')}
-              </Text>
-            </View>
-          )} */}
-          {renderSettingItem(
-            'trending-up-outline',
-            t('voice.settings.pitch'),
-            <Text style={styles.settingValueText}>Medium</Text>
-          )}
-          {renderSettingItem(
-            'volume-high-outline',
-            t('voice.settings.volume'),
-            <Text style={styles.settingValueText}>80%</Text>
-          )}
         </View>
 
         <View style={styles.section}>

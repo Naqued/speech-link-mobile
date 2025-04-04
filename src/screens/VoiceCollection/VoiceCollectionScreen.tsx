@@ -92,7 +92,9 @@ const VoiceCollectionScreen: React.FC = () => {
     refreshSettings,
     updateVoiceSettings,
     favoriteVoices,
-    searchVoices
+    searchVoices,
+    profileData,
+    fetchProfileData
   } = useVoiceSettings();
   
   const { speak, isLoading: isSpeaking, stopSpeaking, previewVoice } = useTextToSpeech();
@@ -111,18 +113,46 @@ const VoiceCollectionScreen: React.FC = () => {
 
   const styles = makeStyles(theme);
 
+  // At the start of your component, add a useEffect to fetch profile data if needed
+  useEffect(() => {
+    // If we don't have profile data yet, fetch it
+    if (!profileData) {
+      fetchProfileData();
+    }
+  }, [profileData, fetchProfileData]);
+
   // Combine available voices with favorites that might not be in the main list
   useEffect(() => {
     const processVoices = async () => {
       // If we have search results, use those instead and return early
       if (searchResults.length > 0 && !showFavorites) {
         console.log('Using search results:', searchResults.length);
+        
+        // Find the selected voice ID
+        const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
+                               profileData?.voiceSettings?.selectedVoice?.id;
+                               
+        if (selectedVoiceId) {
+          // Check if the selected voice is in the search results
+          const selectedIndex = searchResults.findIndex(voice => voice.id === selectedVoiceId);
+          
+          if (selectedIndex > 0) {
+            // If found and not already at position 0, move it to the beginning
+            const reorderedResults = [...searchResults];
+            const selectedVoice = reorderedResults.splice(selectedIndex, 1)[0];
+            reorderedResults.unshift(selectedVoice);
+            setCombinedVoices(reorderedResults);
+            return;
+          }
+        }
+        
+        // If no selected voice or already first, use results as is
         setCombinedVoices(searchResults);
         return;
       }
       
       // Create a copy of the available voices
-      const voices = [...availableVoices];
+      let voices = [...availableVoices];
       
       // If we have favorites data from the API
       if (userSettings?.favorites?.voices?.length && favoriteVoices?.length) {
@@ -151,17 +181,29 @@ const VoiceCollectionScreen: React.FC = () => {
             voices.push(favoriteVoice);
           }
         }
-        
-        // Update the combined voices
-        setCombinedVoices(voices);
-      } else {
-        // If no favorites or userSettings, just use available voices
-        setCombinedVoices(availableVoices);
       }
+      
+      // Find the selected voice ID
+      const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
+                             profileData?.voiceSettings?.selectedVoice?.id;
+                             
+      if (selectedVoiceId) {
+        // Check if the selected voice is in the array
+        const selectedIndex = voices.findIndex(voice => voice.id === selectedVoiceId);
+        
+        if (selectedIndex > 0) {
+          // If found and not already at position 0, move it to the beginning
+          const selectedVoice = voices.splice(selectedIndex, 1)[0];
+          voices.unshift(selectedVoice);
+        }
+      }
+      
+      // Update the combined voices
+      setCombinedVoices(voices);
     };
     
     processVoices();
-  }, [availableVoices, userSettings?.favorites?.voices, favoriteVoices, searchResults, showFavorites]);
+  }, [availableVoices, userSettings?.favorites?.voices, favoriteVoices, searchResults, showFavorites, userSettings?.voiceSettings?.voiceId, profileData?.voiceSettings?.selectedVoice?.id]);
 
   // Generic search handler that uses the current filter states
   const handleSearch = async () => {
@@ -576,20 +618,47 @@ const VoiceCollectionScreen: React.FC = () => {
     }
   };
 
-  // Render voice item with updated UI
+  // Replace the entire ListHeaderComponent with a simplified version
+  const ListHeaderComponent = useCallback(() => {
+    return (
+      <View style={styles.voiceSectionHeader}>
+        <Text style={[styles.voiceSectionTitle, { color: theme.text }]}>
+          {t('voice.collection.allVoices', 'All Voices')}
+        </Text>
+      </View>
+    );
+  }, [theme, t]);
+
+  // Enhance the renderVoiceItem function to better highlight selected voice
   const renderVoiceItem = ({ item }: { item: Voice }) => {
     // Only use API favorites (from userSettings.favorites.voices), not the item.isFavorite property
     const isFavorite = userSettings?.favorites?.voices?.includes(item.id);
-    const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
+    
+    // Check if the voice is selected using both the local userSettings and profileData
+    const isSelectedFromSettings = userSettings?.voiceSettings?.voiceId === item.id;
+    const isSelectedFromProfile = profileData?.voiceSettings?.selectedVoice?.id === item.id;
+    const isSelected = isSelectedFromSettings || isSelectedFromProfile;
+    
     const isPlaying = playingVoiceId === item.id;
     const isFavoriteLoading = favoriteOperation?.voiceId === item.id && favoriteOperation.loading;
     
+    // Try to get enhanced name from profile data
+    let enhancedVoiceName = item.name;
+    if (profileData?.favoriteVoices) {
+      const profileVoice = profileData.favoriteVoices.find(
+        (voice: any) => voice.voiceId === item.id
+      );
+      if (profileVoice && profileVoice.name) {
+        enhancedVoiceName = profileVoice.name;
+      }
+    }
+    
     // Generate avatar URL or placeholder
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4A6FEA&color=fff`;
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(enhancedVoiceName)}&background=4A6FEA&color=fff`;
     
     // Get translated values for display
     const getTranslatedUseCase = (useCase?: string) => {
-      if (!useCase) return t('general.general');
+      if (!useCase) return t('general.general', 'General');
       return t(`voice.metadata.useCase.${useCase}`, useCase.charAt(0).toUpperCase() + useCase.slice(1));
     };
 
@@ -605,7 +674,7 @@ const VoiceCollectionScreen: React.FC = () => {
           isSelected && {
             borderColor: theme.primary,
             borderWidth: 2,
-            backgroundColor: theme.primary + '08',
+            backgroundColor: theme.primary + '10',
           }
         ]}
         onPress={() => {
@@ -614,15 +683,14 @@ const VoiceCollectionScreen: React.FC = () => {
         }}
       >
         <View style={styles.voiceCardHeader}>
-          {isSelected && (
-            <View style={styles.selectedBadge}>
-              <Ionicons name="checkmark-circle" size={20} color={theme.primary} />
-              <Text style={styles.selectedText}>{t('voice.actions.currentVoice')}</Text>
-            </View>
-          )}
           <Image source={{ uri: avatarUrl }} style={styles.voiceAvatar} />
           <View style={styles.voiceInfo}>
-            <Text style={styles.voiceName}>{item.name}</Text>
+            <View style={styles.voiceNameContainer}>
+              <Text style={styles.voiceName}>{enhancedVoiceName}</Text>
+              {isSelected && (
+                <Ionicons name="checkmark-circle" size={16} color={theme.primary} style={styles.voiceNameIcon} />
+              )}
+            </View>
             <Text style={styles.voiceProvider}>
               {getTranslatedUseCase(item.use_case)}
             </Text>
@@ -678,7 +746,7 @@ const VoiceCollectionScreen: React.FC = () => {
               <Ionicons name="play" size={16} color="#FFFFFF" />
             )}
             <Text style={styles.playButtonText}>
-              {isPlaying ? t('general.loading') : t('voice.actions.preview')}
+              {isPlaying ? t('general.loading', 'Loading...') : t('voice.actions.preview', 'Preview')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -698,7 +766,7 @@ const VoiceCollectionScreen: React.FC = () => {
               styles.selectButtonText, 
               isSelected && { color: '#FFFFFF' }
             ]}>
-              {isSelected ? t('voice.actions.selected') : t('voice.actions.select')}
+              {isSelected ? t('voice.actions.selected', 'Selected') : t('voice.actions.select', 'Select')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -767,59 +835,25 @@ const VoiceCollectionScreen: React.FC = () => {
     return null;
   }, [loadingVoices, theme.text]);
 
-  // Memoized header component
-  const ListHeaderComponent = useCallback(() => {
-    const currentVoice = (showFavorites ? getFilteredVoices() : (searchResults.length > 0 ? searchResults : combinedVoices))
-      .find(voice => voice.id === userSettings?.voiceSettings?.voiceId);
-
-    if (!currentVoice) return null;
-    
-    return (
-      <>
-        <View style={styles.voiceSectionHeader}>
-          <Text style={[styles.voiceSectionTitle, { color: theme.text }]}>
-            {t('voice.collection.currentVoice')}
-          </Text>
-        </View>
-        <SelectedVoiceCard
-          voice={currentVoice}
-          theme={theme}
-          onChangeVoice={() => {
-            setSelectedVoice(currentVoice);
-            setShowDetailModal(true);
-          }}
-        />
-        <View style={styles.voiceSectionHeader}>
-          <Text style={[styles.voiceSectionTitle, { color: theme.text }]}>
-            {t('voice.collection.allVoices')}
-          </Text>
-        </View>
-      </>
-    );
-  }, [
-    showFavorites,
-    searchResults,
-    combinedVoices,
-    userSettings?.voiceSettings?.voiceId,
-    theme,
-    t,
-    getFilteredVoices,
-    setSelectedVoice,
-    setShowDetailModal
-  ]);
-
-  // Voice list component
+  // Update the renderVoiceList function to sort the selected voice to appear first
   const renderVoiceList = useCallback(() => {
     const displayVoices = showFavorites ? getFilteredVoices() : (searchResults.length > 0 ? searchResults : combinedVoices);
     
-    // Remove the selected voice from the list if it exists
-    const otherVoices = displayVoices.filter(voice => voice.id !== userSettings?.voiceSettings?.voiceId);
+    // Get the selected voice ID
+    const selectedVoiceId = userSettings?.voiceSettings?.voiceId;
+    
+    // Sort the voices so the selected one is first
+    const sortedVoices = [...displayVoices].sort((a, b) => {
+      if (a.id === selectedVoiceId) return -1;
+      if (b.id === selectedVoiceId) return 1;
+      return 0;
+    });
     
     if ((loadingVoices || refreshing) && !isSearching) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>{t('general.loading')}</Text>
+          <Text style={styles.loadingText}>{t('general.loading', 'Loading...')}</Text>
         </View>
       );
     }
@@ -867,7 +901,7 @@ const VoiceCollectionScreen: React.FC = () => {
 
     return (
       <FlatList
-        data={otherVoices}
+        data={sortedVoices}
         renderItem={renderVoiceItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.voiceList}
@@ -1237,11 +1271,18 @@ const makeStyles = (theme: any) => StyleSheet.create({
   voiceInfo: {
     flex: 1,
   },
+  voiceNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   voiceName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 2,
+  },
+  voiceNameIcon: {
+    marginLeft: 4,
   },
   voiceProvider: {
     fontSize: 14,
@@ -1515,16 +1556,15 @@ const makeStyles = (theme: any) => StyleSheet.create({
     marginLeft: 4,
   },
   voiceSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: theme.background,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.border,
+    marginVertical: 8,
   },
   voiceSectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.text,
   },
   footerContainer: {
     flexDirection: 'row',

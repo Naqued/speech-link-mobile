@@ -31,14 +31,14 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
     return (
       <View style={[styles.container, { backgroundColor: theme.card }]}>
         <Text style={[styles.noVoiceText, { color: theme.text }]}>
-          {t('voice.settings.noVoiceSelected')}
+          {t('voice.settings.noVoiceSelected', 'No voice selected')}
         </Text>
         <TouchableOpacity
           style={[styles.changeButton, { backgroundColor: theme.primary }]}
           onPress={onChangeVoice}
         >
           <Text style={styles.changeButtonText}>
-            {t('voice.settings.selectVoice')}
+            {t('voice.settings.selectVoice', 'Select Voice')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -73,60 +73,48 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
   return (
     <View style={[styles.container, { backgroundColor: theme.card }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          {t('voice.settings.currentVoice')}
+        <Text style={[styles.headerTitle, { color: theme.text }]}>
+          {t('voice.settings.currentVoice', 'Current Voice')}
         </Text>
-        <TouchableOpacity
-          style={[styles.changeButton, { backgroundColor: theme.primary }]}
-          onPress={onChangeVoice}
-        >
-          <Text style={styles.changeButtonText}>
-            {t('voice.settings.change')}
-          </Text>
-        </TouchableOpacity>
       </View>
-
-      <View style={styles.voiceInfo}>
+      <View style={styles.content}>
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-        <View style={styles.details}>
-          <Text style={[styles.voiceName, { color: theme.text }]}>
-            {voice.name}
-          </Text>
-          <Text style={[styles.voiceDetails, { color: theme.text + '80' }]}>
-            {voice.provider} • {voice.language || 'English'}
-          </Text>
-          <View style={styles.badges}>
-            {voice.gender && (
-              <View style={[styles.badge, { backgroundColor: theme.primary + '20' }]}>
-                <Ionicons
-                  name={voice.gender === 'male' ? 'male' : voice.gender === 'female' ? 'female' : 'person'}
-                  size={12}
-                  color={theme.primary}
-                />
-                <Text style={[styles.badgeText, { color: theme.primary }]}>
-                  {t(`voice.metadata.gender.${voice.gender}`)}
-                </Text>
-              </View>
-            )}
-            {voice.accent && (
-              <View style={[styles.badge, { backgroundColor: theme.primary + '20' }]}>
-                <Text style={[styles.badgeText, { color: theme.primary }]}>
-                  {t(`voice.metadata.accent.${voice.accent}`)}
-                </Text>
-              </View>
-            )}
+        <View style={styles.voiceInfo}>
+          <Text style={[styles.voiceName, { color: theme.text }]}>{voice.name}</Text>
+          <View style={styles.voiceDetails}>
+            <View style={[styles.providerBadge, { backgroundColor: theme.primary }]}>
+              <Text style={styles.providerText}>{voice.provider}</Text>
+            </View>
+            <Text style={[styles.voiceLanguage, { color: theme.text + '80' }]}>
+              {voice.language || 'English'}
+            </Text>
           </View>
         </View>
+      </View>
+      <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.playButton, { backgroundColor: theme.primary }]}
+          style={[styles.playButton, { backgroundColor: theme.primary }, isPlaying && { opacity: 0.7 }]}
           onPress={handlePlayPreview}
           disabled={isPlaying}
         >
-          {isPlaying ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Ionicons name="play" size={16} color="#FFFFFF" />
-          )}
+          <Ionicons
+            name={isPlaying ? "stop" : "play"}
+            size={18}
+            color="#FFFFFF"
+          />
+          <Text style={styles.buttonText}>
+            {isPlaying 
+              ? t('voice.actions.stopping', 'Stopping...')
+              : t('voice.actions.preview', 'Preview')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.changeButton, { borderColor: theme.primary }]}
+          onPress={onChangeVoice}
+        >
+          <Text style={[styles.changeButtonText, { color: theme.primary }]}>
+            {t('voice.settings.change', 'Change')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -150,21 +138,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  title: {
+  headerTitle: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  changeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  changeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  voiceInfo: {
+  content: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -173,7 +151,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
-  details: {
+  voiceInfo: {
     flex: 1,
     marginLeft: 12,
   },
@@ -183,32 +161,50 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   voiceDetails: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  badge: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  providerBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     marginRight: 8,
-    marginTop: 4,
   },
-  badgeText: {
-    fontSize: 12,
-    marginLeft: 4,
+  providerText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  voiceLanguage: {
+    fontSize: 14,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
   },
   playButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  changeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 2,
+  },
+  changeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
   },
   noVoiceText: {
     fontSize: 16,
