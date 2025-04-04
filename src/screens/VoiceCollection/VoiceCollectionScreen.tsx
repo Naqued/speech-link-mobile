@@ -604,16 +604,33 @@ const VoiceCollectionScreen: React.FC = () => {
     if (!userSettings?.voiceSettings) return;
     
     try {
+      // Show a loading toast first
+      showToast(t('voice.actions.selecting', 'Selecting voice...'), 'info', 1000);
+      
+      // Update voice settings via API
       await updateVoiceSettings({
         ...userSettings.voiceSettings,
         provider: voice.provider,
         voiceId: voice.id
       });
       
-      // Show success toast instead of alert
-      showToast(t('voice.actions.voiceSelected', { name: voice.name }), 'success', 2000);
+      // After successful update, refresh the UI
+      // 1. Make sure the selected voice appears at the top of the list
+      const updatedVoices = [...combinedVoices];
+      const selectedIndex = updatedVoices.findIndex(v => v.id === voice.id);
+      if (selectedIndex > 0) {
+        const selectedVoice = updatedVoices.splice(selectedIndex, 1)[0];
+        updatedVoices.unshift(selectedVoice);
+        setCombinedVoices(updatedVoices);
+      }
+      
+      // 2. Refresh profile data to get the latest voice settings
+      fetchProfileData();
+      
+      // Show success toast for exactly 3 seconds
+      showToast(t('voice.actions.voiceSelected', { name: voice.name }), 'success', 3000);
     } catch (err) {
-      // Show error toast
+      // Show error toast for exactly 3 seconds
       showToast(t('voice.actions.errorSelectingVoice'), 'error', 3000);
     }
   };
@@ -1158,7 +1175,8 @@ const VoiceCollectionScreen: React.FC = () => {
         onToggleFavorite={handleToggleFavorite}
         onSelectVoice={handleSelectVoice}
         isFavorite={selectedVoice ? userSettings?.favorites?.voices?.includes(selectedVoice.id) || false : false}
-        isSelected={selectedVoice ? userSettings?.voiceSettings?.voiceId === selectedVoice.id : false}
+        isSelected={selectedVoice ? (userSettings?.voiceSettings?.voiceId === selectedVoice.id ||
+                                  profileData?.voiceSettings?.selectedVoice?.id === selectedVoice.id) : false}
         theme={theme}
       />
     </SafeAreaView>

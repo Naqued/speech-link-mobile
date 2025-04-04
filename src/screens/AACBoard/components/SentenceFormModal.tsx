@@ -139,6 +139,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   const getCategoryById = (id: string) => {
     return categories.find(c => c.id === id);
   };
+
+  const categoryName = getCategoryById(categoryId)?.name || '';
   
   return (
     <Modal
@@ -210,7 +212,7 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                           categoryId === category.id && styles.selectedCategoryChipText
                         ]}
                       >
-                        {category.isGlobal ? t(`aac.categories.${category.id}`) : category.name}
+                        {category.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -233,8 +235,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                   >
                     <Text style={styles.selectedCategoryText}>
                       {getCategoryById(categoryId)?.isGlobal 
-                        ? t(`aac.categories.${categoryId}`) 
-                        : getCategoryById(categoryId)?.name || ''}
+                        ? categoryName 
+                        : categoryName}
                     </Text>
                   </View>
                 </View>

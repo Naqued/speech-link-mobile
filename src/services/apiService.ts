@@ -18,8 +18,8 @@ class ApiService {
   private requestCache: Map<string, { data: any, timestamp: number }> = new Map();
 
   private constructor() {
-    // Get API URL from environment or use default
-    this.baseUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.14:3000';
+    // Use the baseUrl from API_CONFIG
+    this.baseUrl = API_CONFIG.BASE_URL;
     
     this.defaultHeaders = {
       'Content-Type': 'application/json',

@@ -4,6 +4,10 @@ import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InitOptions } from 'i18next';
 
+// Debug language initialization
+console.log('[i18n] Starting i18n initialization');
+console.log('[i18n] Device locale:', Localization.locale);
+
 // Import translations
 import en from './locales/en.json';
 import fr from './locales/fr.json';
@@ -45,6 +49,8 @@ export const SUPPORTED_LANGUAGES = ['en', 'fr', 'hi', 'ar', 'ja', 'zh', 'de', 'i
 //   'el', 'fi', 'hr', 'ms', 'sk', 'da', 'ta', 'uk', 'ru'
 // ];
 
+console.log('[i18n] Supported languages:', SUPPORTED_LANGUAGES);
+
 // Define resources for each language
 const resources = {
   en: { translation: en },
@@ -79,13 +85,22 @@ const resources = {
   // ru: { translation: ru }
 };
 
+// Debug resource loading
+Object.keys(resources).forEach(lang => {
+  console.log(`[i18n] Loaded translation for ${lang}:`, 
+    resources[lang as keyof typeof resources].translation ? 'OK' : 'Missing');
+});
+
 // Detect device language
 const getDeviceLanguage = () => {
   const locale = Localization.locale;
   const languageCode = locale.split('-')[0]; // Get first part of locale (e.g., 'en' from 'en-US')
   
   // Check if device language is supported, otherwise fallback to English
-  return SUPPORTED_LANGUAGES.includes(languageCode) ? languageCode : 'en';
+  const detected = SUPPORTED_LANGUAGES.includes(languageCode) ? languageCode : 'en';
+  console.log('[i18n] Detected device language:', languageCode, 
+    'Using:', detected, SUPPORTED_LANGUAGES.includes(languageCode) ? '(supported)' : '(fallback to en)');
+  return detected;
 };
 
 // Initialize i18n
@@ -97,16 +112,38 @@ const initOptions: InitOptions = {
     escapeValue: false,
   },
   compatibilityJSON: 'v4',
+  debug: __DEV__, // Enable debug in development mode
 };
+
+console.log('[i18n] Initializing with options:', {
+  defaultLanguage: initOptions.lng,
+  fallbackLanguage: initOptions.fallbackLng
+});
 
 i18n
   .use(initReactI18next)
-  .init(initOptions);
+  .init(initOptions)
+  .then(() => {
+    console.log('[i18n] Initialization complete. Current language:', i18n.language);
+  })
+  .catch(error => {
+    console.error('[i18n] Initialization failed:', error);
+  });
+
+// Listen for language changes
+i18n.on('languageChanged', (lng) => {
+  console.log('[i18n] Language changed to:', lng);
+});
 
 // Load stored language preference
 AsyncStorage.getItem('userLanguage').then((language) => {
   if (language && SUPPORTED_LANGUAGES.includes(language)) {
-    i18n.changeLanguage(language);
+    console.log('[i18n] Loading stored language preference:', language);
+    i18n.changeLanguage(language).then(() => {
+      console.log('[i18n] Applied stored language:', language, 'Current:', i18n.language);
+    });
+  } else {
+    console.log('[i18n] No valid stored language found, using default:', i18n.language);
   }
 });
 

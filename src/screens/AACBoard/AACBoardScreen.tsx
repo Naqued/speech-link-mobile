@@ -67,6 +67,15 @@ const AACBoardScreen: React.FC = () => {
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
   
+  // Log language for debugging
+  useEffect(() => {
+    console.log('=================== AAC LANGUAGE DEBUG ===================');
+    console.log('AACBoardScreen mounted/updated with language:', currentLanguage);
+    console.log('i18n.language:', i18n.language);
+    console.log('i18n supported languages:', i18n.languages);
+    console.log('=================== AAC LANGUAGE DEBUG ===================');
+  }, [currentLanguage, i18n.language]);
+
   // State
   const [categories, setCategories] = useState<CategoryUIModel[]>([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -105,8 +114,13 @@ const AACBoardScreen: React.FC = () => {
         setCategoriesLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchCategories - using language:', currentLanguage);
+        
         // Fetch from API
         const apiCategories = await aacService.getCategories(currentLanguage);
+        
+        console.log('[AACBoard] fetchCategories - received categories:', apiCategories.length);
         
         if (apiCategories.length > 0) {
           // Map to UI model and sort by order
@@ -123,6 +137,7 @@ const AACBoardScreen: React.FC = () => {
           }
         } else {
           // Fallback to defaults if no categories found
+          console.log('[AACBoard] No categories found for language:', currentLanguage, '- using defaults');
           setCategories([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
         }
       } catch (err) {
@@ -146,8 +161,13 @@ const AACBoardScreen: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchAllSentences - using language:', currentLanguage);
+        
         // Fetch all sentences without categoryId filter
         const apiSentences = await aacService.getSentences(undefined, currentLanguage);
+        
+        console.log('[AACBoard] fetchAllSentences - received sentences:', apiSentences.length);
         
         // Map to UI model
         const uiSentences = apiSentences
@@ -186,8 +206,13 @@ const AACBoardScreen: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchSentences - using language:', currentLanguage, 'category:', selectedCategory);
+        
         // Fetch from API
         const apiSentences = await aacService.getSentences(selectedCategory, currentLanguage);
+        
+        console.log('[AACBoard] fetchSentences - received sentences for category:', apiSentences.length);
         
         // Map to UI model and sort by order
         const uiSentences = apiSentences
@@ -581,7 +606,7 @@ const AACBoardScreen: React.FC = () => {
           selectedCategory === item.id && styles.selectedCategoryText,
         ]}
       >
-        {item.isGlobal ? t(`aac.categories.${item.id}`) : item.name}
+        {item.name}
       </Text>
     </TouchableOpacity>
   );

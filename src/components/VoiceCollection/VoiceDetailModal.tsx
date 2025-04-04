@@ -82,6 +82,9 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
     setSelectLoading(true);
     try {
       await onSelectVoice(voice);
+      
+      // Close the modal after selecting the voice
+      onClose();
     } finally {
       setSelectLoading(false);
     }
@@ -232,7 +235,7 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
                       isSelected && styles.selectButtonTextSelected
                     ]}
                   >
-                    {isSelected ? t('voice.actions.selected') : t('voice.actions.select')}
+                    {isSelected ? t('voice.actions.use', 'Use') : t('voice.actions.select', 'Select')}
                   </Text>
                 )}
               </TouchableOpacity>

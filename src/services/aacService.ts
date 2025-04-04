@@ -23,7 +23,9 @@ export const aacService = {
    */
   getCategories: async (language = 'en'): Promise<SentenceCategory[]> => {
     try {
+      console.log(`[aacService] getCategories called with language: ${language}`);
       const response = await apiService.get<{ categories: SentenceCategory[] }>(`/api/sentence-categories?language=${language}`);
+      console.log(`[aacService] getCategories response for ${language}:`, response?.categories?.length || 0, 'categories');
       return response?.categories || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -128,7 +130,16 @@ export const aacService = {
         endpoint += `&categoryId=${categoryId}`;
       }
       
+      console.log(`[aacService] getSentences called with language: ${language}, categoryId: ${categoryId || 'none'}`);
+      console.log(`[aacService] getSentences endpoint: ${endpoint}`);
+      
       const response = await apiService.get<{ sentences: SampleSentence[] }>(endpoint);
+      console.log(`[aacService] getSentences response for ${language}:`, response?.sentences?.length || 0, 'sentences');
+      
+      if (response?.sentences?.length === 0) {
+        console.log(`[aacService] No sentences found for language: ${language}, possibly falling back to English`);
+      }
+      
       return response?.sentences || [];
     } catch (error) {
       console.error('Error fetching sentences:', error);

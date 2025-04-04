@@ -171,8 +171,25 @@ const SettingsScreen: React.FC = () => {
 
   const handleChangeLanguage = async (languageCode: string) => {
     try {
+      console.log('[SettingsScreen] Changing language to:', languageCode);
+      console.log('[SettingsScreen] Current language before change:', i18n.language);
+      
       await i18n.changeLanguage(languageCode);
       await AsyncStorage.setItem('userLanguage', languageCode);
+      
+      // Verify the language was stored correctly
+      const storedLanguage = await AsyncStorage.getItem('userLanguage');
+      console.log('[SettingsScreen] Stored language in AsyncStorage:', storedLanguage);
+      console.log('[SettingsScreen] Current language after change:', i18n.language);
+      
+      // Force a refresh of the i18n instance
+      if (i18n.language !== languageCode) {
+        console.log('[SettingsScreen] Warning: i18n.language not updated as expected!');
+        // Try to force the change again
+        setTimeout(() => {
+          i18n.changeLanguage(languageCode);
+        }, 100);
+      }
     } catch (error) {
       console.error('Failed to change language', error);
       Alert.alert(t('general.error'), 'Failed to change language');
