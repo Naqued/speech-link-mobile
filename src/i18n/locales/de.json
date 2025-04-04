@@ -260,6 +260,12 @@
       "deep": "Tief und Resonant",
       "authoritative": "Autoritär und Klar",
       "trustworthy": "Vertrauenswürdig und Professionell"
+    },
+    "preview": {
+      "text-1": "Hallo, schön Sie kennenzulernen! Ich nutze diese Stimme, um zu kommunizieren. Könnten Sie mir bitte sagen, wo das nächste Restaurant ist? Vielen Dank für Ihre Hilfe.",
+      "text-2": "Hallo! Ich hätte gerne einen Kaffee, bitte. Mittlere Größe mit etwas Zucker und Mandelmilch. Die Gebäckstücke sehen auch lecker aus. Welches würden Sie empfehlen?",
+      "text-3": "Guten Morgen! Schön, Sie wiederzusehen. Ich habe unser Gespräch gestern sehr genossen. Könnten wir dort weitermachen, wo wir aufgehört haben? Ich habe einige interessante Gedanken, die ich teilen möchte.",
+      "text-4": "Hallo! Mein Name ist Alex. Ich fühle mich heute etwas müde. Würde es Ihnen etwas ausmachen, wenn wir den Aufzug anstelle der Treppe nehmen? Ich danke Ihnen für Ihr Verständnis."
     }
   },
   "languages": {

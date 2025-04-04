@@ -92,6 +92,28 @@
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Ekspresif dan Dinamik",
+      "confident": "Yakin dan Jelas",
+      "soft": "Lembut dan Halus",
+      "upbeat": "Ceria dan Bertenaga",
+      "natural": "Semula Jadi dan Autentik",
+      "warm": "Mesra dan Peramah",
+      "intense": "Intensif dan Kuat",
+      "articulate": "Jelas dan Tepat",
+      "seductive": "Lembut dan Menarik",
+      "friendly": "Mesra dan Mudah Didekati",
+      "casual": "Santai dan Mesra",
+      "deep": "Dalam dan Bergema",
+      "authoritative": "Berwibawa dan Jelas",
+      "trustworthy": "Boleh Dipercayai dan Profesional"
+    },
+    "preview": {
+      "text-1": "Helo, senang berjumpa dengan anda! Saya menggunakan suara ini untuk berkomunikasi. Bolehkah anda memberitahu saya di mana restoran terdekat? Terima kasih atas bantuan anda.",
+      "text-2": "Hai! Saya ingin memesan kopi, tolong. Saiz sederhana dengan sedikit gula dan susu badam. Selain itu, pastri itu kelihatan sedap. Yang mana yang anda syorkan?",
+      "text-3": "Selamat pagi! Senang berjumpa dengan anda lagi. Saya sangat menikmati perbualan kita semalam. Bolehkah kita meneruskan dari tempat kita berhenti? Saya mempunyai beberapa buah fikiran yang menarik untuk dikongsi.",
+      "text-4": "Helo! Nama saya Alex. Saya berasa sedikit penat hari ini. Adakah anda keberatan jika kita menggunakan lif dan bukannya tangga? Saya menghargai pemahaman anda."
     }
   },
   "settings": {

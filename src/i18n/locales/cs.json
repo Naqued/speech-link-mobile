@@ -248,20 +248,26 @@
       "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
-      "expressive": "Expresivní a dynamický",
-      "confident": "Sebevědomý a jasný",
-      "soft": "Jemný a něžný",
-      "upbeat": "Optimistický a energický",
-      "natural": "Přirozený a autentický",
-      "warm": "Vřelý a přívětivý",
-      "intense": "Intenzivní a silný",
-      "articulate": "Artikulovaný a přesný",
-      "seductive": "Svůdný a podmanivý",
-      "friendly": "Přátelský a přístupný",
-      "casual": "Neformální a přátelský",
-      "deep": "Hluboký a rezonující",
-      "authoritative": "Autoritativní a jasný",
-      "trustworthy": "Důvěryhodný a profesionální"
+      "expressive": "Expresivní a Dynamický",
+      "confident": "Sebejistý a Jasný",
+      "soft": "Jemný a Mírný",
+      "upbeat": "Pozitivní a Energický",
+      "natural": "Přirozený a Autentický",
+      "warm": "Vřelý a Vstřícný",
+      "intense": "Intenzivní a Silný",
+      "articulate": "Artikulovaný a Přesný",
+      "seductive": "Jemný a Poutavý",
+      "friendly": "Přátelský a Přístupný",
+      "casual": "Neformální a Přátelský",
+      "deep": "Hluboký a Rezonující",
+      "authoritative": "Autoritativní a Jasný",
+      "trustworthy": "Důvěryhodný a Profesionální"
+    },
+    "preview": {
+      "text-1": "Ahoj, rád vás poznávám! Používám tento hlas ke komunikaci. Mohl byste mi prosím říct, kde je nejbližší restaurace? Děkuji za vaši pomoc.",
+      "text-2": "Zdravím! Rád bych si objednal kávu, prosím. Střední velikost s trochou cukru a mandlovým mlékem. Mimochodem, ty zákusky vypadají lahodně. Který byste doporučil?",
+      "text-3": "Dobré ráno! Je hezké vás zase vidět. Opravdu jsem si užil náš včerejší rozhovor. Mohli bychom pokračovat tam, kde jsme skončili? Mám několik zajímavých myšlenek, o které bych se rád podělil.",
+      "text-4": "Ahoj! Jmenuji se Alex. Dnes se cítím trochu unavený. Vadilo by vám, kdybychom použili výtah místo schodů? Oceňuji vaše pochopení."
     }
   },
   "languages": {

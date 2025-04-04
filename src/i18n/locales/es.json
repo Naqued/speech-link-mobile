@@ -260,6 +260,12 @@
       "deep": "Profundo y Resonante",
       "authoritative": "Autoritario y Claro",
       "trustworthy": "Confiable y Profesional"
+    },
+    "preview": {
+      "text-1": "¡Hola, encantado de conocerte! Uso esta voz para comunicarme. ¿Podrías decirme dónde está el restaurante más cercano? Gracias por tu ayuda.",
+      "text-2": "¡Hola! Me gustaría pedir un café, por favor. Tamaño mediano con un poco de azúcar y leche de almendras. Además, esos pasteles se ven deliciosos. ¿Cuál me recomendarías?",
+      "text-3": "¡Buenos días! Es agradable verte de nuevo. Disfruté mucho nuestra conversación de ayer. ¿Podríamos continuar donde lo dejamos? Tengo algunos pensamientos interesantes para compartir.",
+      "text-4": "¡Hola! Mi nombre es Alex. Me siento un poco cansado hoy. ¿Te importaría si tomamos el ascensor en lugar de las escaleras? Agradezco tu comprensión."
     }
   },
   "languages": {

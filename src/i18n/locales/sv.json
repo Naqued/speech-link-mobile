@@ -250,8 +250,8 @@
     "characteristics": {
       "expressive": "Uttrycksfull och dynamisk",
       "confident": "Självsäker och tydlig",
-      "soft": "Mjuk och varsam",
-      "upbeat": "Energisk och livlig",
+      "soft": "Mjuk och mild",
+      "upbeat": "Positiv och energisk",
       "natural": "Naturlig och autentisk",
       "warm": "Varm och välkomnande",
       "intense": "Intensiv och kraftfull",
@@ -259,9 +259,15 @@
       "seductive": "Mjuk och engagerande",
       "friendly": "Vänlig och tillgänglig",
       "casual": "Avslappnad och vänlig",
-      "deep": "Djup och resonant",
+      "deep": "Djup och resonerande",
       "authoritative": "Auktoritativ och tydlig",
       "trustworthy": "Pålitlig och professionell"
+    },
+    "preview": {
+      "text-1": "Hej, trevligt att träffas! Jag använder den här rösten för att kommunicera. Skulle du kunna tala om var närmaste restaurang ligger? Tack för din hjälp.",
+      "text-2": "Hej! Jag skulle vilja beställa en kaffe, tack. Mellanstor med lite socker och mandelmjölk. Dessutom ser de där bakverken läckra ut. Vilken skulle du rekommendera?",
+      "text-3": "God morgon! Det är trevligt att se dig igen. Jag tyckte verkligen om vårt samtal igår. Skulle vi kunna fortsätta där vi slutade? Jag har några intressanta tankar att dela med mig av.",
+      "text-4": "Hej! Jag heter Alex. Jag känner mig lite trött idag. Skulle du ha något emot om vi tar hissen istället för trapporna? Jag uppskattar din förståelse."
     }
   },
   "languages": {

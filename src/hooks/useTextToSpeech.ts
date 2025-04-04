@@ -9,6 +9,7 @@ import { API_CONFIG } from '../config/api';
 import { audioRoutingService } from '../services/AudioRoutingService';
 import { requestAudioPermissions } from '../utils/permissions';
 import { voiceSettingsService } from '../services/voiceSettingsService';
+import i18next from 'i18next';
 
 export interface UseTextToSpeechResult {
   isLoading: boolean;
@@ -17,7 +18,7 @@ export interface UseTextToSpeechResult {
   error: string | null;
   generateSpeech: (request: TTSRequest) => Promise<Audio.Sound>;
   speak: (text: string, voiceId?: string, provider?: 'ELEVENLABS' | 'OPENAI', language?: string) => Promise<Audio.Sound>;
-  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => Promise<Audio.Sound>;
+  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string, language?: string) => Promise<Audio.Sound>;
   stopSpeaking: () => void;
   isAudioRoutingEnabled: boolean;
   toggleAudioRouting: (enabled: boolean) => Promise<boolean>;
@@ -283,7 +284,8 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     voiceId: string,
     provider: 'ELEVENLABS' | 'OPENAI',
     publicOwnerId?: string,
-    voiceName?: string
+    voiceName?: string,
+    language?: string
   ): Promise<Audio.Sound> => {
     try {
       // Stop any current playback
@@ -291,6 +293,13 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       
       setIsLoading(true);
       setError(null);
+      
+      // Generate a random number between 1 and 4 to select one of the preview texts
+      const previewTextNumber = Math.floor(Math.random() * 4) + 1;
+      const previewText = i18next.t(`voice.preview.text-${previewTextNumber}`);
+      
+      // Get current language if none provided
+      const currentLanguage = language || i18next.language;
       
       // Check if audio routing is enabled
       if (isAudioRoutingEnabled) {
@@ -302,9 +311,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         }>('/api/voice-preview', {
           voiceId,
           provider,
-          text: 'Hello, this is a preview of my voice.',
+          text: previewText,
           publicOwnerId,
-          voiceName
+          voiceName,
+          lang: currentLanguage
         });
         
         if (!response.audioData) {
@@ -336,9 +346,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         }>('/api/voice-preview', {
           voiceId,
           provider,
-          text: 'Hello, this is a preview of my voice.',
+          text: previewText,
           publicOwnerId,
-          voiceName
+          voiceName,
+          lang: currentLanguage
         });
         
         if (!response.audioData) {

@@ -92,6 +92,28 @@
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Izražajan i Dinamičan",
+      "confident": "Samouvjeren i Jasan",
+      "soft": "Nježan i Blag",
+      "upbeat": "Veseo i Energičan",
+      "natural": "Prirodan i Autentičan",
+      "warm": "Topao i Srdačan",
+      "intense": "Intenzivan i Snažan",
+      "articulate": "Artikuliran i Precizan",
+      "seductive": "Nježan i Privlačan",
+      "friendly": "Prijateljski i Pristupačan",
+      "casual": "Opušten i Prijateljski",
+      "deep": "Dubok i Rezonantan",
+      "authoritative": "Autoritativan i Jasan",
+      "trustworthy": "Pouzdan i Profesionalan"
+    },
+    "preview": {
+      "text-1": "Pozdrav, drago mi je što vas upoznajem! Koristim ovaj glas za komunikaciju. Možete li mi reći gdje je najbliži restoran? Hvala vam na pomoći.",
+      "text-2": "Bok! Htio bih naručiti kavu, molim. Srednja veličina s malo šećera i bademovim mlijekom. Također, ovi kolači izgledaju ukusno. Koji biste preporučili?",
+      "text-3": "Dobro jutro! Lijepo vas je ponovno vidjeti. Zaista sam uživao u našem jučerašnjem razgovoru. Možemo li nastaviti gdje smo stali? Imam nekoliko zanimljivih misli koje bih želio podijeliti.",
+      "text-4": "Pozdrav! Zovem se Alex. Osjećam se malo umorno danas. Bi li vam smetalo da koristimo lift umjesto stepenica? Cijenim vaše razumijevanje."
     }
   },
   "settings": {

@@ -1,5 +1,6 @@
 import { apiService } from './apiService';
 import { Voice, ttsService } from './ttsService';
+import i18next from 'i18next';
 
 export interface VoiceSettings {
   provider: 'ELEVENLABS' | 'OPENAI' | 'RESEMBLE' | 'ELEVEN_LABS';
@@ -568,9 +569,17 @@ class VoiceSettingsService {
     }
   }
 
-  public async getVoicePreview(voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string): Promise<string> {
+  public async getVoicePreview(voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string, language?: string): Promise<string> {
     try {
       console.log(`Getting voice preview for: ${voiceId} (${provider})`);
+      
+      // Generate a random number between 1 and 4 to select one of the preview texts
+      const previewTextNumber = Math.floor(Math.random() * 4) + 1;
+      const previewText = i18next.t(`voice.preview.text-${previewTextNumber}`);
+      
+      // Get current language if none provided
+      const currentLanguage = language || i18next.language;
+      console.log(`Using language for preview: ${currentLanguage}`);
       
       // First, try the standard API approach
       try {
@@ -578,9 +587,10 @@ class VoiceSettingsService {
         const response = await apiService.post<{ previewUrl?: string, audioUrl?: string }>('/api/voice-preview', {
           voiceId,
           provider,
-          text: 'Hello, this is a preview of my voice.',
+          text: previewText,
           publicOwnerId,
-          voiceName
+          voiceName,
+          lang: currentLanguage
         });
         
         // If the API returns a URL, use that directly
@@ -602,9 +612,10 @@ class VoiceSettingsService {
       const preview = await ttsService.generateVoicePreview({
         voiceId,
         provider,
-        text: 'Hello, this is a preview of my voice.',
+        text: previewText,
         publicOwnerId,
-        voiceName
+        voiceName,
+        language: currentLanguage
       });
       
       return preview;

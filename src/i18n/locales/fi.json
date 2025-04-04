@@ -92,6 +92,28 @@
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Ilmaiseva ja Dynaaminen",
+      "confident": "Itsevarma ja Selkeä",
+      "soft": "Pehmeä ja Lempeä",
+      "upbeat": "Iloinen ja Energinen",
+      "natural": "Luonnollinen ja Autenttinen",
+      "warm": "Lämmin ja Ystävällinen",
+      "intense": "Intensiivinen ja Voimakas",
+      "articulate": "Selkeästi Artikuloiva ja Tarkka",
+      "seductive": "Pehmeä ja Mukaansatempaava",
+      "friendly": "Ystävällinen ja Helposti Lähestyttävä",
+      "casual": "Rento ja Ystävällinen",
+      "deep": "Syvä ja Resonoiva",
+      "authoritative": "Arvovaltainen ja Selkeä",
+      "trustworthy": "Luotettava ja Ammattimainen"
+    },
+    "preview": {
+      "text-1": "Hei, hauska tavata! Käytän tätä ääntä kommunikointiin. Voisitko kertoa minulle, missä lähin ravintola on? Kiitos avustasi.",
+      "text-2": "Hei! Haluaisin tilata kahvin, kiitos. Keskikokoinen, jossa on vähän sokeria ja mantelimaitoa. Lisäksi nuo leivonnaiset näyttävät herkulliselta. Mitä suosittelisit?",
+      "text-3": "Hyvää huomenta! On mukava nähdä sinut jälleen. Nautin todella eilisestä keskustelustamme. Voisimmeko jatkaa siitä, mihin jäimme? Minulla on joitain mielenkiintoisia ajatuksia jaettavana.",
+      "text-4": "Hei! Nimeni on Alex. Tunnen oloni hieman väsyneeksi tänään. Haittaisiko sinua, jos käyttäisimme hissiä portaiden sijaan? Arvostan ymmärrystäsi."
     }
   },
   "settings": {

@@ -62,6 +62,7 @@ export interface VoicePreviewRequest {
   text: string;
   publicOwnerId?: string;
   voiceName?: string;
+  language?: string;
 }
 
 class TTSService {

@@ -132,7 +132,8 @@ const VoiceSettingsScreen: React.FC = () => {
         voice.id, 
         voice.provider, 
         voice.public_owner_id || voice.publicOwnerId, 
-        voice.name
+        voice.name,
+        voice.language || voice.languageCode
       );
 
       // Store the sound for cleanup later

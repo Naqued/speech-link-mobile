@@ -92,6 +92,28 @@
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Udtryksfuld og Dynamisk",
+      "confident": "Selvsikker og Klar",
+      "soft": "Blød og Mild",
+      "upbeat": "Munter og Energisk",
+      "natural": "Naturlig og Autentisk",
+      "warm": "Varm og Imødekommende",
+      "intense": "Intens og Kraftfuld",
+      "articulate": "Artikuleret og Præcis",
+      "seductive": "Blid og Engagerende",
+      "friendly": "Venlig og Tilgængelig",
+      "casual": "Afslappet og Venlig",
+      "deep": "Dyb og Resonerende",
+      "authoritative": "Autoritativ og Klar",
+      "trustworthy": "Pålidelig og Professionel"
+    },
+    "preview": {
+      "text-1": "Hej, dejligt at møde dig! Jeg bruger denne stemme til at kommunikere. Kunne du fortælle mig, hvor den nærmeste restaurant er? Tak for din hjælp.",
+      "text-2": "Hej! Jeg vil gerne bestille en kaffe, tak. Medium størrelse med lidt sukker og mandelmælk. Derudover ser de kager virkelig lækre ud. Hvilken ville du anbefale?",
+      "text-3": "Godmorgen! Det er dejligt at se dig igen. Jeg nød virkelig vores samtale i går. Kunne vi fortsætte, hvor vi slapped? Jeg har nogle interessante tanker, jeg gerne vil dele.",
+      "text-4": "Hej! Mit navn er Alex. Jeg føler mig lidt træt i dag. Ville det være i orden, hvis vi tager elevatoren i stedet for trapperne? Jeg sætter pris på din forståelse."
     }
   },
   "settings": {

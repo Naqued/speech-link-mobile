@@ -92,6 +92,28 @@
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Expresívny a Dynamický",
+      "confident": "Sebaistý a Jasný",
+      "soft": "Jemný a Mierny",
+      "upbeat": "Optimistický a Energický",
+      "natural": "Prirodzený a Autentický",
+      "warm": "Vrelý a Vítajúci",
+      "intense": "Intenzívny a Silný",
+      "articulate": "Artikulovaný a Presný",
+      "seductive": "Jemný a Pútavý",
+      "friendly": "Priateľský a Prístupný",
+      "casual": "Neformálny a Priateľský",
+      "deep": "Hlboký a Rezonujúci",
+      "authoritative": "Autoritatívny a Jasný",
+      "trustworthy": "Dôveryhodný a Profesionálny"
+    },
+    "preview": {
+      "text-1": "Ahoj, teší ma, že ťa spoznávam! Používam tento hlas na komunikáciu. Mohol by si mi povedať, kde je najbližšia reštaurácia? Ďakujem za tvoju pomoc.",
+      "text-2": "Ahoj! Rád by som si objednal kávu, prosím. Stredná veľkosť s trochou cukru a mandľovým mliekom. Mimochodom, tie koláče vyzerajú lahodne. Ktorý by si odporučil?",
+      "text-3": "Dobré ráno! Je pekné ťa znova vidieť. Naozaj som si užil náš včerajší rozhovor. Mohli by sme pokračovať tam, kde sme skončili? Mám niekoľko zaujímavých myšlienok, o ktoré by som sa rád podelil.",
+      "text-4": "Ahoj! Volám sa Alex. Dnes sa cítim trochu unavený. Vadilo by ti, keby sme použili výťah namiesto schodov? Oceňujem tvoje pochopenie."
     }
   },
   "settings": {

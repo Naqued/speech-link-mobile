@@ -248,20 +248,26 @@
       "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
-      "expressive": "Expresiv și dinamic",
-      "confident": "Încrezător și clar",
-      "soft": "Blând și delicat",
-      "upbeat": "Optimist și energic",
-      "natural": "Natural și autentic",
-      "warm": "Cald și primitor",
-      "intense": "Intens și puternic",
-      "articulate": "Articulat și precis",
-      "seductive": "Suav și captivant",
-      "friendly": "Prietenos și abordabil",
-      "casual": "Relaxat și prietenos",
-      "deep": "Profund și rezonant",
-      "authoritative": "Autoritar și clar",
-      "trustworthy": "De încredere și profesional"
+      "expressive": "Expresiv și Dinamic",
+      "confident": "Încrezător și Clar",
+      "soft": "Blând și Delicat",
+      "upbeat": "Optimist și Energic",
+      "natural": "Natural și Autentic",
+      "warm": "Cald și Primitor",
+      "intense": "Intens și Puternic",
+      "articulate": "Articulat și Precis",
+      "seductive": "Lin și Captivant",
+      "friendly": "Prietenos și Abordabil",
+      "casual": "Casual și Prietenos",
+      "deep": "Profund și Rezonant",
+      "authoritative": "Autoritar și Clar",
+      "trustworthy": "De încredere și Profesional"
+    },
+    "preview": {
+      "text-1": "Bună, încântat să te cunosc! Folosesc această voce pentru a comunica. Ai putea să-mi spui unde este cel mai apropiat restaurant? Mulțumesc pentru ajutor.",
+      "text-2": "Salut! Aș dori să comand o cafea, te rog. Mărime medie cu puțin zahăr și lapte de migdale. De asemenea, acele produse de patiserie arată delicioase. Pe care ai recomanda-o?",
+      "text-3": "Bună dimineața! Este plăcut să te văd din nou. Mi-a plăcut cu adevărat conversația noastră de ieri. Am putea continua de unde am rămas? Am câteva gânduri interesante de împărtășit.",
+      "text-4": "Bună! Numele meu este Alex. Mă simt puțin obosit astăzi. Te-ar deranja dacă am lua liftul în loc de scări? Apreciez înțelegerea ta."
     }
   },
   "languages": {

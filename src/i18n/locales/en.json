@@ -262,6 +262,12 @@
       "deep": "Deep and Resonant",
       "authoritative": "Authoritative and Clear",
       "trustworthy": "Trustworthy and Professional"
+    },
+    "preview": {
+      "text-1": "Hello, nice to meet you! I use this voice to communicate. Could you please tell me where the nearest restaurant is? Thank you for your help.",
+      "text-2": "Hi there! I'd like to order a coffee, please. Medium size with a little sugar and almond milk. Also, those pastries look delicious. Which one would you recommend?",
+      "text-3": "Good morning! It's nice to see you again. I really enjoyed our conversation yesterday. Could we continue where we left off? I have some interesting thoughts to share.",
+      "text-4": "Hello! My name is Alex. I'm feeling a bit tired today. Would you mind if we take the elevator instead of the stairs? I appreciate your understanding."
     }
   },
   "languages": {

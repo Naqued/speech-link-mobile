@@ -262,6 +262,12 @@
       "deep": "Diep en resonerend",
       "authoritative": "Gezaghebbend en duidelijk",
       "trustworthy": "Betrouwbaar en professioneel"
+    },
+    "preview": {
+      "text-1": "Hallo, leuk je te ontmoeten! Ik gebruik deze stem om te communiceren. Zou je me kunnen vertellen waar het dichtstbijzijnde restaurant is? Bedankt voor je hulp.",
+      "text-2": "Hoi! Ik wil graag een koffie bestellen, alsjeblieft. Medium formaat met een beetje suiker en amandelmelk. Die gebakjes zien er trouwens heerlijk uit. Welke zou je aanraden?",
+      "text-3": "Goedemorgen! Leuk je weer te zien. Ik heb echt genoten van ons gesprek gisteren. Zouden we verder kunnen gaan waar we gebleven waren? Ik heb een paar interessante gedachten om te delen.",
+      "text-4": "Hallo! Mijn naam is Alex. Ik voel me vandaag een beetje moe. Zou je het erg vinden als we de lift nemen in plaats van de trap? Ik waardeer je begrip."
     }
   },
   "languages": {

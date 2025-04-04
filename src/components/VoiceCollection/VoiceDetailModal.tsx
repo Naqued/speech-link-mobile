@@ -57,7 +57,8 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
         voice.id,
         voice.provider,
         voice.public_owner_id || voice.publicOwnerId,
-        voice.name
+        voice.name,
+        voice.language || voice.languageCode
       );
     } catch (error) {
       console.error('Failed to play voice sample', error);

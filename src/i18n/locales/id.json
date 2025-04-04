@@ -256,12 +256,18 @@
       "warm": "Hangat dan Ramah",
       "intense": "Intens dan Kuat",
       "articulate": "Artikulatif dan Tepat",
-      "seductive": "Halus dan Menarik",
-      "friendly": "Ramah dan Mudah Didekati",
+      "seductive": "Lembut dan Menarik",
+      "friendly": "Bersahabat dan Mudah Didekati",
       "casual": "Santai dan Bersahabat",
       "deep": "Dalam dan Bergema",
       "authoritative": "Berwibawa dan Jelas",
       "trustworthy": "Terpercaya dan Profesional"
+    },
+    "preview": {
+      "text-1": "Halo, senang bertemu dengan Anda! Saya menggunakan suara ini untuk berkomunikasi. Bisakah Anda memberi tahu saya di mana restoran terdekat? Terima kasih atas bantuan Anda.",
+      "text-2": "Hai! Saya ingin memesan kopi, tolong. Ukuran sedang dengan sedikit gula dan susu almond. Selain itu, kue-kue itu terlihat lezat. Yang mana yang Anda rekomendasikan?",
+      "text-3": "Selamat pagi! Senang bertemu Anda lagi. Saya sangat menikmati percakapan kita kemarin. Bisakah kita melanjutkan dari tempat kita berhenti? Saya memiliki beberapa pemikiran menarik untuk dibagikan.",
+      "text-4": "Halo! Nama saya Alex. Saya merasa sedikit lelah hari ini. Apakah Anda keberatan jika kita menggunakan lift alih-alih tangga? Saya menghargai pengertian Anda."
     }
   },
   "languages": {

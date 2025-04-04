@@ -249,19 +249,25 @@
     },
     "characteristics": {
       "expressive": "İfadeli ve Dinamik",
-      "confident": "Özgüvenli ve Net",
+      "confident": "Kendinden Emin ve Net",
       "soft": "Yumuşak ve Nazik",
       "upbeat": "Neşeli ve Enerjik",
       "natural": "Doğal ve Otantik",
-      "warm": "Sıcak ve Samimi",
+      "warm": "Sıcak ve Misafirperver",
       "intense": "Yoğun ve Güçlü",
-      "articulate": "Anlaşılır ve Kesin",
-      "seductive": "Akıcı ve Etkileyici",
-      "friendly": "Arkadaşça ve Yaklaşılabilir",
-      "casual": "Gündelik ve Samimi",
-      "deep": "Derin ve Yankılı",
-      "authoritative": "Otoriter ve Net",
+      "articulate": "Açık ve Kesin",
+      "seductive": "Yumuşak ve Etkileyici",
+      "friendly": "Dostça ve Ulaşılabilir",
+      "casual": "Rahat ve Arkadaşça",
+      "deep": "Derin ve Tınılı",
+      "authoritative": "Yetkili ve Net",
       "trustworthy": "Güvenilir ve Profesyonel"
+    },
+    "preview": {
+      "text-1": "Merhaba, tanıştığımıza memnun oldum! İletişim kurmak için bu sesi kullanıyorum. Bana en yakın restoranın nerede olduğunu söyleyebilir misiniz? Yardımınız için teşekkür ederim.",
+      "text-2": "Merhaba! Bir kahve sipariş etmek istiyorum lütfen. Biraz şekerli ve bademli sütlü orta boy. Ayrıca, şu pastalar çok lezzetli görünüyor. Hangisini tavsiye edersiniz?",
+      "text-3": "Günaydın! Sizi tekrar görmek güzel. Dünkü konuşmamızdan gerçekten keyif aldım. Kaldığımız yerden devam edebilir miyiz? Paylaşmak istediğim bazı ilginç düşüncelerim var.",
+      "text-4": "Merhaba! Benim adım Alex. Bugün biraz yorgun hissediyorum. Merdiven yerine asansörü kullanmamızda sakınca var mı? Anlayışınız için teşekkür ederim."
     }
   },
   "languages": {

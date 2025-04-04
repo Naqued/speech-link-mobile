@@ -260,6 +260,12 @@
       "deep": "Profondo e Risonante",
       "authoritative": "Autorevole e Chiaro",
       "trustworthy": "Affidabile e Professionale"
+    },
+    "preview": {
+      "text-1": "Ciao, piacere di conoscerti! Uso questa voce per comunicare. Potresti dirmi dove si trova il ristorante più vicino? Grazie per il tuo aiuto.",
+      "text-2": "Ciao! Vorrei ordinare un caffè, per favore. Taglia media con un po' di zucchero e latte di mandorla. Inoltre, quei dolci sembrano deliziosi. Quale mi consiglieresti?",
+      "text-3": "Buongiorno! È bello rivederti. Ho apprezzato molto la nostra conversazione di ieri. Potremmo continuare da dove abbiamo lasciato? Ho alcuni pensieri interessanti da condividere.",
+      "text-4": "Ciao! Mi chiamo Alex. Oggi mi sento un po' stanco. Ti dispiacerebbe se prendessimo l'ascensore invece delle scale? Apprezzo la tua comprensione."
     }
   },
   "languages": {

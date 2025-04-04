@@ -89,9 +89,37 @@
       "neutral": "Нейтральный"
     },
     "actions": {
+      "preview": "Preview",
+      "stopPreview": "Stop",
+      "select": "Select",
+      "selected": "Selected",
+      "stop": "Stop",
+      "processing": "Processing...",
       "success": "Success",
       "voiceSelected": "{{name}} has been selected as your voice",
       "errorSelectingVoice": "Failed to select voice. Please try again."
+    },
+    "characteristics": {
+      "expressive": "Expressive and Dynamic",
+      "confident": "Confident and Clear",
+      "soft": "Soft and Gentle",
+      "upbeat": "Upbeat and Energetic",
+      "natural": "Natural and Authentic",
+      "warm": "Warm and Welcoming",
+      "intense": "Intense and Powerful",
+      "articulate": "Articulate and Precise",
+      "seductive": "Smooth and Engaging",
+      "friendly": "Friendly and Approachable",
+      "casual": "Casual and Friendly",
+      "deep": "Deep and Resonant",
+      "authoritative": "Authoritative and Clear",
+      "trustworthy": "Trustworthy and Professional"
+    },
+    "preview": {
+      "text-1": "Здравствуйте, приятно познакомиться! Я использую этот голос для общения. Не могли бы вы подсказать, где находится ближайший ресторан? Спасибо за вашу помощь.",
+      "text-2": "Привет! Я хотел бы заказать кофе, пожалуйста. Средний размер с небольшим количеством сахара и миндальным молоком. К тому же, эта выпечка выглядит восхитительно. Что бы вы порекомендовали?",
+      "text-3": "Доброе утро! Приятно видеть вас снова. Мне очень понравился наш вчерашний разговор. Могли бы мы продолжить с того места, где остановились? У меня есть интересные мысли, которыми я хотел бы поделиться.",
+      "text-4": "Здравствуйте! Меня зовут Алекс. Сегодня я чувствую себя немного уставшим. Вы не против, если мы воспользуемся лифтом вместо лестницы? Я ценю ваше понимание."
     }
   },
   "settings": {

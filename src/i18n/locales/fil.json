@@ -250,18 +250,24 @@
     "characteristics": {
       "expressive": "Mapahayag at Dinamiko",
       "confident": "Kumpiyansa at Malinaw",
-      "soft": "Malambot at Malumanay",
+      "soft": "Malambot at Mahinhin",
       "upbeat": "Masigla at Energetic",
-      "natural": "Natural at Tunay",
-      "warm": "Maalab at Mapagbati",
+      "natural": "Natural at Authentic",
+      "warm": "Mainit at Mapagbati",
       "intense": "Matindi at Malakas",
-      "articulate": "Malinaw at Tiyak",
-      "seductive": "Makinis at Kaakit-akit",
+      "articulate": "Malinaw at Tumpak",
+      "seductive": "Malambot at Nakakahikayat",
       "friendly": "Palakaibigan at Madaling Lapitan",
       "casual": "Casual at Palakaibigan",
-      "deep": "Malalim at Resonant",
+      "deep": "Malalim at Resonante",
       "authoritative": "May Awtoridad at Malinaw",
       "trustworthy": "Mapagkakatiwalaan at Propesyonal"
+    },
+    "preview": {
+      "text-1": "Kamusta, masaya akong makilala ka! Ginagamit ko ang boses na ito para makipag-usap. Maaari mo bang sabihin sa akin kung nasaan ang pinakamalapit na restaurant? Salamat sa iyong tulong.",
+      "text-2": "Hello! Gusto kong umorder ng kape, pakiusap. Medium size na may kaunting asukal at almond milk. Dagdag pa, mukhang masarap yung mga pastry. Alin ang marerekomenda mo?",
+      "text-3": "Magandang umaga! Masaya akong makita ka ulit. Talagang na-enjoy ko ang ating pag-uusap kahapon. Maaari ba tayong magpatuloy kung saan tayo huminto? May ilang mga kawili-wiling ideya akong gusto kong ibahagi.",
+      "text-4": "Kamusta! Ang pangalan ko ay Alex. Medyo pagod ako ngayon. Ayos lang ba kung gamitin natin ang elevator sa halip na hagdan? Pinahahalagahan ko ang iyong pag-unawa."
     }
   },
   "languages": {

@@ -260,6 +260,12 @@
       "deep": "Profond et Résonant",
       "authoritative": "Autoritaire et Clair",
       "trustworthy": "Digne de Confiance et Professionnel"
+    },
+    "preview": {
+      "text-1": "Bonjour, ravi de vous rencontrer ! J'utilise cette voix pour communiquer. Pourriez-vous me dire où se trouve le restaurant le plus proche ? Merci pour votre aide.",
+      "text-2": "Salut ! Je voudrais commander un café, s'il vous plaît. Taille moyenne avec un peu de sucre et du lait d'amande. Ces pâtisseries ont aussi l'air délicieuses. Laquelle recommanderiez-vous ?",
+      "text-3": "Bonjour ! C'est agréable de vous revoir. J'ai beaucoup apprécié notre conversation d'hier. Pourrions-nous continuer là où nous nous sommes arrêtés ? J'ai des réflexions intéressantes à partager.",
+      "text-4": "Bonjour ! Je m'appelle Alex. Je me sens un peu fatigué aujourd'hui. Ça vous dérangerait si nous prenions l'ascenseur au lieu des escaliers ? Je vous en suis reconnaissant."
     }
   },
   "languages": {

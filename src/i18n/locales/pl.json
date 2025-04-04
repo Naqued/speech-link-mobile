@@ -248,20 +248,26 @@
       "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
-      "expressive": "Ekspresyjny i dynamiczny",
-      "confident": "Pewny i wyraźny",
-      "soft": "Miękki i delikatny",
-      "upbeat": "Żywy i energiczny",
-      "natural": "Naturalny i autentyczny",
-      "warm": "Ciepły i przyjazny",
-      "intense": "Intensywny i mocny",
-      "articulate": "Wyraźny i precyzyjny",
-      "seductive": "Gładki i angażujący",
-      "friendly": "Przyjazny i przystępny",
-      "casual": "Swobodny i przyjazny",
-      "deep": "Głęboki i rezonujący",
-      "authoritative": "Autorytatywny i wyraźny",
-      "trustworthy": "Godny zaufania i profesjonalny"
+      "expressive": "Ekspresywny i Dynamiczny",
+      "confident": "Pewny i Wyraźny",
+      "soft": "Miękki i Łagodny",
+      "upbeat": "Pogodny i Energiczny",
+      "natural": "Naturalny i Autentyczny",
+      "warm": "Ciepły i Przyjazny",
+      "intense": "Intensywny i Potężny",
+      "articulate": "Wyraźny i Precyzyjny",
+      "seductive": "Łagodny i Angażujący",
+      "friendly": "Przyjazny i Dostępny",
+      "casual": "Swobodny i Przyjacielski",
+      "deep": "Głęboki i Rezonujący",
+      "authoritative": "Autorytatywny i Wyraźny",
+      "trustworthy": "Godny Zaufania i Profesjonalny"
+    },
+    "preview": {
+      "text-1": "Cześć, miło cię poznać! Używam tego głosu do komunikacji. Czy mógłbyś mi powiedzieć, gdzie znajduje się najbliższa restauracja? Dziękuję za pomoc.",
+      "text-2": "Cześć! Chciałbym zamówić kawę, poproszę. Średni rozmiar z odrobiną cukru i mlekiem migdałowym. Poza tym, te ciastka wyglądają przepysznie. Które byś polecił?",
+      "text-3": "Dzień dobry! Miło cię znowu widzieć. Naprawdę podobała mi się nasza wczorajsza rozmowa. Czy możemy kontynuować od miejsca, w którym skończyliśmy? Mam kilka ciekawych myśli do podzielenia się.",
+      "text-4": "Cześć! Nazywam się Alex. Czuję się dziś trochę zmęczony. Czy nie miałbyś nic przeciwko, gdybyśmy skorzystali z windy zamiast schodów? Doceniam twoje zrozumienie."
     }
   },
   "languages": {
