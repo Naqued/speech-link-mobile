@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -59,6 +59,15 @@ const GENDERS = [
   { id: 'neutral', name: 'Neutral' }
 ];
 
+// Custom hook to get the previous value of a prop or state
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 const VoiceCollectionScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
@@ -97,13 +106,39 @@ const VoiceCollectionScreen: React.FC = () => {
     fetchProfileData
   } = useVoiceSettings();
   
-  const { speak, isLoading: isSpeaking, stopSpeaking, previewVoice } = useTextToSpeech();
+  const { speak, isLoading: ttsLoading, isPlaying: ttsPlaying, stopSpeaking, previewVoice } = useTextToSpeech();
+  
+  // Previous TTS states
+  const prevTtsLoading = usePrevious(ttsLoading);
+  const prevTtsPlaying = usePrevious(ttsPlaying);
   
   // Local states for voice playback
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [combinedVoices, setCombinedVoices] = useState<Voice[]>([]);
   const [favoriteOperation, setFavoriteOperation] = useState<{voiceId: string, loading: boolean} | null>(null);
+  
+  // Track voices in loading/playing state - this will stay true from click until sound finishes
+  const [loadingVoiceIds, setLoadingVoiceIds] = useState<Set<string>>(new Set());
+  
+  // Helper functions to manage loading states
+  const addVoiceToLoading = useCallback((voiceId: string) => {
+    console.log('Adding voice to loading state:', voiceId);
+    setLoadingVoiceIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(voiceId);
+      return newSet;
+    });
+  }, []);
+  
+  const removeVoiceFromLoading = useCallback((voiceId: string) => {
+    console.log('Removing voice from loading state:', voiceId);
+    setLoadingVoiceIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(voiceId);
+      return newSet;
+    });
+  }, []);
 
   // Modal state for voice details
   const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null);
@@ -434,13 +469,48 @@ const VoiceCollectionScreen: React.FC = () => {
     };
   }, [stopSpeaking]);
 
-  // Update playingVoiceId when speech stops
+  // Effect to clean up when TTS process for a voice concludes
   useEffect(() => {
-    if (!isSpeaking && playingVoiceId) {
-      setPlayingVoiceId(null);
-    }
-  }, [isSpeaking, playingVoiceId]);
+    const voiceIdThatWasTracked = playingVoiceId; // Capture value at the time effect runs
 
+    if (voiceIdThatWasTracked) {
+      // Case 1: Sound was playing for this tracked voice and has now stopped playing.
+      if (prevTtsPlaying && !ttsPlaying) {
+        console.log(`[VCS Effect] TTS playing transitioned TRUE -> FALSE for ${voiceIdThatWasTracked}. Cleaning up.`);
+        removeVoiceFromLoading(voiceIdThatWasTracked);
+        setPlayingVoiceId(null); // Stop tracking this voice specifically for TTS events
+      }
+      // Case 2: Sound was loading for this tracked voice, loading finished, but it never started playing.
+      // (And it wasn't playing in the previous state either, to avoid conflict with case 1)
+      else if (prevTtsLoading && !ttsLoading && !ttsPlaying && !prevTtsPlaying) {
+        console.log(`[VCS Effect] TTS loading transitioned TRUE -> FALSE (and did not play) for ${voiceIdThatWasTracked}. Cleaning up.`);
+        removeVoiceFromLoading(voiceIdThatWasTracked);
+        setPlayingVoiceId(null); // Stop tracking this voice specifically for TTS events
+      }
+    }
+  }, [ttsPlaying, ttsLoading, playingVoiceId, prevTtsPlaying, prevTtsLoading, removeVoiceFromLoading]);
+
+  // Debug effect to log loading voices
+  useEffect(() => {
+    console.log('Loading voices updated:', Array.from(loadingVoiceIds));
+  }, [loadingVoiceIds]);
+  
+  // Debug effect to track loading and playing states
+  useEffect(() => {
+    console.log('⚡ ttsLoading changed:', ttsLoading);
+  }, [ttsLoading]);
+  
+  useEffect(() => {
+    console.log('🔊 ttsPlaying changed:', ttsPlaying);
+  }, [ttsPlaying]);
+  
+  // Effect to force re-render of voice items when loading state changes
+  useEffect(() => {
+    // Just having this effect depend on ttsLoading/ttsPlaying will cause
+    // component updates when these values change
+    console.log('Loading/Playing state changed:', { ttsLoading, ttsPlaying, playingVoiceId });
+  }, [ttsLoading, ttsPlaying, playingVoiceId]);
+  
   // Refresh the filtered voices based on current settings
   const refreshFilteredVoices = useCallback(() => {
     // Get the filtered voices using the current filter settings
@@ -455,33 +525,58 @@ const VoiceCollectionScreen: React.FC = () => {
   }, [getFilteredVoices, setCombinedVoices, setIsSearching, setRefreshing]);
 
   const playVoiceSample = async (voice: Voice) => {
-    try {
-      // Always stop current speech first
-      stopSpeaking();
-      
-      // If we're already playing this voice, just stop (we already called stopSpeaking)
-      console.log('playingVoiceId', playingVoiceId);
-      console.log('voice.id', voice.id);
-      if (playingVoiceId === voice.id) {
+    const currentVoiceId = voice.id;
+
+    // If this voice is already active (in loadingVoiceIds), this click is to stop it.
+    if (loadingVoiceIds.has(currentVoiceId)) {
+      console.log('[VCS] Stop requested for voice:', currentVoiceId);
+      stopSpeaking(); // Tell TTS hook to stop its current operation
+      removeVoiceFromLoading(currentVoiceId); // Remove from our UI active set
+      if (playingVoiceId === currentVoiceId) { // If TTS was specifically tracking this voice
         setPlayingVoiceId(null);
-        return;
       }
-      
-      // Otherwise, play the new voice
-      setPlayingVoiceId(voice.id);
-      
-      // Use previewVoice instead of speak for samples
-      // Pass the publicOwnerId and voiceName for shared voices
-      await previewVoice(
-        voice.id, 
-        voice.provider, 
-        voice.public_owner_id || voice.publicOwnerId, 
+      return;
+    }
+
+    // This is a new preview request. Stop any *other* active voice first.
+    const anyOtherActiveVoice = Array.from(loadingVoiceIds)[0]; // Check if any voice is in the set
+    if (anyOtherActiveVoice) {
+      console.log('[VCS] Another voice was active:', anyOtherActiveVoice, '. Stopping it before starting new one.');
+      stopSpeaking(); // Stop current TTS operation
+      removeVoiceFromLoading(anyOtherActiveVoice); // Clear its UI active marker
+      if (playingVoiceId === anyOtherActiveVoice) {
+        setPlayingVoiceId(null); // Clear TTS tracking for it
+      }
+    }
+    // Also, if playingVoiceId somehow has a value not in loadingVoiceIds (desync), reset TTS
+    else if (playingVoiceId && !loadingVoiceIds.has(playingVoiceId)) {
+        console.warn('[VCS] TTS was tracking a voice not in loadingVoiceIds. Resetting TTS state for safety.');
+        stopSpeaking();
+        setPlayingVoiceId(null);
+    }
+
+    console.log('[VCS] Starting new preview for voice:', currentVoiceId);
+    addVoiceToLoading(currentVoiceId);     // UI: Mark as active (shows loader/stop)
+    setPlayingVoiceId(currentVoiceId);     // System: Track this as the *intended* voice for upcoming TTS events
+
+    try {
+      await previewVoice( // This call will manage ttsLoading and ttsPlaying in useTextToSpeech
+        currentVoiceId,
+        voice.provider,
+        voice.public_owner_id || voice.publicOwnerId,
         voice.name,
         voice.language || voice.languageCode
       );
+      // If previewVoice resolves successfully, the voice is either playing or setup has finished.
+      // The loader/stop button remains active because currentVoiceId is still in loadingVoiceIds.
+      // The useEffect (with prevTtsPlaying/prevTtsLoading) will handle removing it when playback actually ends or loading fails post-initiation.
+      console.log('[VCS] previewVoice call initiated/completed for:', currentVoiceId);
     } catch (error) {
-      console.error('Failed to play voice sample', error);
-      setPlayingVoiceId(null);
+      console.error('[VCS] Error during previewVoice call for:', currentVoiceId, error);
+      removeVoiceFromLoading(currentVoiceId); // UI: Error, so stop showing active state
+      if (playingVoiceId === currentVoiceId) { // If TTS was tracking this one
+        setPlayingVoiceId(null); // System: Stop tracking
+      }
     }
   };
 
@@ -656,7 +751,9 @@ const VoiceCollectionScreen: React.FC = () => {
     const isSelectedFromProfile = profileData?.voiceSettings?.selectedVoice?.id === item.id;
     const isSelected = isSelectedFromSettings || isSelectedFromProfile;
     
-    const isPlaying = playingVoiceId === item.id;
+    const isItemActiveInUI = loadingVoiceIds.has(item.id);
+    const isItemActuallyPlayingViaTTS = ttsPlaying && playingVoiceId === item.id;
+
     const isFavoriteLoading = favoriteOperation?.voiceId === item.id && favoriteOperation.loading;
     
     // Try to get enhanced name from profile data
@@ -752,18 +849,28 @@ const VoiceCollectionScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.playButton}
             onPress={(e) => {
-              e.stopPropagation(); // Prevent triggering the parent touchable
+              e.stopPropagation();
               playVoiceSample(item);
             }}
-            disabled={isSpeaking && playingVoiceId !== item.id}
+            disabled={loadingVoiceIds.size > 0 && !isItemActiveInUI}
           >
-            {isPlaying ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+            {isItemActiveInUI ? (
+              isItemActuallyPlayingViaTTS ? (
+                <Ionicons name="stop-circle-outline" size={22} color="#FFFFFF" />
+              ) : (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              )
             ) : (
               <Ionicons name="play" size={16} color="#FFFFFF" />
             )}
             <Text style={styles.playButtonText}>
-              {isPlaying ? t('general.loading', 'Loading...') : t('voice.actions.preview', 'Preview')}
+              {isItemActiveInUI ? (
+                isItemActuallyPlayingViaTTS ? 
+                  t('voice.actions.stop', 'Stop') : 
+                  t('general.loading', 'Loading...')
+              ) : (
+                t('voice.actions.preview', 'Preview')
+              )}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -933,7 +1040,11 @@ const VoiceCollectionScreen: React.FC = () => {
           searchResults.length,
           combinedVoices.length,
           showFavorites,
-          userSettings?.voiceSettings?.voiceId
+          userSettings?.voiceSettings?.voiceId,
+          ttsLoading,
+          ttsPlaying,
+          playingVoiceId,
+          loadingVoiceIds.size
         ]}
       />
     );
@@ -954,7 +1065,11 @@ const VoiceCollectionScreen: React.FC = () => {
     ListHeaderComponent,
     renderFooter,
     handleClearFilter,
-    handleClearAllFilters
+    handleClearAllFilters,
+    ttsLoading,
+    ttsPlaying,
+    playingVoiceId,
+    loadingVoiceIds.size
   ]);
 
   // Additional function to handle checking voice details

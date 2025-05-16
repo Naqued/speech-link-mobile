@@ -8,7 +8,9 @@ import {
   SafeAreaView,
   ActivityIndicator,
   ScrollView,
-  Image
+  Image,
+  Alert,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Voice } from '../../services/ttsService';
@@ -37,22 +39,42 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
   theme
 }) => {
   const { t } = useTranslation();
-  const { speak, isLoading: isSpeaking, stopSpeaking, previewVoice } = useTextToSpeech();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { 
+    isLoading: isTTSHookLoading, 
+    isPlaying: isTTSHookPlaying, 
+    stopSpeaking, 
+    previewVoice 
+  } = useTextToSpeech();
+  
+  const [isModalButtonLoading, setIsModalButtonLoading] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [selectLoading, setSelectLoading] = useState(false);
+  const [showSubscriptionError, setShowSubscriptionError] = useState(false);
 
   if (!voice) return null;
 
   const playVoiceSample = async () => {
-    try {
-      if (isPlaying) {
-        stopSpeaking();
-        setIsPlaying(false);
-        return;
-      }
+    if (isTTSHookPlaying) { // If sound is actually playing globally from the hook
+      console.log('[VDM] Stop command due to isTTSHookPlaying being true');
+      stopSpeaking();
+      // isModalButtonLoading should ideally be false here, or will be cleared by its own finally block if it was the source
+      return;
+    }
 
-      setIsPlaying(true);
+    if (isModalButtonLoading) { // If modal button shows its own spinner and user clicks it again to cancel
+      console.log('[VDM] Stop command due to isModalButtonLoading being true (cancel attempt)');
+      stopSpeaking(); // Attempt to cancel any operation initiated by this modal
+      setIsModalButtonLoading(false);
+      return;
+    }
+
+    // Start a new preview if neither of the above conditions were met
+    console.log('[VDM] Starting new preview for voice:', voice.id);
+    setIsModalButtonLoading(true);
+    // Reset subscription error state
+    setShowSubscriptionError(false);
+    
+    try {
       await previewVoice(
         voice.id,
         voice.provider,
@@ -60,10 +82,48 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
         voice.name,
         voice.language || voice.languageCode
       );
+      // If previewVoice completes, the sound might be about to play or is already playing.
+      // isTTSHookPlaying will reflect actual playback. isModalButtonLoading will be set to false in finally.
+      console.log('[VDM] previewVoice call completed for:', voice.id);
     } catch (error) {
-      console.error('Failed to play voice sample', error);
+      console.error('[VDM] Failed to play voice sample in modal for voice:', voice.id, error);
+      
+      // Check for subscription limit error
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+        const isLimitError = 
+          errorMessage.includes('LIMIT_EXCEEDED') || 
+          errorMessage.includes('429') || 
+          errorMessage.includes('limit');
+          
+        if (isLimitError) {
+          setShowSubscriptionError(true);
+          
+          // Optional: show an alert with upgrade option
+          Alert.alert(
+            t('subscription.limitTitle', 'Subscription Limit Reached'),
+            t('subscription.limitMessage', 'You have reached your monthly TTS usage limit. Upgrade your plan for unlimited access.'),
+            [
+              {
+                text: t('general.later', 'Later'),
+                style: 'cancel'
+              },
+              {
+                text: t('subscription.upgrade', 'Upgrade'),
+                onPress: () => {
+                  const url = 'https://speech-aac.link/en/profile?upgrade=true';
+                  Linking.openURL(url).catch(err => {
+                    console.error('Failed to open upgrade URL:', err);
+                  });
+                }
+              }
+            ]
+          );
+        }
+      }
+      // Error state is typically managed within useTextToSpeech hook itself (e.g., setting an error prop)
     } finally {
-      setIsPlaying(false);
+      setIsModalButtonLoading(false); // Modal's own button spinner stops once previewVoice promise settles
     }
   };
 
@@ -149,6 +209,29 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
             </TouchableOpacity>
           </View>
 
+          {/* Subscription limit banner */}
+          {showSubscriptionError && (
+            <View style={[styles.subscriptionErrorBanner, { backgroundColor: theme.error || '#EF4444' }]}>
+              <Ionicons name="warning-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.subscriptionErrorText}>
+                {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
+              </Text>
+              <TouchableOpacity 
+                style={styles.upgradeButton}
+                onPress={() => {
+                  const url = 'https://speech-aac.link/en/profile?upgrade=true';
+                  Linking.openURL(url).catch(err => {
+                    console.error('Failed to open upgrade URL:', err);
+                  });
+                }}
+              >
+                <Text style={styles.upgradeButtonText}>
+                  {t('subscription.upgrade', 'Upgrade')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <ScrollView style={styles.scrollView}>
             {/* Voice avatar and name section */}
             <View style={styles.voiceProfileSection}>
@@ -188,17 +271,22 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
             <TouchableOpacity
               style={[styles.playButton, { backgroundColor: theme.primary }]}
               onPress={playVoiceSample}
-              disabled={isSpeaking && !isPlaying}
+              disabled={isTTSHookLoading && !isTTSHookPlaying && !isModalButtonLoading}
             >
-              {isPlaying ? (
+              {isTTSHookPlaying ? (
+                <View style={styles.buttonContent}>
+                  <Ionicons name="stop-circle-outline" size={22} color="#FFFFFF" />
+                  <Text style={styles.buttonText}>{t('voice.actions.stop', 'Stop')}</Text>
+                </View>
+              ) : isModalButtonLoading ? (
                 <View style={styles.buttonContent}>
                   <ActivityIndicator size="small" color="#FFFFFF" />
-                  <Text style={styles.buttonText}>{t('voice.actions.processing')}</Text>
+                  <Text style={styles.buttonText}>{t('voice.actions.processing', 'Processing...')}</Text>
                 </View>
               ) : (
                 <View style={styles.buttonContent}>
                   <Ionicons name="play" size={16} color="#FFFFFF" />
-                  <Text style={styles.buttonText}>{t('voice.actions.preview')}</Text>
+                  <Text style={styles.buttonText}>{t('voice.actions.preview', 'Preview')}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -221,17 +309,17 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.selectButton, isSelected && styles.selectButtonSelected, { borderColor: theme.primary }]}
+                style={[styles.selectButton, isSelected && styles.selectButtonSelected, { borderColor: theme.primary }]} 
                 onPress={handleSelectVoice}
                 disabled={selectLoading}
               >
                 {selectLoading ? (
                   <ActivityIndicator size="small" color={theme.primary} />
                 ) : (
-                  <Text
+                  <Text 
                     style={[
-                      styles.selectButtonText,
-                      { color: theme.primary },
+                      styles.selectButtonText, 
+                      { color: theme.primary }, 
                       isSelected && styles.selectButtonTextSelected
                     ]}
                   >
@@ -386,6 +474,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   selectButtonTextSelected: {
+    fontWeight: 'bold',
+  },
+  subscriptionErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  subscriptionErrorText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  upgradeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  upgradeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: 'bold',
   },
 });

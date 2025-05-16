@@ -10,7 +10,8 @@ import {
   TextInput,
   Alert,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -89,6 +90,9 @@ const AACBoardScreen: React.FC = () => {
   const [isCategoriesLoading, setCategoriesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentlyPlayingText, setCurrentlyPlayingText] = useState<string | null>(null);
+  
+  // Track subscription limit status
+  const [subscriptionLimitReached, setSubscriptionLimitReached] = useState(false);
   
   // Modal state
   const [sentenceFormVisible, setSentenceFormVisible] = useState(false);
@@ -334,6 +338,27 @@ const AACBoardScreen: React.FC = () => {
       } catch (ttsError) {
         // Log the error and fall back to local Speech API
         console.log('Backend TTS failed or timed out:', ttsError);
+        
+        // Check if the error is a subscription limit error
+        if (ttsError instanceof Error) {
+          const errorMessage = ttsError.message;
+          // Check for either the error code or HTTP 429 status
+          const isLimitError = 
+            errorMessage.includes('LIMIT_EXCEEDED') || 
+            errorMessage.includes('429') || 
+            errorMessage.includes('limit');
+            
+          if (isLimitError) {
+            try {
+              // Mark that the subscription limit has been reached
+              console.log('Subscription limit reached, setting banner state');
+              setSubscriptionLimitReached(true);
+            } catch (err) {
+              console.error('Error handling subscription limit:', err);
+            }
+          }
+        }
+        
         console.log('Falling back to local Speech API');
         // Continue to fallback option below
       }
@@ -710,6 +735,56 @@ const AACBoardScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {subscriptionLimitReached && (
+        <TouchableOpacity 
+          style={styles.limitBanner} 
+          onPress={() => {
+            // Open the profile page to upgrade
+            // For development, link to local profile, for production, link to website
+            const upgradeUrl = __DEV__ 
+              ? '/profile?upgrade=true' 
+              : 'https://speech-aac.link/en/profile?upgrade=true';
+            
+            // You'd need to implement navigation to the profile page here
+            // For example, using Linking.openURL for the website version:
+            // Linking.openURL(upgradeUrl);
+            Alert.alert(
+              t('subscription.limitTitle', 'Subscription Limit Reached'),
+              t('subscription.limitMessage', 'You have reached your monthly TTS usage limit. Upgrade your plan for unlimited access.'),
+              [
+                {
+                  text: t('general.later', 'Later'),
+                  style: 'cancel'
+                },
+                {
+                  text: t('subscription.upgrade', 'Upgrade'),
+                  onPress: () => {
+                    // Implementation depends on your navigation setup
+                    // This is a placeholder - replace with actual navigation
+                    const url = 'https://speech-aac.link/en/profile?upgrade=true';
+                    Linking.openURL(url).catch(err => {
+                      console.error('Failed to open upgrade URL:', err);
+                      Alert.alert(t('general.error'), t('general.couldNotOpenBrowser'));
+                    });
+                  }
+                }
+              ]
+            );
+          }}
+        >
+          <View style={styles.limitBannerContent}>
+            <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.limitBannerText}>
+              {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
+            </Text>
+            <View style={styles.limitBannerButton}>
+              <Text style={styles.limitBannerButtonText}>
+                {t('subscription.upgrade', 'Upgrade')}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('aac.title')}</Text>
         <View style={styles.headerActions}>
@@ -857,6 +932,34 @@ const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
+  },
+  limitBanner: {
+    backgroundColor: theme.error || '#EF4444',
+    padding: 8,
+    width: '100%',
+  },
+  limitBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  limitBannerText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  limitBannerButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  limitBannerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   headerContainer: {
     flexDirection: 'row',

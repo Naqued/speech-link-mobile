@@ -336,6 +336,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         const dummySound = new Audio.Sound();
         setCurrentSound(null);
         setIsPlaying(true);
+        
+        // Only now clear the loading state after audio routing has begun
+        setIsLoading(false);
+        
         return dummySound;
       } else {
         // Normal preview flow
@@ -364,38 +368,49 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
           encoding: FileSystem.EncodingType.Base64
         });
         
+        // IMPORTANT: Keep isLoading true here, we'll set it to false only when audio is actually playing
+        console.log('Before createAsync - keeping isLoading state:', isLoading);
+        
         // Load the sound file using expo-av
         const { sound } = await Audio.Sound.createAsync(
           { uri: filePath },
-          { shouldPlay: true }
-        );
-        
-        // Set up event listener for playback status
-        sound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded) {
-            if (status.didJustFinish) {
-              console.log('Voice preview playback completed');
-              setIsPlaying(false);
-              setCurrentSound(null);
-              sound.unloadAsync().catch(error => {
-                console.error('Error unloading sound:', error);
-              });
+          { shouldPlay: true },
+          // Add onPlaybackStatusUpdate directly in the creation to catch initial loading too
+          (status) => {
+            if (status.isLoaded) {
+              // Only set isPlaying true and clear loading state once playback has actually started
+              if (status.isPlaying) {
+                console.log('Audio is now playing, clearing loading state');
+                setIsPlaying(true);
+                setIsLoading(false);
+              }
+              
+              if (status.didJustFinish) {
+                console.log('Voice preview playback completed');
+                setIsPlaying(false);
+                setCurrentSound(null);
+                sound.unloadAsync().catch(error => {
+                  console.error('Error unloading sound:', error);
+                });
+              }
             }
           }
-        });
+        );
         
-        // Store the sound reference
+        // Store the sound reference but DON'T set isPlaying true yet
+        // We only want to set that when audio actually starts playing
         setCurrentSound(sound);
-        setIsPlaying(true);
         
         return sound;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to preview voice');
       console.error('Error in voice preview:', err);
-      throw err;
-    } finally {
+      
+      // Always clear loading state on error
       setIsLoading(false);
+      
+      throw err;
     }
   }, [stopSpeaking, isAudioRoutingEnabled]);
 
