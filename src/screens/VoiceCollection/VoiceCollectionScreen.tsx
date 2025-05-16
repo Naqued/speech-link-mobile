@@ -931,21 +931,81 @@ const VoiceCollectionScreen: React.FC = () => {
 
   // Apply filters from the modal
   const handleApplyFilters = useCallback((filters: FilterParams) => {
+    // Update all filter states first
     setAdvancedFilters(filters);
     if (filters.provider) {
       setSelectedProvider(filters.provider);
+    } else {
+      setSelectedProvider('all');
     }
+    
     if (filters.gender) {
       setSelectedGender(filters.gender);
+    } else {
+      setSelectedGender('all');
     }
+    
     if (filters.language) {
       setSelectedLanguage(filters.language);
+    } else {
+      setSelectedLanguage('all');
     }
+    
     if (filters.search !== undefined) {
       setSearchQuery(filters.search);
+    } else {
+      setSearchQuery('');
     }
-    handleSearch();
-  }, [setAdvancedFilters, setSelectedProvider, setSelectedGender, setSelectedLanguage, setSearchQuery, handleSearch]);
+    
+    // Immediately perform search with the new filters
+    // We'll trigger a direct search similar to the search button logic
+    
+    // Skip search if in favorites tab
+    if (showFavorites) {
+      return;
+    }
+    
+    // Reset pagination
+    setPage(0);
+    
+    // Clear previous results
+    setSearchResults([]);
+    
+    // Start search
+    setIsSearching(true);
+    
+    // Build a clean params object from the filters that were just applied
+    const params: any = {
+      _: new Date().getTime() // Add cache buster
+    };
+    
+    // Use the filters that were just passed in
+    Object.keys(filters).forEach(key => {
+      if (filters[key as keyof FilterParams] !== undefined) {
+        params[key] = filters[key as keyof FilterParams];
+      }
+    });
+    
+    console.log('Applying filters and searching with params:', params);
+    
+    // Execute search immediately
+    searchVoices(params)
+      .then(result => {
+        const uniqueVoices = ensureUniqueIds(result.voices || []);
+        setCombinedVoices([]);
+        setSearchResults(uniqueVoices);
+        setHasMoreResults(result.hasMore || false);
+        console.log(`Applied filters and search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
+      })
+      .catch(error => {
+        console.error('Error applying filters and searching:', error);
+        Alert.alert(t('general.error'), t('voice.collection.searchError'));
+      })
+      .finally(() => {
+        setIsSearching(false);
+      });
+
+  }, [showFavorites, searchVoices, ensureUniqueIds, setIsSearching, setSearchResults, setCombinedVoices, setHasMoreResults, t]);
 
   // Render footer component
   const renderFooter = useCallback(() => {

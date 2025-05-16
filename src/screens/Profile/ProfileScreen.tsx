@@ -9,7 +9,8 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,17 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 // Services
 import { profileService } from '../../services/profileService';
 import { UserProfile } from '../../types/profile';
+
+// Helper to check subscription tiers
+const isTier = (currentTier: string | undefined, tierToCheck: string): boolean => {
+  // Map API tiers to our display tiers
+  if (currentTier === 'FREE' || currentTier === 'TRIAL') {
+    return tierToCheck === 'Trial';
+  }
+  if (currentTier === 'PREMIUM' && tierToCheck === 'Occasional') return true;
+  // Direct match
+  return currentTier === tierToCheck;
+};
 
 const ProfileScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -38,6 +50,15 @@ const ProfileScreen: React.FC = () => {
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Add debug logging to check subscription data
+  useEffect(() => {
+    if (profile) {
+      console.log('Profile loaded with subscription tier:', profile.subscription?.tier);
+      console.log('Credits total from API:', profile.usage?.creditsTotal);
+      console.log('Credits used:', profile.usage?.creditsUsed.total);
+    }
+  }, [profile]);
 
   const loadProfile = async () => {
     try {
@@ -90,6 +111,52 @@ const ProfileScreen: React.FC = () => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString();
+  };
+
+  // Add a function to handle external navigation
+  const handleUpgradePress = (plan: string) => {
+    const url = `https://speech-aac.link/en/profile?upgrade=${plan.toLowerCase()}`;
+    Linking.openURL(url).catch(err => {
+      console.error('Failed to open upgrade URL:', err);
+      Alert.alert(t('general.error'), t('general.couldNotOpenBrowser'));
+    });
+  };
+
+  // Add a function to get usage percentage and status
+  const getUsageInfo = () => {
+    if (!profile?.usage) return { percentage: 0, status: 'normal', planTotal: 0 };
+    
+    // Get the correct total based on the plan
+    let planTotal = profile.usage.creditsTotal;
+    
+    // Override for TRIAL plan - force it to be 30 credits
+    if (isTier(profile.subscription?.tier, 'Trial')) {
+      planTotal = 30;
+    }
+    
+    const used = profile.usage.creditsUsed.total;
+    const percentage = Math.min(100, Math.round((used / planTotal) * 100));
+    
+    let status = 'normal';
+    if (percentage >= 100) {
+      status = 'exceeded';
+    } else if (percentage >= 80) {
+      status = 'warning';
+    }
+    
+    return { percentage, status, planTotal };
+  };
+
+  // Helper to get a display name for the subscription tier
+  const getSubscriptionDisplayName = (tier: string | undefined): string => {
+    if (!tier) return t('profile.freeTier', 'Free Tier');
+    
+    // Map API tiers to display names
+    if (tier === 'FREE' || tier === 'TRIAL') return t('profile.plans.trial', 'Trial');
+    if (tier === 'PREMIUM') return t('profile.plans.occasional', 'Occasional');
+    
+    // Other tiers - display with first letter capitalized
+    return tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
   };
 
   if (isLoading) {
@@ -178,7 +245,7 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.infoLabel}>{t('profile.subscription')}</Text>
             <View style={styles.subscriptionContainer}>
               <Text style={styles.infoValue}>
-                {profile.subscription?.tier || t('profile.freeTier')}
+                {getSubscriptionDisplayName(profile.subscription?.tier)}
               </Text>
               {profile.subscription?.status === 'active' && (
                 <View style={styles.subscriptionBadge}>
@@ -210,9 +277,44 @@ const ProfileScreen: React.FC = () => {
             <>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>{t('profile.creditsUsed')}</Text>
-                <Text style={styles.infoValue}>
-                  {profile.usage.creditsUsed.total} / {profile.usage.creditsTotal}
-                </Text>
+                <View style={styles.usageContainer}>
+                  <View style={styles.usageHeader}>
+                    <Text style={styles.infoValue}>
+                      {profile.usage.creditsUsed.total} / {getUsageInfo().planTotal}
+                    </Text>
+                    <Text style={[
+                      styles.usagePercentage, 
+                      getUsageInfo().status === 'warning' && styles.usageWarning,
+                      getUsageInfo().status === 'exceeded' && styles.usageExceeded,
+                    ]}>
+                      {getUsageInfo().percentage}%
+                    </Text>
+                  </View>
+                  <View style={styles.usageBarContainer}>
+                    <View 
+                      style={[
+                        styles.usageBar, 
+                        { 
+                          width: `${getUsageInfo().percentage}%`,
+                          backgroundColor: 
+                            getUsageInfo().status === 'exceeded' ? theme.error : 
+                            getUsageInfo().status === 'warning' ? theme.warning : 
+                            theme.primary
+                        }
+                      ]} 
+                    />
+                  </View>
+                  {getUsageInfo().status === 'exceeded' && (
+                    <Text style={styles.usageLimitMessage}>
+                      {t('profile.limitExceeded', 'You have reached your monthly limit')}
+                    </Text>
+                  )}
+                  {getUsageInfo().status === 'warning' && (
+                    <Text style={styles.usageLimitMessage}>
+                      {t('profile.limitWarning', 'You are approaching your monthly limit')}
+                    </Text>
+                  )}
+                </View>
               </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>{t('profile.nextReset')}</Text>
@@ -222,6 +324,146 @@ const ProfileScreen: React.FC = () => {
               </View>
             </>
           )}
+        </View>
+
+        {/* Subscription plans section */}
+        <View style={styles.subscriptionSection}>
+          <Text style={styles.sectionTitle}>{t('profile.plans.title', 'Subscription Plans')}</Text>
+          
+          {/* Trial Plan */}
+          <View style={[
+            styles.planCard, 
+            (isTier(profile.subscription?.tier, 'Trial') || !profile.subscription?.tier) && styles.activePlanCard
+          ]}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{t('profile.plans.trial', 'Trial')}</Text>
+              {(isTier(profile.subscription?.tier, 'Trial') || !profile.subscription?.tier) && (
+                <View style={styles.currentPlanBadge}>
+                  <Text style={styles.currentPlanText}>{t('profile.currentPlan', 'Current')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>{t('profile.plans.free', 'Free')}</Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '30' })}</Text>
+            <Text style={styles.planDescription}>{t('profile.plans.trialDesc', 'Basic access to try out the service')}</Text>
+          </View>
+          
+          {/* Occasional Plan */}
+          <View style={[
+            styles.planCard, 
+            isTier(profile.subscription?.tier, 'Occasional') && styles.activePlanCard
+          ]}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{t('profile.plans.occasional', 'Occasional')}</Text>
+              {isTier(profile.subscription?.tier, 'Occasional') && (
+                <View style={styles.currentPlanBadge}>
+                  <Text style={styles.currentPlanText}>{t('profile.currentPlan', 'Current')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>€4<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '50K' })}</Text>
+            <Text style={styles.planDescription}>{t('profile.plans.occasionalDesc', 'Perfect for occasional use')}</Text>
+            
+            {(!profile.subscription?.tier || isTier(profile.subscription?.tier, 'Trial')) && (
+              <TouchableOpacity 
+                style={styles.upgradePlanButton}
+                onPress={() => handleUpgradePress('occasional')}
+              >
+                <Text style={styles.upgradePlanButtonText}>{t('profile.upgrade', 'Upgrade')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {/* Regular Plan */}
+          <View style={[
+            styles.planCard, 
+            isTier(profile.subscription?.tier, 'Regular') && styles.activePlanCard
+          ]}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{t('profile.plans.regular', 'Regular')}</Text>
+              {isTier(profile.subscription?.tier, 'Regular') && (
+                <View style={styles.currentPlanBadge}>
+                  <Text style={styles.currentPlanText}>{t('profile.currentPlan', 'Current')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>€15<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '200K' })}</Text>
+            <Text style={styles.planDescription}>{t('profile.plans.regularDesc', 'Ideal for regular users')}</Text>
+            
+            {(!profile.subscription?.tier || 
+              isTier(profile.subscription?.tier, 'Trial') || 
+              isTier(profile.subscription?.tier, 'Occasional')) && (
+              <TouchableOpacity 
+                style={styles.upgradePlanButton}
+                onPress={() => handleUpgradePress('regular')}
+              >
+                <Text style={styles.upgradePlanButtonText}>{t('profile.upgrade', 'Upgrade')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {/* Intensive Plan */}
+          <View style={[
+            styles.planCard, 
+            isTier(profile.subscription?.tier, 'Intensive') && styles.activePlanCard
+          ]}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{t('profile.plans.intensive', 'Intensive')}</Text>
+              {isTier(profile.subscription?.tier, 'Intensive') && (
+                <View style={styles.currentPlanBadge}>
+                  <Text style={styles.currentPlanText}>{t('profile.currentPlan', 'Current')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>€30<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '500K' })}</Text>
+            <Text style={styles.planDescription}>{t('profile.plans.intensiveDesc', 'For intensive daily usage')}</Text>
+            
+            {(!profile.subscription?.tier || 
+              isTier(profile.subscription?.tier, 'Trial') || 
+              isTier(profile.subscription?.tier, 'Occasional') ||
+              isTier(profile.subscription?.tier, 'Regular')) && (
+              <TouchableOpacity 
+                style={styles.upgradePlanButton}
+                onPress={() => handleUpgradePress('intensive')}
+              >
+                <Text style={styles.upgradePlanButtonText}>{t('profile.upgrade', 'Upgrade')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {/* Daily Companion Plan */}
+          <View style={[
+            styles.planCard, 
+            isTier(profile.subscription?.tier, 'Daily Companion') && styles.activePlanCard
+          ]}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{t('profile.plans.dailyCompanion', 'Daily Companion')}</Text>
+              {isTier(profile.subscription?.tier, 'Daily Companion') && (
+                <View style={styles.currentPlanBadge}>
+                  <Text style={styles.currentPlanText}>{t('profile.currentPlan', 'Current')}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.planPrice}>€100<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '3M' })}</Text>
+            <Text style={styles.planDescription}>{t('profile.plans.dailyDesc', 'For professional or intensive usage')}</Text>
+            
+            {(!profile.subscription?.tier || 
+              isTier(profile.subscription?.tier, 'Trial') || 
+              isTier(profile.subscription?.tier, 'Occasional') ||
+              isTier(profile.subscription?.tier, 'Regular') ||
+              isTier(profile.subscription?.tier, 'Intensive')) && (
+              <TouchableOpacity 
+                style={styles.upgradePlanButton}
+                onPress={() => handleUpgradePress('dailycompanion')}
+              >
+                <Text style={styles.upgradePlanButtonText}>{t('profile.upgrade', 'Upgrade')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {isEditing && (
@@ -375,6 +617,125 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   saveButtonText: {
     color: theme.buttonText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  usageContainer: {
+    marginTop: 10,
+  },
+  usageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  usagePercentage: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.primary,
+  },
+  usageWarning: {
+    color: theme.warning || '#F59E0B',
+  },
+  usageExceeded: {
+    color: theme.error,
+  },
+  usageBarContainer: {
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: theme.border,
+    overflow: 'hidden',
+  },
+  usageBar: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  usageLimitMessage: {
+    fontSize: 14,
+    color: theme.error,
+    marginTop: 5,
+    fontStyle: 'italic',
+  },
+  subscriptionSection: {
+    paddingHorizontal: 20,
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+    marginBottom: 20,
+  },
+  planCard: {
+    backgroundColor: theme.card,
+    padding: 20,
+    borderRadius: 8,
+    marginBottom: 20,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  activePlanCard: {
+    borderWidth: 2,
+    borderColor: theme.primary,
+    backgroundColor: theme.primary + '10',
+  },
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  planName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  currentPlanBadge: {
+    backgroundColor: theme.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  currentPlanText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.text,
+    marginBottom: 5,
+  },
+  planPriceMonth: {
+    fontSize: 14,
+    fontWeight: 'normal',
+    color: theme.text + '80',
+  },
+  planCredits: {
+    fontSize: 16,
+    color: theme.text + '80',
+    marginBottom: 10,
+  },
+  planDescription: {
+    fontSize: 14,
+    color: theme.text + '80',
+    marginBottom: 10,
+  },
+  upgradePlanButton: {
+    backgroundColor: theme.primary,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  upgradePlanButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
