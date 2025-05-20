@@ -318,16 +318,21 @@ const AACBoardScreen: React.FC = () => {
           // Show streaming indicator
           console.log('[AACBoard] Streaming to Discord:', text);
           
-          // Start streaming to Discord
-          const streamSuccess = await streamSpeech(text);
-          if (!streamSuccess) {
-            console.warn('[AACBoard] Discord streaming failed or was rejected');
-          }
+          // Start streaming to Discord - don't await this to avoid blocking the speech
+          // The direct streaming API will handle this independently
+          streamSpeech(text).catch(err => {
+            console.log('[AACBoard] Discord streaming error (not critical):', err);
+            // Non-critical error, no need to show to the user
+          });
         } catch (discordError) {
-          console.error('Error streaming to Discord:', discordError);
+          // This should never happen since we're catching errors in the streamSpeech call
+          console.log('[AACBoard] Discord streaming catch block (should not occur):', discordError);
           // Continue with normal speech even if Discord streaming fails
         } finally {
-          setIsStreamingToDiscord(false);
+          // Short delay before hiding the streaming indicator
+          setTimeout(() => {
+            setIsStreamingToDiscord(false);
+          }, 1000); // Short delay to show the indicator
         }
       }
       

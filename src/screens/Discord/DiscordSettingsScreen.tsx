@@ -18,11 +18,16 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import * as WebBrowser from 'expo-web-browser';
 import { useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
+
+// Constants (add at the top)
+const API_BASE_URL = 'http://192.168.1.14:3000';
 
 // Context
 import { useDiscord } from '../../contexts/DiscordContext';
 import { ThemeContext, themes } from '../../contexts/ThemeContext';
 import { useContext } from 'react';
+import { AuthContext } from '../../contexts/AuthContext';
 
 // Types from service
 import { DiscordServer, DiscordChannel } from '../../services/discordService';
@@ -34,6 +39,10 @@ const DiscordSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === themes.dark;
   
+  // Use AuthContext to get the token
+  const { token: authToken } = useContext(AuthContext);
+  
+  // Use the Discord context
   const {
     isLoading,
     isAuthenticated,
@@ -56,6 +65,20 @@ const DiscordSettingsScreen: React.FC = () => {
     disconnect
   } = useDiscord();
 
+  // Add console logging to debug context values when they change
+  useEffect(() => {
+    console.log("Discord context values changed:", { 
+      isAuthenticated, 
+      isConnected,
+      currentServerId: currentServer?.id,
+      currentServerName: currentServer?.name,
+      currentChannelId: currentChannel?.id,
+      currentChannelName: currentChannel?.name,
+      serversCount: servers.length,
+      channelsCount: channels.length
+    });
+  }, [isAuthenticated, isConnected, currentServer, currentChannel, servers, channels]);
+  
   // State hooks
   const [serverModalVisible, setServerModalVisible] = useState(false);
   const [channelModalVisible, setChannelModalVisible] = useState(false);
@@ -68,18 +91,22 @@ const DiscordSettingsScreen: React.FC = () => {
 
   // Create stable versions of Discord context functions
   const stableLoadSettings = useCallback(() => {
+    console.log("Calling loadSettings...");
     return loadSettings();
   }, [loadSettings]);
   
   const stableConnect = useCallback(() => {
+    console.log("Calling connect...");
     return connect();
   }, [connect]);
   
   const stableDisconnect = useCallback(() => {
+    console.log("Calling disconnect...");
     return disconnect();
   }, [disconnect]);
   
   const stableSaveSettings = useCallback(() => {
+    console.log("Calling stableSaveSettings which calls saveSettings...");
     return saveSettings();
   }, [saveSettings]);
   
@@ -220,62 +247,132 @@ const DiscordSettingsScreen: React.FC = () => {
     }
   }, []);
 
-  // Select Server
-  const handleSelectServer = useCallback((server: DiscordServer) => {
-    // If currently connected to voice, disconnect first
-    if (isConnected) {
-      stableDisconnect().then(() => {
-        selectServer(server);
-        setServerModalVisible(false);
-      });
-    } else {
-      selectServer(server);
-      setServerModalVisible(false);
-    }
-  }, [isConnected, stableDisconnect, selectServer]);
-
-  // Select Channel and Auto-Save
-  const handleSelectChannel = useCallback(async (channel: DiscordChannel) => {
-    // If currently connected to voice, disconnect first
-    if (isConnected) {
-      await stableDisconnect();
+  // Direct API call function to save Discord settings
+  const directSaveSettings = async () => {
+    console.log('Directly saving Discord settings via API...');
+    
+    if (!currentServer) {
+      console.error('No server selected, cannot save settings');
+      return false;
     }
     
-    // Set the selected channel
+    try {
+      // Log what we're about to send
+      console.log('Sending settings to API:', {
+        serverId: currentServer.id,
+        channelId: currentChannel?.id || null
+      });
+      
+      // Make the API call directly
+      const response = await axios.post(
+        `${API_BASE_URL}/api/discord/settings`,
+        {
+          serverId: currentServer.id,
+          channelId: currentChannel?.id || null
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        }
+      );
+      
+      console.log('Direct API call response:', response.data);
+      
+      // Verify the response
+      if (response.status === 200 && response.data.success) {
+        console.log('Settings successfully saved via direct API call');
+        return true;
+      } else {
+        console.error('Failed to save settings via direct API:', response.data);
+        return false;
+      }
+    } catch (err) {
+      console.error('Error making direct API call to save settings:', err);
+      return false;
+    }
+  };
+
+  // Simplify server selection with a cleaner flow
+  const handleServerSelection = useCallback(async (server: DiscordServer) => {
+    console.log(`User selected server: ${server.id} (${server.name})`);
+    
+    // Step 1: Update UI state first
+    selectServer(server);
+    selectChannel(null as any); // Clear channel selection
+    setServerModalVisible(false);
+    
+    // Step 2: Load channels for this server
+    try {
+      await loadChannels(server.id);
+      console.log(`Loaded channels for server ${server.id}`);
+    } catch (err) {
+      console.error(`Failed to load channels for server ${server.id}:`, err);
+    }
+    
+    // Step 3: Save server selection (without channel)
+    try {
+      console.log('Saving server selection (without channel)...');
+      const success = await directSaveSettings();
+      console.log(`Server saved: ${success ? 'success' : 'failed'}`);
+    } catch (err) {
+      console.error('Error saving server selection:', err);
+    }
+  }, [selectServer, selectChannel, loadChannels, directSaveSettings]);
+
+  // Simplify channel selection with a cleaner flow
+  const handleChannelSelection = useCallback(async (channel: DiscordChannel) => {
+    console.log(`User selected channel: ${channel.id} (${channel.name})`);
+    
+    // Step 1: Update UI state first
     selectChannel(channel);
     setChannelModalVisible(false);
-
-    // Auto-save settings if we have both server and channel
-    if (currentServer) {
-      console.log('Auto-saving Discord settings after channel selection...');
-      try {
-        const success = await stableSaveSettings();
-        if (success) {
-          console.log('Settings auto-saved successfully');
-        } else {
-          console.error('Failed to auto-save settings');
-          Alert.alert(
-            t('general.error'),
-            t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
-          );
-        }
-      } catch (err) {
-        console.error('Error auto-saving settings:', err);
+    
+    // Wait briefly for state update
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Step 2: Save server + channel selection
+    try {
+      console.log('Saving server and channel selection...');
+      const success = await directSaveSettings();
+      
+      if (success) {
+        console.log('Settings saved successfully');
+      } else {
+        console.error('Failed to save settings');
+        Alert.alert(
+          t('general.error'),
+          t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
+        );
       }
+    } catch (err) {
+      console.error('Error saving settings:', err);
+      Alert.alert(
+        t('general.error'),
+        t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
+      );
     }
-  }, [currentServer, isConnected, stableDisconnect, selectChannel, stableSaveSettings]);
+  }, [selectChannel, directSaveSettings]);
+
+  // Use handleServerSelection instead of handleSelectServer
+  const handleSelectServer = handleServerSelection;
+  
+  // Use handleChannelSelection instead of handleSelectChannel
+  const handleSelectChannel = handleChannelSelection;
 
   // Join or Disconnect Voice Channel
   const handleJoinOrDisconnect = useCallback(async () => {
     try {
       if (isConnected) {
-        // If connected, disconnect
-        const success = await stableDisconnect();
+        // If connected, just disconnect
+        console.log('Attempting to disconnect from Discord voice channel...');
+        const success = await disconnect(); // Use direct context function
+        
         if (success) {
           console.log('Successfully disconnected from Discord voice channel');
-          // Manual refresh of connection status
-          await stableLoadSettings();
         } else {
+          console.error('Failed to disconnect from Discord voice channel');
           Alert.alert(
             t('general.error'),
             t('discord.disconnectFailed', 'Failed to disconnect from Discord voice channel')
@@ -284,6 +381,7 @@ const DiscordSettingsScreen: React.FC = () => {
       } else {
         // Check if server and channel are selected
         if (!currentServer || !currentChannel) {
+          console.error(`Missing server or channel: Server=${currentServer?.id}, Channel=${currentChannel?.id}`);
           Alert.alert(
             t('general.error'),
             t('discord.selectServerAndChannel', 'Please select a server and channel first')
@@ -291,17 +389,42 @@ const DiscordSettingsScreen: React.FC = () => {
           return;
         }
 
-        // Join the voice channel
-        const success = await stableConnect();
+        // Log the current server and channel
+        console.log(`Attempting to join voice - Server: ${currentServer.id} (${currentServer.name}), Channel: ${currentChannel.id} (${currentChannel.name})`);
+        
+        // Make sure settings are saved before connecting
+        console.log('Ensuring settings are saved before connecting...');
+        const saveSuccess = await directSaveSettings();
+        
+        if (!saveSuccess) {
+          console.warn('Failed to save settings before connecting, but will try to connect anyway');
+        }
+        
+        // Join the voice channel using direct context function
+        console.log('Calling connect() function...');
+        const success = await connect();
+        
         if (success) {
           console.log('Successfully joined Discord voice channel');
-          // Manual refresh of connection status
-          await stableLoadSettings();
         } else {
-          Alert.alert(
-            t('general.error'),
-            t('discord.joinFailed', 'Failed to join Discord voice channel')
-          );
+          console.error('Failed to join voice channel');
+          
+          // Try one more time with a slight delay
+          console.log('Waiting 1 second before retry...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          console.log('Retrying connection...');
+          const retrySuccess = await connect();
+          
+          if (retrySuccess) {
+            console.log('Successfully joined Discord voice channel on retry');
+          } else {
+            console.error('Failed to join voice channel on retry');
+            Alert.alert(
+              t('general.error'),
+              t('discord.joinFailed', 'Failed to join Discord voice channel')
+            );
+          }
         }
       }
     } catch (err) {
@@ -311,7 +434,7 @@ const DiscordSettingsScreen: React.FC = () => {
         t('discord.connectionError', 'An error occurred while managing the Discord connection')
       );
     }
-  }, [isConnected, currentServer, currentChannel, stableConnect, stableDisconnect, stableLoadSettings]);
+  }, [currentServer, currentChannel, isConnected, connect, disconnect, directSaveSettings]);
   
   // Join/Disconnect Button
   const renderJoinButton = useCallback(() => {
@@ -482,9 +605,8 @@ const DiscordSettingsScreen: React.FC = () => {
     </TouchableOpacity>
   ), [styles, theme.text]);
   
-  // Standard componentDidMount-style effect to prevent duplicate initialization
+  // Standard componentDidMount-style effect - keep this to load initial settings once
   useEffect(() => {
-    // This will run exactly once when the component mounts
     if (!initialLoadComplete) {
       console.log('Component mounted, loading settings once');
       stableLoadSettings().then(() => {
@@ -494,7 +616,6 @@ const DiscordSettingsScreen: React.FC = () => {
         setInitialLoadComplete(true);
       });
     }
-    // No dependencies means this runs only once when component mounts
   }, []);
 
   // Show loading state before initial load complete
