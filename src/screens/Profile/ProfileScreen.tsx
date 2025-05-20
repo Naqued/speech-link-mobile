@@ -112,7 +112,6 @@ const ProfileScreen: React.FC = () => {
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
-
   // Add a function to handle external navigation
   const handleUpgradePress = (plan: string) => {
     const url = `https://speech-aac.link/en/profile?upgrade=${plan.toLowerCase()}`;

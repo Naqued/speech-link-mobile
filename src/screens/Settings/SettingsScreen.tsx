@@ -488,6 +488,8 @@ const SettingsScreen: React.FC = () => {
           )}
         </View>
 
+        {renderIntegrationSettings()}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
           {renderSettingItem(
@@ -518,8 +520,6 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
-
-        {renderIntegrationSettings()}
       </ScrollView>
     </SafeAreaView>
   );

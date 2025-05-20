@@ -356,7 +356,10 @@
     "version": "Versión",
     "privacyPolicy": "Política de Privacidad",
     "termsOfService": "Términos de Servicio",
-    "feedback": "Enviar Comentarios"
+    "feedback": "Enviar Comentarios",
+    "integrations": "Integraciones",
+    "discordSettings": "Configuración de Discord",
+    "audioRouting": "Enrutamiento de Audio"
   },
   "profile": {
     "title": "Perfil",

@@ -358,7 +358,10 @@
     "version": "Version",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "feedback": "Send Feedback"
+    "feedback": "Send Feedback",
+    "integrations": "Integrations",
+    "discordSettings": "Discord Settings",
+    "audioRouting": "Audio Routing"
   },
   "profile": {
     "title": "Profile",

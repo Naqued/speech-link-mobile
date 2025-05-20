@@ -21,7 +21,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 
 // Constants (add at the top)
-const API_BASE_URL = 'http://192.168.1.14:3000';
+const API_BASE_URL = 'http://speech-aac.link';
 
 // Context
 import { useDiscord } from '../../contexts/DiscordContext';

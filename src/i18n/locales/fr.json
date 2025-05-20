@@ -403,7 +403,10 @@
     "version": "Version",
     "privacyPolicy": "Politique de Confidentialité",
     "termsOfService": "Conditions d'Utilisation",
-    "feedback": "Envoyer un Commentaire"
+    "feedback": "Envoyer un Commentaire",
+    "integrations": "Intégrations",
+    "discordSettings": "Paramètres Discord",
+    "audioRouting": "Routage Audio"
   },
   "profile": {
     "title": "Profil",
