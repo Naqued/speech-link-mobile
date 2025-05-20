@@ -93,14 +93,22 @@ Object.keys(resources).forEach(lang => {
 
 // Detect device language
 const getDeviceLanguage = () => {
-  const locale = Localization.locale;
-  const languageCode = locale.split('-')[0]; // Get first part of locale (e.g., 'en' from 'en-US')
-  
-  // Check if device language is supported, otherwise fallback to English
-  const detected = SUPPORTED_LANGUAGES.includes(languageCode) ? languageCode : 'en';
-  console.log('[i18n] Detected device language:', languageCode, 
-    'Using:', detected, SUPPORTED_LANGUAGES.includes(languageCode) ? '(supported)' : '(fallback to en)');
-  return detected;
+  try {
+    const locale = Localization.locale || '';
+    console.log('[i18n] Raw locale from device:', locale);
+    
+    // Safe split with fallback
+    const languageCode = locale ? locale.split('-')[0] : 'en'; // Get first part of locale (e.g., 'en' from 'en-US')
+    
+    // Check if device language is supported, otherwise fallback to English
+    const detected = SUPPORTED_LANGUAGES.includes(languageCode) ? languageCode : 'en';
+    console.log('[i18n] Detected device language:', languageCode, 
+      'Using:', detected, SUPPORTED_LANGUAGES.includes(languageCode) ? '(supported)' : '(fallback to en)');
+    return detected;
+  } catch (error) {
+    console.error('[i18n] Error detecting device language:', error);
+    return 'en'; // Fallback to English on any error
+  }
 };
 
 // Initialize i18n
@@ -128,6 +136,14 @@ i18n
   })
   .catch(error => {
     console.error('[i18n] Initialization failed:', error);
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('[i18n] Error name:', error.name);
+      console.error('[i18n] Error message:', error.message);
+      console.error('[i18n] Error stack:', error.stack);
+    }
+    // Continue with English as fallback
+    console.log('[i18n] Falling back to English due to initialization error');
   });
 
 // Listen for language changes

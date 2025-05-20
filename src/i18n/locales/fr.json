@@ -65,7 +65,16 @@
     "testing": "Test en cours...",
     "account": "Compte Discord",
     "connected": "Connecté",
-    "disconnectedFromChannel": "Déconnecté du canal vocal Discord"
+    "disconnectedFromChannel": "Déconnecté du canal vocal Discord",
+    "inviteUrlError": "Erreur lors de la génération de l'URL d'invitation",
+    "disconnectFailed": "Échec de la déconnexion du canal vocal Discord",
+    "connectionError": "Une erreur s'est produite lors de la gestion de la connexion Discord",
+    "noServersFound": "Aucun serveur Discord trouvé",
+    "checkDiscordConnection": "Assurez-vous que votre compte Discord est correctement connecté",
+    "noChannelsFound": "Aucun canal vocal trouvé sur ce serveur",
+    "createVoiceChannel": "Assurez-vous que ce serveur dispose d'au moins un canal vocal",
+    "joinVoice": "Rejoindre le Canal Vocal",
+    "leaveVoice": "Quitter le Canal Vocal"
   },
   "home": {
     "title": "Amplificateur Vocal",

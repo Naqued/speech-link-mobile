@@ -110,18 +110,18 @@ const MainTabs = () => {
 const MainNavigator: React.FC = () => {
   return (
     <DiscordProvider>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false
-        }}
-      >
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="About" component={AboutScreen} />
-        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-        <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false
+      }}
+    >
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
         <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
-      </Stack.Navigator>
+    </Stack.Navigator>
     </DiscordProvider>
   );
 };

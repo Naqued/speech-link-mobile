@@ -422,7 +422,7 @@ const SettingsScreen: React.FC = () => {
         () => navigation.navigate('DiscordSettings' as never)
       )}
       
-      {renderSettingItem(
+      {/* {renderSettingItem(
         'options-outline',
         t('settings.audioRouting'),
         <Switch
@@ -431,7 +431,7 @@ const SettingsScreen: React.FC = () => {
         />,
         undefined,
         false
-      )}
+      )} */}
     </View>
   );
 
@@ -518,7 +518,7 @@ const SettingsScreen: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={styles.versionText}>Version 1.1</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

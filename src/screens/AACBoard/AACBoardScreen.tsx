@@ -714,12 +714,6 @@ const AACBoardScreen: React.FC = () => {
               isStreaming={isStreamingToDiscord} 
             />
           )}
-          <TouchableOpacity
-            style={styles.helpButton}
-            onPress={() => Alert.alert(t('general.help'), t('aac.helpText'))}
-          >
-            <Ionicons name="help-circle-outline" size={24} color={theme.text} />
-          </TouchableOpacity>
         </View>
       </View>
       {subscriptionLimitReached && (

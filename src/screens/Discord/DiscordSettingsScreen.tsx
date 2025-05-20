@@ -20,8 +20,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 
-// Constants (add at the top)
-const API_BASE_URL = 'http://speech-aac.link';
+// Replace hardcoded URL with environment-aware URL
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://speech-aac.link';
 
 // Context
 import { useDiscord } from '../../contexts/DiscordContext';
@@ -243,12 +243,12 @@ const DiscordSettingsScreen: React.FC = () => {
         await Linking.openURL(inviteUrl);
       }
     } catch (err) {
-      Alert.alert(t('general.error'), 'Failed to open invite URL');
+      Alert.alert(t('general.error'), t('discord.inviteUrlError', 'Failed to open invite URL'));
     }
   }, []);
 
   // Direct API call function to save Discord settings
-  const directSaveSettings = async () => {
+  const directSaveSettings = async (specificChannelId?: string) => {
     console.log('Directly saving Discord settings via API...');
     
     if (!currentServer) {
@@ -257,18 +257,26 @@ const DiscordSettingsScreen: React.FC = () => {
     }
     
     try {
+      // Use specific channel ID if provided, otherwise use current channel
+      const channelId = specificChannelId !== undefined ? specificChannelId : currentChannel?.id || null;
+      const channelName = currentChannel?.name || null;
+      
       // Log what we're about to send
       console.log('Sending settings to API:', {
-        serverId: currentServer.id,
-        channelId: currentChannel?.id || null
+        selectedServerId: currentServer.id,
+        selectedServerName: currentServer.name,
+        selectedChannelId: channelId,
+        selectedChannelName: channelName
       });
       
-      // Make the API call directly
+      // Make the API call directly with correct parameter names
       const response = await axios.post(
         `${API_BASE_URL}/api/discord/settings`,
         {
-          serverId: currentServer.id,
-          channelId: currentChannel?.id || null
+          selectedServerId: currentServer.id,
+          selectedServerName: currentServer.name,
+          selectedChannelId: channelId,
+          selectedChannelName: channelName
         },
         {
           headers: {
@@ -314,14 +322,49 @@ const DiscordSettingsScreen: React.FC = () => {
     // Step 3: Save server selection (without channel)
     try {
       console.log('Saving server selection (without channel)...');
-      const success = await directSaveSettings();
-      console.log(`Server saved: ${success ? 'success' : 'failed'}`);
+      
+      // Don't use state which might not be updated yet - use the server directly
+      console.log('Directly saving Discord settings via API...');
+      
+      try {
+        // Make the API call directly with the selected server
+        const response = await axios.post(
+          `${API_BASE_URL}/api/discord/settings`,
+          {
+            selectedServerId: server.id,
+            selectedServerName: server.name,
+            selectedChannelId: null,
+            selectedChannelName: null
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}`
+            }
+          }
+        );
+        
+        console.log('Direct API call response:', response.data);
+        
+        // Verify the response
+        if (response.status === 200 && response.data.success) {
+          console.log('Settings successfully saved via direct API call');
+          console.log(`Server saved: success`);
+        } else {
+          console.error('Failed to save settings via direct API:', response.data);
+          console.log(`Server saved: failed`);
+        }
+      } catch (err) {
+        console.error('Error making direct API call to save settings:', err);
+        console.log(`Server saved: failed`);
+      }
     } catch (err) {
       console.error('Error saving server selection:', err);
+      console.log(`Server saved: failed`);
     }
-  }, [selectServer, selectChannel, loadChannels, directSaveSettings]);
+  }, [selectServer, selectChannel, loadChannels, authToken]);
 
-  // Simplify channel selection with a cleaner flow
+  // Update the handleChannelSelection function
   const handleChannelSelection = useCallback(async (channel: DiscordChannel) => {
     console.log(`User selected channel: ${channel.id} (${channel.name})`);
     
@@ -329,16 +372,77 @@ const DiscordSettingsScreen: React.FC = () => {
     selectChannel(channel);
     setChannelModalVisible(false);
     
-    // Wait briefly for state update
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Step 2: Save server + channel selection
+    // Step 2: Save server + channel selection with explicit channel ID
     try {
       console.log('Saving server and channel selection...');
-      const success = await directSaveSettings();
       
-      if (success) {
+      if (!currentServer) {
+        console.error('No server selected, cannot save channel settings');
+        Alert.alert(
+          t('general.error'),
+          t('discord.selectServerFirst', 'Please select a server first')
+        );
+        return;
+      }
+      
+      // Make direct API call with explicit IDs using the correct parameter names
+      const response = await axios.post(
+        `${API_BASE_URL}/api/discord/settings`,
+        {
+          selectedServerId: currentServer.id,
+          selectedServerName: currentServer.name,
+          selectedChannelId: channel.id,
+          selectedChannelName: channel.name,
+          save: true
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        }
+      );
+      
+      console.log('Direct API call response:', response.data);
+      
+      if (response.status === 200 && response.data.success) {
         console.log('Settings saved successfully');
+        
+        // Just verify the API call was successful without checking specific fields
+        // The GET settings endpoint returns different data than we expected
+        try {
+          const verifyResponse = await axios.get(
+            `${API_BASE_URL}/api/discord/settings`,
+            {
+              headers: {
+                'Authorization': `Bearer ${authToken}`
+              }
+            }
+          );
+          
+          console.log('Verify settings response:', verifyResponse.data);
+          // Just check that we get a successful response, don't validate fields
+          // since the response format is different than expected
+          if (verifyResponse.status === 200) {
+            console.log('Settings verified: API endpoint accessible');
+          }
+          
+          // Try to connect immediately after successfully saving settings
+          // This might work better since it's a direct action after selection
+          console.log('Trying to connect immediately after channel selection...');
+          
+          // Simple connect call without parameters
+          const connectSuccess = await stableConnect();
+          
+          if (connectSuccess) {
+            console.log('Successfully connected to Discord after channel selection (reported by context connect)');
+          } else {
+            console.log('Could not connect immediately after selection (reported by context connect)');
+          }
+          
+        } catch (err) {
+          console.error('Error verifying settings or connecting:', err);
+        }
       } else {
         console.error('Failed to save settings');
         Alert.alert(
@@ -353,7 +457,7 @@ const DiscordSettingsScreen: React.FC = () => {
         t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
       );
     }
-  }, [selectChannel, directSaveSettings]);
+  }, [selectChannel, currentServer, authToken, stableConnect]);
 
   // Use handleServerSelection instead of handleSelectServer
   const handleSelectServer = handleServerSelection;
@@ -391,40 +495,80 @@ const DiscordSettingsScreen: React.FC = () => {
 
         // Log the current server and channel
         console.log(`Attempting to join voice - Server: ${currentServer.id} (${currentServer.name}), Channel: ${currentChannel.id} (${currentChannel.name})`);
-        
-        // Make sure settings are saved before connecting
+
+        // First ensure settings are saved with correct parameter names
         console.log('Ensuring settings are saved before connecting...');
-        const saveSuccess = await directSaveSettings();
-        
-        if (!saveSuccess) {
-          console.warn('Failed to save settings before connecting, but will try to connect anyway');
-        }
-        
-        // Join the voice channel using direct context function
-        console.log('Calling connect() function...');
-        const success = await connect();
-        
-        if (success) {
-          console.log('Successfully joined Discord voice channel');
-        } else {
-          console.error('Failed to join voice channel');
+        try {
+          // Make direct API call to save settings
+          const response = await axios.post(
+            `${API_BASE_URL}/api/discord/settings`,
+            {
+              selectedServerId: currentServer.id,
+              selectedServerName: currentServer.name,
+              selectedChannelId: currentChannel.id,
+              selectedChannelName: currentChannel.name
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+              }
+            }
+          );
           
-          // Try one more time with a slight delay
-          console.log('Waiting 1 second before retry...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log('Settings API response:', response.data);
           
-          console.log('Retrying connection...');
-          const retrySuccess = await connect();
-          
-          if (retrySuccess) {
-            console.log('Successfully joined Discord voice channel on retry');
-          } else {
-            console.error('Failed to join voice channel on retry');
+          if (!(response.status === 200 && response.data.success)) {
+            console.error('Failed to save settings before connecting');
             Alert.alert(
               t('general.error'),
-              t('discord.joinFailed', 'Failed to join Discord voice channel')
+              t('discord.failedToSaveSettings', 'Failed to save Discord settings before connecting')
             );
+            return;
           }
+          
+          // Verify the settings were saved by checking the current settings
+          try {
+            console.log('Verifying settings were saved...');
+            const settingsResponse = await axios.get(
+              `${API_BASE_URL}/api/discord/settings`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${authToken}`
+                }
+              }
+            );
+            console.log('Current server settings:', settingsResponse.data);
+          } catch (err) {
+            console.error('Error checking settings:', err);
+          }
+          
+          console.log('Settings saved successfully, proceeding with connection');
+        } catch (err) {
+          console.error('Error ensuring settings are saved:', err);
+          Alert.alert(
+            t('general.error'),
+            t('discord.failedToSaveSettings', 'Failed to save Discord settings before connecting')
+          );
+          return;
+        }
+        
+        // Now connect using the direct connect helper
+        // const connectSuccess = await directConnectWithSettings();
+        // Use the context's connect function which should update the 'isConnected' state
+        console.log("Attempting to connect using context's connect function...");
+        const connectSuccess = await stableConnect();
+        
+        if (connectSuccess) {
+          console.log('Successfully connected to Discord voice channel (reported by context connect)');
+          // UI should update based on 'isConnected' from context changing.
+          // No explicit Alert.alert for success here, let the UI reflect the change.
+        } else {
+          console.error('Failed to connect to Discord voice channel (reported by context connect)');
+          Alert.alert(
+            t('general.error'),
+            t('discord.connectionError', 'An error occurred while managing the Discord connection')
+          );
         }
       }
     } catch (err) {
@@ -434,7 +578,7 @@ const DiscordSettingsScreen: React.FC = () => {
         t('discord.connectionError', 'An error occurred while managing the Discord connection')
       );
     }
-  }, [currentServer, currentChannel, isConnected, connect, disconnect, directSaveSettings]);
+  }, [currentServer, currentChannel, isConnected, stableConnect, stableDisconnect, authToken, t]);
   
   // Join/Disconnect Button
   const renderJoinButton = useCallback(() => {
