@@ -1,6 +1,7 @@
 import { authService, AuthToken } from './authService';
 import { API_CONFIG } from '../config/api';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 interface ApiResponse<T> {
   data?: T;
@@ -62,10 +63,13 @@ class ApiService {
     
     console.log(`Using auth header format: ${authHeader.substring(0, 15)}...`);
     
+    // Include a clear client type header to identify this as a mobile app request
     return {
       'Content-Type': 'application/json',
       'Authorization': authHeader,
       'X-Client-Type': 'mobile-app',
+      'X-App-Platform': Platform.OS,
+      'X-App-Version': Constants.expoConfig?.version || '1.0.0',
       'User-Agent': 'SpeechLink-Mobile-App/1.0'
     };
   }

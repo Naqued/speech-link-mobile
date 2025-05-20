@@ -19,6 +19,7 @@ import * as Speech from 'expo-speech';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { useDiscord } from '../../contexts/DiscordContext';
 
 // Services
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
@@ -38,6 +39,7 @@ import {
 // Components
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
+import DiscordIndicator from '../../components/UI/DiscordIndicator';
 
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
@@ -64,6 +66,7 @@ const AACBoardScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   const { speak, stopSpeaking, isPlaying: ttsIsPlaying } = useTextToSpeech();
   const { userSettings } = useVoiceSettings();
+  const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
@@ -99,6 +102,9 @@ const AACBoardScreen: React.FC = () => {
   const [editingSentence, setEditingSentence] = useState<SentenceUIModel | undefined>(undefined);
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryUIModel | undefined>(undefined);
+
+  // Add state for Discord streaming
+  const [isStreamingToDiscord, setIsStreamingToDiscord] = useState(false);
 
   const styles = makeStyles(theme);
 
@@ -251,146 +257,99 @@ const AACBoardScreen: React.FC = () => {
 
   const speakPhrase = async (text: string, phraseId?: string) => {
     try {
-      console.log('============= TTS DEBUG START =============');
-      console.log('Starting speakPhrase with text:', text.substring(0, 20) + (text.length > 20 ? '...' : ''));
-      
-      // Stop any current speech
       if (isSpeaking) {
-        console.log('Stopping previous speech');
-        stopSpeaking();
+        handleStopSpeaking();
+        return;
       }
-
+      
+      // Don't speak empty text
+      if (!text.trim()) {
+        return;
+      }
+      
+      // Check if we've reached the subscription limit
+      if (subscriptionLimitReached) {
+        Alert.alert(
+          t('general.subscriptionRequired'),
+          t('aac.subscriptionLimitReachedMessage'),
+          [
+            {
+              text: t('general.upgrade'),
+              onPress: () => handleSubscriptionUpgrade(),
+            },
+            {
+              text: t('general.cancel'),
+              style: 'cancel',
+            },
+          ]
+        );
+        return;
+      }
+      
+      // Log for debugging
+      console.log('[AACBoard] Speaking phrase:', text);
+      
+      // Set state to indicate speaking has started
       setIsSpeaking(true);
       setIsLoadingAudio(true);
       setCurrentlyPlayingText(text);
       
-      // If it's a saved phrase with an ID, increment its usage
+      // Update recent phrases (add to the beginning, keep only last 5)
       if (phraseId) {
-        try {
-          console.log('Incrementing usage for phrase ID:', phraseId);
-          // Don't await to allow speaking to start immediately
-          aacService.incrementSentenceUsage(phraseId).catch(err => 
-            console.error('Failed to increment sentence usage:', err)
-          );
-        } catch (error) {
-          // Non-critical error, just log it
-          console.error('Failed to track phrase usage:', error);
-        }
-      }
-      
-      // Add phrase to recent phrases list (avoiding duplicates)
-      const newRecentPhrase: SentenceUIModel = {
-        id: phraseId || `recent-${Date.now()}`,
-        text,
-        categoryId: selectedCategory,
-        isFavorite: false
-      };
-      
-      setRecentPhrases(prev => {
-        const filtered = prev.filter(p => p.text !== text);
-        return [newRecentPhrase, ...filtered].slice(0, 5);
-      });
-      
-      // Try to use the backend TTS API first with a timeout to ensure responsiveness
-      console.log('Voice settings check:', {
-        hasSettings: !!userSettings,
-        hasVoiceSettings: !!userSettings?.voiceSettings,
-        provider: userSettings?.voiceSettings?.provider,
-        voiceId: userSettings?.voiceSettings?.voiceId
-      });
-      
-      // Always try to use the backend TTS API, even if provider/voiceId aren't defined
-      try {
-        console.log('Attempting to use backend TTS API');
-        
-        // Create a promise that resolves after the TTS API timeout threshold (4 seconds)
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            console.log('TTS API timeout reached (4s)');
-            reject(new Error('TTS API timeout'));
-          }, 4000);
-        });
-        
-        console.log('Calling speak function with:', {
-          text: text.substring(0, 20) + (text.length > 20 ? '...' : ''),
-          language: currentLanguage,
-          voiceId: userSettings?.voiceSettings?.voiceId, // Might be undefined
-          provider: userSettings?.voiceSettings?.provider // Might be undefined
-        });
-        
-        // Try to use the backend TTS API with timeout
-        await Promise.race([
-          speak(
-            text,
-            userSettings?.voiceSettings?.voiceId, // Pass this even if undefined
-            userSettings?.voiceSettings?.provider as any, // Pass this even if undefined
-            currentLanguage // Add language parameter
-          ),
-          timeoutPromise
-        ]);
-        
-        // If we reach here, backend TTS was successful
-        console.log('Backend TTS API call successful');
-        setIsLoadingAudio(false);
-        // Keep isSpeaking true as the audio is now playing
-        console.log('============= TTS DEBUG END =============');
-        return;
-      } catch (ttsError) {
-        // Log the error and fall back to local Speech API
-        console.log('Backend TTS failed or timed out:', ttsError);
-        
-        // Check if the error is a subscription limit error
-        if (ttsError instanceof Error) {
-          const errorMessage = ttsError.message;
-          // Check for either the error code or HTTP 429 status
-          const isLimitError = 
-            errorMessage.includes('LIMIT_EXCEEDED') || 
-            errorMessage.includes('429') || 
-            errorMessage.includes('limit');
-            
-          if (isLimitError) {
-            try {
-              // Mark that the subscription limit has been reached
-              console.log('Subscription limit reached, setting banner state');
-              setSubscriptionLimitReached(true);
-            } catch (err) {
-              console.error('Error handling subscription limit:', err);
-            }
+        const sentenceToAdd = allPhrases.find(p => p.id === phraseId);
+        if (sentenceToAdd) {
+          // Only add if not already in the list or not at the top
+          if (!recentPhrases.find(p => p.id === sentenceToAdd.id)) {
+            setRecentPhrases([sentenceToAdd, ...recentPhrases.slice(0, 4)]);
+          } else if (recentPhrases[0].id !== sentenceToAdd.id) {
+            // Move to top if already in list but not at top
+            setRecentPhrases([
+              sentenceToAdd,
+              ...recentPhrases.filter(p => p.id !== sentenceToAdd.id).slice(0, 4)
+            ]);
           }
         }
-        
-        console.log('Falling back to local Speech API');
-        // Continue to fallback option below
       }
       
-      // Fallback to local Speech API
-      console.log('Using local Speech API fallback with language:', currentLanguage);
-      setIsLoadingAudio(false);
-      Speech.speak(text, {
-        language: currentLanguage,
-        pitch: 1.0,
-        rate: 0.9,
-        onDone: () => {
-          console.log('Local Speech API finished speaking');
-          setIsSpeaking(false);
-          setCurrentlyPlayingText(null);
-        },
-        onError: (error) => {
-          console.log('Local Speech API error:', error);
-          setIsSpeaking(false);
-          setCurrentlyPlayingText(null);
-        },
-      });
-      console.log('============= TTS DEBUG END =============');
-    } catch (error) {
-      console.error('Failed to speak phrase', error);
-      Alert.alert(t('general.error'), 'Failed to speak phrase');
+      // Stream to Discord if connected
+      if (isConnected) {
+        setIsStreamingToDiscord(true);
+        try {
+          // Show streaming indicator
+          console.log('[AACBoard] Streaming to Discord:', text);
+          
+          // Start streaming to Discord
+          const streamSuccess = await streamSpeech(text);
+          if (!streamSuccess) {
+            console.warn('[AACBoard] Discord streaming failed or was rejected');
+          }
+        } catch (discordError) {
+          console.error('Error streaming to Discord:', discordError);
+          // Continue with normal speech even if Discord streaming fails
+        } finally {
+          setIsStreamingToDiscord(false);
+        }
+      }
       
-      // Ensure we're not stuck in speaking state
+      // Use TTS service to speak
+      await speak(text);
+      
+      // Increment usage count for the sentence if it has an ID
+      if (phraseId) {
+        try {
+          await aacService.incrementSentenceUsage(phraseId);
+        } catch (err) {
+          console.error('Failed to increment sentence usage:', err);
+          // Non-critical error, don't show to user
+        }
+      }
+    } catch (err) {
+      console.error('Error speaking phrase:', err);
+      setError('Failed to speak phrase');
       setIsSpeaking(false);
-      setIsLoadingAudio(false);
       setCurrentlyPlayingText(null);
-      console.log('============= TTS DEBUG END WITH ERROR =============');
+    } finally {
+      setIsLoadingAudio(false);
     }
   };
 
@@ -402,11 +361,16 @@ const AACBoardScreen: React.FC = () => {
     setCurrentlyPlayingText(null);
   };
 
+  const handleSubscriptionUpgrade = () => {
+    // Navigate to subscription page or open a web link
+    Linking.openURL('https://speechlink.example.com/subscribe');
+  };
+
   const speakCustomMessage = () => {
-    if (!customMessage.trim()) return;
-    
-    speakPhrase(customMessage);
-    setCustomMessage('');
+    if (customMessage.trim()) {
+      speakPhrase(customMessage);
+      setCustomMessage('');
+    }
   };
 
   const handleAddPhrase = () => {
@@ -735,6 +699,24 @@ const AACBoardScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('aac.aacTitle')}</Text>
+        <View style={styles.headerRightContainer}>
+          {isAuthenticated && (
+            <DiscordIndicator 
+              size="medium" 
+              showLabel={isConnected}
+              isStreaming={isStreamingToDiscord} 
+            />
+          )}
+          <TouchableOpacity
+            style={styles.helpButton}
+            onPress={() => Alert.alert(t('general.help'), t('aac.helpText'))}
+          >
+            <Ionicons name="help-circle-outline" size={24} color={theme.text} />
+          </TouchableOpacity>
+        </View>
+      </View>
       {subscriptionLimitReached && (
         <TouchableOpacity 
           style={styles.limitBanner} 
@@ -933,6 +915,24 @@ const makeStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   limitBanner: {
     backgroundColor: theme.error || '#EF4444',
     padding: 8,
@@ -969,11 +969,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
     height: 60,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -1210,6 +1205,9 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   stopButton: {
     padding: 2,
+  },
+  helpButton: {
+    padding: 8,
   },
 });
 

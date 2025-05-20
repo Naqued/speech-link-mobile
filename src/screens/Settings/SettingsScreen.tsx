@@ -410,6 +410,31 @@ const SettingsScreen: React.FC = () => {
     );
   };
 
+  // Add this section to display the Discord settings option
+  const renderIntegrationSettings = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{t('settings.integrations')}</Text>
+      
+      {renderSettingItem(
+        'logo-discord',
+        t('settings.discordSettings'),
+        null,
+        () => navigation.navigate('DiscordSettings' as never)
+      )}
+      
+      {renderSettingItem(
+        'options-outline',
+        t('settings.audioRouting'),
+        <Switch
+          value={isAudioRoutingEnabled}
+          onValueChange={handleToggleAudioRouting}
+        />,
+        undefined,
+        false
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -493,6 +518,8 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
+
+        {renderIntegrationSettings()}
       </ScrollView>
     </SafeAreaView>
   );
