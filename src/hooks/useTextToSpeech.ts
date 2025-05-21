@@ -10,6 +10,7 @@ import RNFS from 'react-native-fs';
 import { audioRoutingService } from '../services/AudioRoutingService';
 import { requestAudioPermissions } from '../utils/permissions';
 import { voiceSettingsService } from '../services/voiceSettingsService';
+import i18n from '../i18n';
 
 export interface UseTextToSpeechResult {
   isLoading: boolean;
@@ -276,6 +277,9 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       setIsLoading(true);
       setError(null);
       
+      // Get the preview text from translations
+      const previewText = i18n.t('preview.text', 'Hello, this is a preview of my voice.');
+      
       // Check if audio routing is enabled
       if (isAudioRoutingEnabled) {
         // Call preview API with audio routing
@@ -286,7 +290,7 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         }>('/api/voice-preview', {
           voiceId,
           provider,
-          text: 'Hello, this is a preview of my voice.',
+          text: previewText,
           publicOwnerId,
           voiceName
         });
@@ -326,7 +330,7 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         }>('/api/voice-preview', {
           voiceId,
           provider,
-          text: 'Hello, this is a preview of my voice.',
+          text: previewText,
           publicOwnerId,
           voiceName
         });

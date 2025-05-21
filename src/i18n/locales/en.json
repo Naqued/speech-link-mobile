@@ -450,5 +450,8 @@
       "enable_failed": "Failed to enable audio routing",
       "disable_failed": "Failed to disable audio routing"
     }
+  },
+  "preview": {
+    "text": "Hello, this is a preview of my voice."
   }
 } 

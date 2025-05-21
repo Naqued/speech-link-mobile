@@ -451,5 +451,8 @@
       "enable_failed": "Échec de l'activation du routage audio",
       "disable_failed": "Échec de la désactivation du routage audio"
     }
+  },
+  "preview": {
+    "text": "Bonjour, ceci est un aperçu de ma voix."
   }
 } 
