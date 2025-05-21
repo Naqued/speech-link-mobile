@@ -23,7 +23,7 @@
       }
     },
     "newArchEnabled": true,
-    "scheme": "speechlinkmobile",
+    "scheme": "com.naqued.speechlinkmobile",
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
@@ -42,6 +42,20 @@
     },
     "plugins": [
       "./app.plugin.js"
-    ]
+    ],
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-audio-recorder-player",
+          "react-native-fs",
+          "react-native-sound",
+          "@expo/metro-runtime",
+          "i18next",
+          "socket.io-client",
+          "@naqued/speech-link-mobile"
+        ],
+        "listUnknownPackages": false
+      }
+    }
   }
 }

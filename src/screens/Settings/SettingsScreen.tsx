@@ -8,7 +8,8 @@ import {
   ScrollView,
   Switch,
   Alert,
-  Platform
+  Platform,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -124,6 +125,14 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
+  const handleSubscriptionPress = () => {
+    const url = `https://speech-aac.link/${i18n.language}/profile`;
+    Linking.openURL(url).catch((err) => {
+      console.error('Error opening subscription URL:', err);
+      Alert.alert(t('general.error'), 'Failed to open subscription page');
+    });
+  };
+
   const renderSettingItem = (
     icon: string,
     title: string,
@@ -211,7 +220,7 @@ const SettingsScreen: React.FC = () => {
             undefined,
             false
           )}
-          {renderSettingItem(
+          {/* {renderSettingItem(
             'mic-outline',
             t('voice_settings.audio_routing.title'),
             <Switch
@@ -230,7 +239,7 @@ const SettingsScreen: React.FC = () => {
                 {t('voice_settings.audio_routing.warning')}
               </Text>
             </View>
-          )}
+          )} */}
           {renderSettingItem(
             'trending-up-outline',
             t('voice.settings.pitch'),
@@ -254,17 +263,31 @@ const SettingsScreen: React.FC = () => {
           {renderSettingItem(
             'card-outline',
             t('profile.subscription'),
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumBadgeText}>Premium</Text>
-            </View>
+            undefined,
+            handleSubscriptionPress
           )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
-          {renderSettingItem('information-circle-outline', t('settings.about'))}
-          {renderSettingItem('shield-checkmark-outline', t('settings.privacy'))}
-          {renderSettingItem('document-text-outline', t('settings.terms'))}
+          {renderSettingItem(
+            'information-circle-outline',
+            t('settings.about'),
+            undefined,
+            () => navigation.navigate('About' as never)
+          )}
+          {renderSettingItem(
+            'shield-checkmark-outline',
+            t('settings.privacy'),
+            undefined,
+            () => Linking.openURL(`${process.env.APP_DOMAIN || 'https://speech-aac.link'}/${i18n.language}/privacy-policy`)
+          )}
+          {renderSettingItem(
+            'document-text-outline',
+            t('settings.terms'),
+            undefined,
+            () => Linking.openURL(`${process.env.APP_DOMAIN || 'https://speech-aac.link'}/${i18n.language}/terms-of-service`)
+          )}
         </View>
         
         <View style={styles.section}>

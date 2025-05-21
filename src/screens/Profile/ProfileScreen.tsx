@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   Image,
   ScrollView,
   TextInput,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -17,15 +18,9 @@ import { useNavigation } from '@react-navigation/native';
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 
-// Mock user data
-const USER_DATA = {
-  name: 'John Smith',
-  email: 'john.smith@example.com',
-  subscription: 'Premium',
-  subscriptionExpiry: '2024-12-31',
-  createdAt: '2023-04-15',
-  imageUrl: 'https://ui-avatars.com/api/?name=John+Smith&background=4A6FEA&color=fff&size=200',
-};
+// Services
+import { profileService } from '../../services/profileService';
+import { UserProfile } from '../../types/profile';
 
 const ProfileScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -33,30 +28,61 @@ const ProfileScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(USER_DATA.name);
-  const [email, setEmail] = useState(USER_DATA.email);
+  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
   const styles = makeStyles(theme);
 
-  const handleSave = () => {
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setIsLoading(true);
+      const data = await profileService.getProfile();
+      setProfile(data);
+      setName(data.user.name || '');
+      setEmail(data.user.email);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      Alert.alert(t('general.error'), t('profile.loadError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert(t('general.error'), 'Name and email are required');
+      Alert.alert(t('general.error'), t('profile.requiredFields'));
       return;
     }
     
-    // In a real app, you'd make an API call to update the profile
-    USER_DATA.name = name;
-    USER_DATA.email = email;
-    
-    Alert.alert(t('general.success'), 'Profile updated successfully');
-    setIsEditing(false);
+    try {
+      setIsLoading(true);
+      await profileService.updateProfile({
+        name: name.trim(),
+        email: email.trim()
+      });
+      
+      Alert.alert(t('general.success'), t('profile.updateSuccess'));
+      setIsEditing(false);
+      loadProfile(); // Reload profile to get latest data
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert(t('general.error'), t('profile.updateError'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleEditMode = () => {
     if (isEditing) {
       // Revert changes if canceling edit mode
-      setName(USER_DATA.name);
-      setEmail(USER_DATA.email);
+      setName(profile?.user.name || '');
+      setEmail(profile?.user.email || '');
     }
     setIsEditing(!isEditing);
   };
@@ -65,6 +91,29 @@ const ProfileScreen: React.FC = () => {
     const date = new Date(dateStr);
     return date.toLocaleDateString();
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t('profile.loadError')}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadProfile}>
+            <Text style={styles.retryButtonText}>{t('general.retry')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,7 +135,10 @@ const ProfileScreen: React.FC = () => {
       <ScrollView style={styles.scrollView}>
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: USER_DATA.imageUrl }}
+            source={{ 
+              uri: profile.user.image || 
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4A6FEA&color=fff&size=200` 
+            }}
             style={styles.profileImage}
           />
           {isEditing ? (
@@ -95,7 +147,7 @@ const ProfileScreen: React.FC = () => {
                 style={styles.nameInput}
                 value={name}
                 onChangeText={setName}
-                placeholder="Your name"
+                placeholder={t('profile.namePlaceholder')}
                 placeholderTextColor={theme.text + '80'}
               />
             </View>
@@ -112,7 +164,7 @@ const ProfileScreen: React.FC = () => {
                 style={styles.emailInput}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Your email"
+                placeholder={t('profile.emailPlaceholder')}
                 placeholderTextColor={theme.text + '80'}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -125,22 +177,51 @@ const ProfileScreen: React.FC = () => {
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>{t('profile.subscription')}</Text>
             <View style={styles.subscriptionContainer}>
-              <Text style={styles.infoValue}>{USER_DATA.subscription}</Text>
-              <View style={styles.subscriptionBadge}>
-                <Text style={styles.subscriptionBadgeText}>Active</Text>
-              </View>
+              <Text style={styles.infoValue}>
+                {profile.subscription?.tier || t('profile.freeTier')}
+              </Text>
+              {profile.subscription?.status === 'active' && (
+                <View style={styles.subscriptionBadge}>
+                  <Text style={styles.subscriptionBadgeText}>
+                    {t('profile.active')}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Subscription Expiry</Text>
-            <Text style={styles.infoValue}>{formatDate(USER_DATA.subscriptionExpiry)}</Text>
-          </View>
+          {profile.subscription?.currentPeriodEnd && (
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>{t('profile.subscriptionExpiry')}</Text>
+              <Text style={styles.infoValue}>
+                {formatDate(profile.subscription.currentPeriodEnd)}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Member Since</Text>
-            <Text style={styles.infoValue}>{formatDate(USER_DATA.createdAt)}</Text>
+            <Text style={styles.infoLabel}>{t('profile.memberSince')}</Text>
+            <Text style={styles.infoValue}>
+              {formatDate(profile.user.memberSince)}
+            </Text>
           </View>
+
+          {profile.usage && (
+            <>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>{t('profile.creditsUsed')}</Text>
+                <Text style={styles.infoValue}>
+                  {profile.usage.creditsUsed.total} / {profile.usage.creditsTotal}
+                </Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>{t('profile.nextReset')}</Text>
+                <Text style={styles.infoValue}>
+                  {formatDate(profile.usage.nextResetDate)}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {isEditing && (
@@ -148,28 +229,6 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.saveButtonText}>{t('general.save')}</Text>
           </TouchableOpacity>
         )}
-
-        <View style={styles.statsSection}>
-          <Text style={styles.statsSectionTitle}>Usage Statistics</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>124</Text>
-              <Text style={styles.statLabel}>Phrases Used</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>37</Text>
-              <Text style={styles.statLabel}>Recordings</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>18</Text>
-              <Text style={styles.statLabel}>Custom Voices</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>5h 12m</Text>
-              <Text style={styles.statLabel}>Total Usage</Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,6 +238,34 @@ const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: theme.error,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: theme.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: theme.buttonText,
+    fontSize: 16,
+    fontWeight: '500',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -281,49 +368,15 @@ const makeStyles = (theme: any) => StyleSheet.create({
   saveButton: {
     backgroundColor: theme.primary,
     marginHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
     marginBottom: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: theme.buttonText,
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  statsSection: {
-    paddingHorizontal: 20,
-    marginBottom: 40,
-  },
-  statsSectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.text,
-    marginBottom: 15,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statItem: {
-    width: '48%',
-    backgroundColor: theme.card,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: theme.primary,
-    marginBottom: 5,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: theme.text + '80',
+    fontWeight: '600',
   },
 });
 

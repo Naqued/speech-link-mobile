@@ -26,9 +26,15 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="speechlinkmobile"/>
+        <data android:scheme="com.naqued.speechlinkmobile"/>
         <data android:scheme="com.naqued.speechlinkmobile"/>
         <data android:scheme="exp+speech-link-mobile"/>
+      </intent-filter>
+      <intent-filter android:autoVerify="true" data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="com.naqued.speechlinkmobile"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
   </application>
