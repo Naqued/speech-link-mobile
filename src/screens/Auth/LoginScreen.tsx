@@ -11,25 +11,22 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
-import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 
-// API
-import { loginWithGoogle } from '../../api/auth';
-import { API_CONFIG } from '../../config/api';
+// Components
+import GoogleAuthButton from '../../components/UI/GoogleAuthButton';
 
 // Types
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
@@ -40,33 +37,6 @@ import { authService } from '../../services/authService';
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 WebBrowser.maybeCompleteAuthSession();
-
-// Constants for PKCE
-const CODE_VERIFIER_KEY = 'google_auth_code_verifier';
-
-// Function to generate a random code verifier
-const generateCodeVerifier = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  let result = '';
-  for (let i = 0; i < 128; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
-
-// Function to generate a code challenge from the verifier
-const generateCodeChallenge = async (verifier: string) => {
-  const digest = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    verifier
-  );
-  
-  // Convert hash to base64-url format
-  return Buffer.from(digest).toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-};
 
 const LoginScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -86,32 +56,6 @@ const LoginScreen: React.FC = () => {
       setLoginError(authError);
     }
   }, [authError]);
-
-  // Generate and store a code verifier on component mount
-  useEffect(() => {
-    const setupCodeVerifier = async () => {
-      const codeVerifier = generateCodeVerifier();
-      await AsyncStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
-      console.log('Generated and stored code verifier', { length: codeVerifier.length });
-    };
-    
-    setupCodeVerifier();
-  }, []);
-
-  // Get the stored code verifier for Google auth
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
-    clientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
-    iosClientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
-    redirectUri: makeRedirectUri({
-      scheme: "com.naqued.speechlinkmobile"
-    }),
-    responseType: "code",
-    usePKCE: true,
-    scopes: ['openid', 'email', 'profile']
-  });
-
-
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -192,101 +136,14 @@ const LoginScreen: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      setLoginError(null);
-      
-      // Prompt user for Google authentication
-      const result = await promptAsync();
-      
-      // Log the entire result object
-      console.log('Google Auth Result:', JSON.stringify(result, null, 2));
-      
-      // Check if authentication was successful
-      if (result.type !== 'success') {
-        console.log('Auth failed with type:', result.type);
-        throw new Error('Google sign-in was cancelled or failed');
-      }
-      
-      // Check if we have the authorization code
-      if (!result.params?.code) {
-        console.log('No authorization code received:', result);
-        throw new Error('No authorization code received from Google');
-      }
-      
-      console.log('Authorization code received:', result.params.code);
-      
-      // Get the stored code verifier
-      const codeVerifier = await AsyncStorage.getItem(CODE_VERIFIER_KEY);
-      
-      if (!codeVerifier) {
-        console.log('Code verifier not found in storage');
-        throw new Error('Authentication failed: Code verifier is missing');
-      }
-      
-      console.log('Retrieved code verifier from storage', { length: codeVerifier.length });
-      
-      // Send the authorization code and code verifier to our backend
-      const response = await loginWithGoogle(result.params.code, codeVerifier);
-      console.log('Backend response:', JSON.stringify(response, null, 2));
-      
-      // Clear the used code verifier
-      await AsyncStorage.removeItem(CODE_VERIFIER_KEY);
-      
-      // Update the auth context with the received token
-      await signIn(response.token);
-      
-    } catch (error) {
-      console.error('Google Sign-In error:', error);
-      setLoginError(`Google Sign-In failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
-      // Show alert with more details in development
-      if (__DEV__) {
-        Alert.alert(
-          'Google Sign-In Error',
-          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          [{ text: 'OK' }]
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleSignInSuccess = () => {
+    console.log('Google sign-in successful');
+    // No need to do anything here as the AuthContext will handle updating the token
   };
-
-  const handleDevLogin = async () => {
-    try {
-      setIsLoading(true);
-      setLoginError(null);
-      console.log('Attempting to fetch dev token');
-      
-      // Use the authService to fetch and save the dev token
-      const authToken = await authService.getDevelopmentToken();
-      console.log('Received dev token:', {
-        hasAccessToken: !!authToken.access_token,
-        tokenType: authToken.token_type || 'bearer',
-        userId: authToken.user?.id
-      });
-      
-      // Then use the signIn method to update the AuthContext
-      // Use the formatted token with the token_type prefix
-      const accessToken = authToken.access_token;
-      
-      // Make sure token is valid before proceeding
-      if (!accessToken) {
-        throw new Error('Invalid token received from server');
-      }
-      
-      await signIn(accessToken);
-    } catch (error) {
-      console.error('Dev login error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      setLoginError(`Development login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false);
-    }
+  
+  const handleGoogleSignInError = (error: string) => {
+    console.error('Google sign-in error:', error);
+    setLoginError(error);
   };
 
   const togglePasswordVisibility = () => {
@@ -368,10 +225,26 @@ const LoginScreen: React.FC = () => {
                 onPress={handleLogin}
                 disabled={isLoading}
               >
-                <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
+                )}
               </TouchableOpacity>
               
-              {/* Divider and social login buttons removed for production */}
+              <View style={styles.dividerContainer}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>{t('auth.orContinueWith')}</Text>
+                <View style={styles.divider} />
+              </View>
+              
+              <View style={styles.socialButtonsContainer}>
+                <GoogleAuthButton 
+                  onSuccess={handleGoogleSignInSuccess}
+                  onError={handleGoogleSignInError}
+                  style={styles.googleButtonStyle}
+                />
+              </View>
               
               <View style={styles.signupContainer}>
                 <Text style={styles.signupText}>{t('auth.dontHaveAccount')} </Text>
@@ -567,6 +440,9 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: theme.primary,
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  googleButtonStyle: {
+    width: '100%',
   },
 });
 

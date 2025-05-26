@@ -2,27 +2,33 @@ import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../services/authService';
 import { apiService } from '../services/apiService';
+import googleAuthService from '../services/googleAuthService';
 
 interface AuthContextType {
   signIn: (token: string) => Promise<void>;
   signOut: () => Promise<void>;
+  loginWithGoogle: () => Promise<boolean>;
   token: string | null;
   isLoading: boolean;
   authError: string | null;
+  isAuthenticatingWithGoogle: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signOut: async () => {},
+  loginWithGoogle: async () => false,
   token: null,
   isLoading: true,
-  authError: null
+  authError: null,
+  isAuthenticatingWithGoogle: false
 });
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthenticatingWithGoogle, setIsAuthenticatingWithGoogle] = useState(false);
 
   // Set up auth failure listener
   useEffect(() => {
@@ -47,6 +53,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     };
 
     bootstrapAsync();
+  }, []);
+
+  // Clean up any active auth polls when component unmounts
+  useEffect(() => {
+    return () => {
+      // Stop Google auth polling
+      googleAuthService.stopPolling();
+    };
   }, []);
 
   const signIn = async (token: string) => {
@@ -94,12 +108,44 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
+  // Function to authenticate with Google
+  const loginWithGoogle = async (): Promise<boolean> => {
+    try {
+      setIsAuthenticatingWithGoogle(true);
+      setAuthError(null);
+      
+      // Start the Google OAuth flow - no token needed for initial auth
+      const result = await googleAuthService.startGoogleAuth(userToken || '');
+      
+      setIsAuthenticatingWithGoogle(false);
+      
+      if (!result.success) {
+        setAuthError(result.message || 'Failed to authenticate with Google');
+        return false;
+      }
+      
+      // If we got a new token from Google auth, update it
+      if (result.access_token) {
+        await signIn(result.access_token);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error in Google login:', error);
+      setAuthError(error instanceof Error ? error.message : 'Failed to login with Google');
+      setIsAuthenticatingWithGoogle(false);
+      return false;
+    }
+  };
+
   const authContext = {
     signIn,
     signOut,
+    loginWithGoogle,
     token: userToken,
     isLoading,
-    authError
+    authError,
+    isAuthenticatingWithGoogle
   };
 
   if (isLoading) {

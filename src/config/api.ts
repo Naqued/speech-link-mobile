@@ -23,7 +23,7 @@ const API_VERSION = '1.0';
 
 // Force production mode for testing (set to true for testing, false for normal operation)
 // This will be overridden by AsyncStorage value if available
-let FORCE_PRODUCTION = true;
+let FORCE_PRODUCTION = false;
 
 // Function to check if we should use production URL from AsyncStorage
 const checkForceProduction = async () => {
