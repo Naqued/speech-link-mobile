@@ -994,12 +994,17 @@ const AACBoardScreen: React.FC = () => {
             editable={!isSpeaking}
           />
           {customMessage.length > 0 && !isSpeaking && (
-            <TouchableOpacity style={styles.clearButton} onPress={() => setCustomMessage('')}>
-              <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
-            </TouchableOpacity>
+            <View style={styles.inputActions}>
+              <TouchableOpacity style={styles.inputActionButton} onPress={() => handleAddPhraseWithText(customMessage.trim())}>
+                <Ionicons name="bookmark-outline" size={20} color={theme.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.inputActionButton} onPress={() => setCustomMessage('')}>
+                <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+              </TouchableOpacity>
+            </View>
           )}
           {isSpeaking && (
-            <TouchableOpacity style={styles.clearButton} onPress={handleStopSpeaking}>
+            <TouchableOpacity style={styles.inputActionButton} onPress={handleStopSpeaking}>
               <Ionicons name="stop-circle" size={20} color={theme.primary} />
             </TouchableOpacity>
           )}
@@ -1251,7 +1256,11 @@ const makeStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     maxHeight: 80,
   },
-  clearButton: {
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputActionButton: {
     padding: 5,
   },
   speakButton: {
