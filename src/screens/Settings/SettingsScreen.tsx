@@ -192,7 +192,7 @@ const SettingsScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to change language', error);
-      Alert.alert(t('general.error'), 'Failed to change language');
+      Alert.alert(t('general.error.title'), 'Failed to change language');
     }
   };
 
@@ -222,7 +222,7 @@ const SettingsScreen: React.FC = () => {
         autoSpeakEnabled: value
       });
     } catch (err) {
-      Alert.alert('Error', 'Failed to update auto-speak setting');
+      Alert.alert(t('general.error.title'), 'Failed to update auto-speak setting');
     }
   };
 
@@ -242,7 +242,7 @@ const SettingsScreen: React.FC = () => {
             onPress: async () => {
               const success = await toggleAudioRouting(true);
               if (!success) {
-                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed'));
+                Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.enable_failed'));
               }
             },
           },
@@ -252,7 +252,7 @@ const SettingsScreen: React.FC = () => {
       // No confirmation needed when disabling
       const success = await toggleAudioRouting(false);
       if (!success) {
-        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed'));
+        Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.disable_failed'));
       }
     }
   };
@@ -261,7 +261,7 @@ const SettingsScreen: React.FC = () => {
     const url = `https://speech-aac.link/${i18n.language}/profile`;
     Linking.openURL(url).catch((err) => {
       console.error('Error opening subscription URL:', err);
-      Alert.alert(t('general.error'), 'Failed to open subscription page');
+      Alert.alert(t('general.error.title'), 'Failed to open subscription page');
     });
   };
 

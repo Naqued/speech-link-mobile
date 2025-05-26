@@ -74,7 +74,7 @@ const HomeScreen: React.FC = () => {
       console.log('Recording started', result);
     } catch (error) {
       console.error('Failed to start recording', error);
-      Alert.alert(t('general.error'), 'Failed to start recording');
+      Alert.alert(t('general.error.title'), 'Failed to start recording');
       setIsRecording(false);
     }
   };
@@ -105,7 +105,7 @@ const HomeScreen: React.FC = () => {
       }, 2000);
     } catch (error) {
       console.error('Failed to stop recording', error);
-      Alert.alert(t('general.error'), 'Failed to stop recording');
+      Alert.alert(t('general.error.title'), 'Failed to stop recording');
       setIsRecording(false);
       setIsProcessing(false);
     }

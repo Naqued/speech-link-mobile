@@ -152,6 +152,7 @@
       "category": "Catégorie",
       "useCase": "Cas d'utilisation",
       "descriptives": {
+        "title": "Styles de Voix",
         "all": "Tous les Styles",
         "calm": "Calme",
         "energetic": "Énergique",
@@ -445,7 +446,26 @@
     "updateSuccess": "Profil mis à jour avec succès",
     "requiredFields": "Le nom et l'email sont requis",
     "namePlaceholder": "Votre nom",
-    "emailPlaceholder": "Votre email"
+    "emailPlaceholder": "Votre email",
+    "currentPlan": "Actuel",
+    "limitExceeded": "Vous avez atteint votre limite mensuelle",
+    "limitWarning": "Vous vous approchez de votre limite mensuelle",
+    "plans": {
+      "title": "Plans d'Abonnement",
+      "trial": "Essai",
+      "free": "Gratuit",
+      "credits": "{{credits}} crédits/mois",
+      "trialDesc": "Accès de base pour essayer le service",
+      "occasional": "Occasionnel",
+      "occasionalDesc": "Parfait pour un usage occasionnel",
+      "regular": "Régulier",
+      "regularDesc": "Idéal pour les utilisateurs réguliers",
+      "intensive": "Intensif",
+      "intensiveDesc": "Pour un usage quotidien intensif",
+      "dailyCompanion": "Compagnon Quotidien",
+      "daily-companion": "Compagnon Quotidien",
+      "dailyDesc": "Pour un usage professionnel ou intensif"
+    }
   },
   "history": {
     "title": "Historique",
@@ -470,6 +490,7 @@
     "search": "Rechercher",
     "loading": "Chargement...",
     "error": {
+      "title": "Erreur",
       "required": "Ce champ est obligatoire",
       "maxLength": "Maximum {{max}} caractères autorisés"
     },
@@ -480,7 +501,8 @@
     "enable": "Activer",
     "disable": "Désactiver",
     "notSpecified": "Non spécifié",
-    "general": "Général"
+    "general": "Général",
+    "couldNotOpenBrowser": "Impossible d'ouvrir le navigateur"
   },
   "language": {
     "select": "Sélectionner la Langue",

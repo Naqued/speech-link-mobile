@@ -11,7 +11,8 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
-  Linking
+  Linking,
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +41,7 @@ import {
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
 import DiscordIndicator from '../../components/UI/DiscordIndicator';
+import { SafeAreaWrapper } from '../../components/UI/SafeAreaWrapper';
 
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
@@ -71,6 +73,11 @@ const AACBoardScreen: React.FC = () => {
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
   
+  // Orientation state
+  const [orientation, setOrientation] = useState(
+    Dimensions.get('window').width > Dimensions.get('window').height ? 'landscape' : 'portrait'
+  );
+  
   // Log language for debugging
   useEffect(() => {
     console.log('=================== AAC LANGUAGE DEBUG ===================');
@@ -79,6 +86,18 @@ const AACBoardScreen: React.FC = () => {
     console.log('i18n supported languages:', i18n.languages);
     console.log('=================== AAC LANGUAGE DEBUG ===================');
   }, [currentLanguage, i18n.language]);
+
+  // Listen for orientation changes
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      const newOrientation = window.width > window.height ? 'landscape' : 'portrait';
+      if (newOrientation !== orientation) {
+        setOrientation(newOrientation);
+      }
+    });
+
+    return () => subscription?.remove();
+  }, [orientation]);
 
   // State
   const [categories, setCategories] = useState<CategoryUIModel[]>([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
@@ -515,7 +534,7 @@ const AACBoardScreen: React.FC = () => {
             } catch (error) {
               console.error('Error deleting phrase:', error);
               Alert.alert(
-                t('general.error'),
+                t('general.error.title'),
                 t('aacBoard.errorDeletingPhrase')
               );
             }
@@ -617,7 +636,7 @@ const AACBoardScreen: React.FC = () => {
             } catch (error) {
               console.error('Error deleting category:', error);
               Alert.alert(
-                t('general.error'),
+                t('general.error.title'),
                 t('aacBoard.errorDeletingCategory')
               );
             }
@@ -679,8 +698,8 @@ const AACBoardScreen: React.FC = () => {
   const renderCategoryItem = ({ item }: { item: CategoryUIModel }) => (
     <TouchableOpacity
       style={[
-        styles.categoryButton,
-        selectedCategory === item.id && styles.selectedCategoryButton,
+        orientation === 'landscape' ? styles.categoryButtonLandscape : styles.categoryButton,
+        selectedCategory === item.id && (orientation === 'landscape' ? styles.selectedCategoryButtonLandscape : styles.selectedCategoryButton),
         { backgroundColor: selectedCategory === item.id ? item.color : theme.card }
       ]}
       onPress={() => setSelectedCategory(item.id)}
@@ -688,14 +707,15 @@ const AACBoardScreen: React.FC = () => {
     >
       <Ionicons
         name={item.icon as any}
-        size={28}
+        size={orientation === 'landscape' ? 16 : 28}
         color={selectedCategory === item.id ? '#FFFFFF' : theme.text}
       />
       <Text
         style={[
-          styles.categoryText,
+          orientation === 'landscape' ? styles.categoryTextLandscape : styles.categoryText,
           selectedCategory === item.id && styles.selectedCategoryText,
         ]}
+        numberOfLines={orientation === 'landscape' ? 2 : 1}
       >
         {item.name}
       </Text>
@@ -830,9 +850,11 @@ const AACBoardScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaWrapper 
+      style={styles.container}
+      edges={orientation === 'landscape' ? ['bottom'] : ['top', 'bottom']}
+    >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('aac.aacTitle')}</Text>
         <View style={styles.headerRightContainer}>
           {isAuthenticated && (
             <DiscordIndicator 
@@ -872,7 +894,7 @@ const AACBoardScreen: React.FC = () => {
                     const url = 'https://speech-aac.link/en/profile?upgrade=true';
                     Linking.openURL(url).catch(err => {
                       console.error('Failed to open upgrade URL:', err);
-                      Alert.alert(t('general.error'), t('general.couldNotOpenBrowser'));
+                      Alert.alert(t('general.error.title'), t('general.couldNotOpenBrowser'));
                     });
                   }
                 }
@@ -893,6 +915,8 @@ const AACBoardScreen: React.FC = () => {
           </View>
         </TouchableOpacity>
       )}
+      
+      {/* Header with title and actions - always full width */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('aac.title')}</Text>
         <View style={styles.headerActions}>
@@ -905,81 +929,165 @@ const AACBoardScreen: React.FC = () => {
         </View>
       </View>
       
-      <View style={styles.categoriesContainer}>
-        {isCategoriesLoading ? (
-          <View style={styles.loadingCategories}>
-            <ActivityIndicator size="small" color={theme.primary} />
+      {orientation === 'landscape' ? (
+        // Landscape layout: horizontal split with categories on left
+        <View style={styles.landscapeContainer}>
+          <View style={styles.landscapeLeft}>
+            <View style={styles.categoriesContainerLandscape}>
+              {isCategoriesLoading ? (
+                <View style={styles.loadingCategories}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                </View>
+              ) : (
+                <ScrollView 
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.categoriesListLandscape}
+                >
+                  {categories.map((item) => renderCategoryItem({ item }))}
+                  <TouchableOpacity
+                    style={styles.addCategoryButtonLandscape}
+                    onPress={handleAddCategory}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color={theme.primary} />
+                    <Text style={styles.addCategoryTextLandscapeStyle}>{t('aacBoard.addCategory')}</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              )}
+            </View>
           </View>
-        ) : (
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesList}
-            ListFooterComponent={
-              <TouchableOpacity
-                style={styles.addCategoryButton}
-                onPress={handleAddCategory}
+          
+          <View style={styles.landscapeRight}>
+            {recentPhrases.length > 0 && (
+              <View style={styles.recentContainerLandscape}>
+                <Text style={styles.sectionTitleSmall}>{t('aacBoard.recentPhrases')}</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.recentScrollViewLandscape}
+                >
+                  {recentPhrases.slice(0, 3).map((phrase) => (
+                    <TouchableOpacity
+                      key={phrase.id}
+                      style={[
+                        styles.recentButtonSmall,
+                        phrase.id.startsWith('custom-') && styles.customRecentButton
+                      ]}
+                      onPress={() => speakPhrase(phrase.text, phrase.id)}
+                      onLongPress={() => handlePhraseActions(phrase)}
+                    >
+                      {phrase.id.startsWith('custom-') && (
+                        <Ionicons name="chatbox-outline" size={10} color={theme.primary} style={styles.customIcon} />
+                      )}
+                      <Text style={styles.recentTextSmall} numberOfLines={1}>
+                        {phrase.text}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            
+            <View style={styles.phrasesContainerLandscape}>
+              <Text style={styles.sectionTitleSmall}>
+                {selectedCategory ? (
+                  selectedCategory === 'all' ?
+                  t('aacBoard.allPhrases') :
+                  (categories.find(c => c.id === selectedCategory)?.isGlobal 
+                    ? t(`aac.categories.${selectedCategory}`) 
+                    : categories.find(c => c.id === selectedCategory)?.name || '')
+                ) : t('aac.title') || 'AAC Board'}
+              </Text>
+              <FlatList
+                data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
+                renderItem={renderPhraseItem}
+                keyExtractor={(item) => item.id}
+                numColumns={3}
+                contentContainerStyle={styles.phrasesList}
+                ListEmptyComponent={renderEmptyPhrases}
+              />
+            </View>
+          </View>
+        </View>
+      ) : (
+        // Portrait layout: original vertical stack
+        <View style={styles.portraitContainer}>
+          <View style={styles.categoriesContainer}>
+            {isCategoriesLoading ? (
+              <View style={styles.loadingCategories}>
+                <ActivityIndicator size="small" color={theme.primary} />
+              </View>
+            ) : (
+              <FlatList
+                data={categories}
+                renderItem={renderCategoryItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesList}
+                ListFooterComponent={
+                  <TouchableOpacity
+                    style={styles.addCategoryButton}
+                    onPress={handleAddCategory}
+                  >
+                    <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
+                    <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
+                  </TouchableOpacity>
+                }
+              />
+            )}
+          </View>
+          
+          {recentPhrases.length > 0 && (
+            <View style={styles.recentContainer}>
+              <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recentScrollView}
               >
-                <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
-                <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
-              </TouchableOpacity>
-            }
-          />
-        )}
-      </View>
-      
-      {recentPhrases.length > 0 && (
-        <View style={styles.recentContainer}>
-          <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.recentScrollView}
-          >
-            {recentPhrases.map((phrase) => (
-              <TouchableOpacity
-                key={phrase.id}
-                style={[
-                  styles.recentButton,
-                  phrase.id.startsWith('custom-') && styles.customRecentButton
-                ]}
-                onPress={() => speakPhrase(phrase.text, phrase.id)}
-                onLongPress={() => handlePhraseActions(phrase)}
-              >
-                {phrase.id.startsWith('custom-') && (
-                  <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
-                )}
-                <Text style={styles.recentText} numberOfLines={1}>
-                  {phrase.text}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                {recentPhrases.map((phrase) => (
+                  <TouchableOpacity
+                    key={phrase.id}
+                    style={[
+                      styles.recentButton,
+                      phrase.id.startsWith('custom-') && styles.customRecentButton
+                    ]}
+                    onPress={() => speakPhrase(phrase.text, phrase.id)}
+                    onLongPress={() => handlePhraseActions(phrase)}
+                  >
+                    {phrase.id.startsWith('custom-') && (
+                      <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
+                    )}
+                    <Text style={styles.recentText} numberOfLines={1}>
+                      {phrase.text}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          
+          <View style={styles.phrasesContainer}>
+            <Text style={styles.sectionTitle}>
+              {selectedCategory ? (
+                selectedCategory === 'all' ?
+                t('aacBoard.allPhrases') :
+                (categories.find(c => c.id === selectedCategory)?.isGlobal 
+                  ? t(`aac.categories.${selectedCategory}`) 
+                  : categories.find(c => c.id === selectedCategory)?.name || '')
+              ) : t('aac.title') || 'AAC Board'}
+            </Text>
+            <FlatList
+              data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
+              renderItem={renderPhraseItem}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              contentContainerStyle={styles.phrasesList}
+              ListEmptyComponent={renderEmptyPhrases}
+            />
+          </View>
         </View>
       )}
-      
-      <View style={styles.phrasesContainer}>
-        <Text style={styles.sectionTitle}>
-          {selectedCategory ? (
-            selectedCategory === 'all' ?
-            t('aacBoard.allPhrases') :
-            (categories.find(c => c.id === selectedCategory)?.isGlobal 
-              ? t(`aac.categories.${selectedCategory}`) 
-              : categories.find(c => c.id === selectedCategory)?.name || '')
-          ) : t('aac.title') || 'AAC Board'}
-        </Text>
-        <FlatList
-          data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
-          renderItem={renderPhraseItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.phrasesList}
-          ListEmptyComponent={renderEmptyPhrases}
-        />
-      </View>
       
       <View style={styles.customMessageContainer}>
         <View style={styles.inputContainer}>
@@ -1043,7 +1151,7 @@ const AACBoardScreen: React.FC = () => {
         editCategory={editingCategory}
         currentLanguage={currentLanguage}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 
@@ -1358,6 +1466,111 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   helpButton: {
     padding: 8,
+  },
+  landscapeContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  landscapeLeft: {
+    width: 120, // Fixed narrow width for categories
+    borderRightWidth: 1,
+    borderRightColor: theme.border,
+    backgroundColor: theme.card,
+  },
+  categoriesContainerLandscape: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  categoriesListLandscape: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  addCategoryButtonLandscape: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 4,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: theme.card,
+    width: 80,
+    height: 50,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  selectedCategoryButtonLandscape: {
+    backgroundColor: theme.primary,
+  },
+  categoryTextLandscape: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: theme.text,
+    marginTop: 2,
+    textAlign: 'center',
+    lineHeight: 12,
+  },
+  landscapeRight: {
+    flex: 1,
+    backgroundColor: theme.background,
+  },
+  recentContainerLandscape: {
+    marginTop: 15,
+    paddingHorizontal: 20,
+  },
+  sectionTitleSmall: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: theme.text,
+    marginBottom: 8,
+  },
+  recentScrollViewLandscape: {
+    paddingBottom: 8,
+  },
+  recentButtonSmall: {
+    backgroundColor: theme.card,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    maxWidth: 150,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  recentTextSmall: {
+    color: theme.text,
+    fontSize: 12,
+  },
+  phrasesContainerLandscape: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 15,
+  },
+  portraitContainer: {
+    flex: 1,
+  },
+  categoryButtonLandscape: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 4,
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: theme.card,
+    width: 80,
+    height: 50,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  addCategoryTextLandscapeStyle: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: theme.primary,
+    marginTop: 2,
+    textAlign: 'center',
   },
 });
 

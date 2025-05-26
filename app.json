@@ -2,8 +2,8 @@
   "expo": {
     "name": "Speech Link",
     "slug": "speech-link-mobile",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "1.1.0",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -27,11 +27,15 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#4A6FEA"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.naqued.speechlinkmobile",

@@ -23,6 +23,61 @@
     "passwordResetSent": "",
     "signUpSuccess": ""
   },
+  "discord": {
+    "discordSettings": "",
+    "connection": "",
+    "configuration": "",
+    "server": "",
+    "voiceChannel": "",
+    "selectServer": "",
+    "selectChannel": "",
+    "selectServerFirst": "",
+    "notConnectedHelp": "",
+    "linkAccount": "",
+    "connect": "",
+    "disconnect": "",
+    "inviteBot": "",
+    "about": "",
+    "helpText": "",
+    "autoDisconnectNotice": "",
+    "authSuccess": "",
+    "authSuccessMessage": "",
+    "authFailed": "",
+    "authFailedMessage": "",
+    "authError": "",
+    "connectionStatus": "",
+    "connectionActive": "",
+    "notConnected": "",
+    "channelMembers": "",
+    "noMembers": "",
+    "connectToSeeMembers": "",
+    "connectedTo": "",
+    "connectedSince": "",
+    "connectionDuration": "",
+    "minutes": "",
+    "selectServerAndChannel": "",
+    "settingsSaved": "",
+    "failedToSaveSettings": "",
+    "connecting": "",
+    "connectToChannel": "",
+    "joinChannel": "",
+    "disconnectChannel": "",
+    "disconnecting": "",
+    "test": "",
+    "testing": "",
+    "account": "",
+    "connected": "",
+    "disconnectedFromChannel": "",
+    "inviteUrlError": "",
+    "disconnectFailed": "",
+    "connectionError": "",
+    "noServersFound": "",
+    "checkDiscordConnection": "",
+    "noChannelsFound": "",
+    "createVoiceChannel": "",
+    "joinVoice": "",
+    "leaveVoice": ""
+  },
   "home": {
     "title": "",
     "tap_to_speak": "",
@@ -98,7 +153,17 @@
       "age": "",
       "category": "",
       "useCase": "",
-      "descriptives": "",
+      "descriptives": {
+        "title": "",
+        "all": "",
+        "calm": "",
+        "energetic": "",
+        "professional": "",
+        "friendly": "",
+        "authoritative": "",
+        "cheerful": "",
+        "serious": ""
+      },
       "applyWithCount": "",
       "apply": "",
       "activeFilters": "",
@@ -168,16 +233,6 @@
         "gaming": "",
         "narration": "",
         "advertisement": ""
-      },
-      "descriptives": {
-        "all": "",
-        "calm": "",
-        "energetic": "",
-        "professional": "",
-        "friendly": "",
-        "authoritative": "",
-        "cheerful": "",
-        "serious": ""
       }
     },
     "metadata": {
@@ -243,7 +298,10 @@
       "select": "",
       "selected": "",
       "stop": "",
-      "processing": ""
+      "processing": "",
+      "success": "",
+      "voiceSelected": "",
+      "errorSelectingVoice": ""
     },
     "characteristics": {
       "expressive": "",
@@ -260,6 +318,12 @@
       "deep": "",
       "authoritative": "",
       "trustworthy": ""
+    },
+    "preview": {
+      "text-1": "",
+      "text-2": "",
+      "text-3": "",
+      "text-4": ""
     }
   },
   "languages": {
@@ -296,6 +360,7 @@
   },
   "aac": {
     "title": "",
+    "aacTitle": "",
     "categories": {
       "basicNeeds": "",
       "greetings": "",
@@ -303,7 +368,6 @@
       "questions": "",
       "medical": "",
       "activities": "",
-      
       "cat_basic_needs_en": "",
       "cat_basic_needs_fr": "",
       "cat_social_interaction_en": "",
@@ -334,6 +398,7 @@
     "darkMode": "",
     "audioSettings": "",
     "voiceSettings": "",
+    "autoSpeakEnabled": "",
     "appearance": "",
     "light": "",
     "dark": "",
@@ -350,13 +415,17 @@
     "version": "",
     "privacyPolicy": "",
     "termsOfService": "",
-    "feedback": ""
+    "feedback": "",
+    "integrations": "",
+    "discordSettings": "",
+    "audioRouting": ""
   },
   "profile": {
     "title": "",
     "name": "",
     "email": "",
     "subscription": "",
+    "subscriptionExpiry": "",
     "edit": "",
     "save": "",
     "changePassword": "",
@@ -379,7 +448,22 @@
     "updateSuccess": "",
     "requiredFields": "",
     "namePlaceholder": "",
-    "emailPlaceholder": ""
+    "emailPlaceholder": "",
+    "plans": {
+      "title": "",
+      "trial": "",
+      "free": "",
+      "credits": "",
+      "trialDesc": "",
+      "occasional": "",
+      "occasionalDesc": "",
+      "regular": "",
+      "regularDesc": "",
+      "intensive": "",
+      "intensiveDesc": "",
+      "dailyCompanion": "",
+      "dailyDesc": ""
+    }
   },
   "history": {
     "title": "",
@@ -403,7 +487,11 @@
     "create": "",
     "search": "",
     "loading": "",
-    "error": "",
+    "error": {
+      "title": "",
+      "required": "",
+      "maxLength": ""
+    },
     "success": "",
     "retry": "",
     "back": "",
@@ -411,11 +499,7 @@
     "enable": "",
     "disable": "",
     "notSpecified": "",
-    "general": "",
-    "error": {
-      "required": "",
-      "maxLength": ""
-    }
+    "general": ""
   },
   "language": {
     "select": "",
@@ -439,6 +523,7 @@
     "speak": "",
     "allPhrases": "",
     "phraseText": "",
+    "noPhrases": "",
     "enterPhraseText": "",
     "category": "",
     "selectedCategory": "",

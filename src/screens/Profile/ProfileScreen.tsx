@@ -23,15 +23,87 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 import { profileService } from '../../services/profileService';
 import { UserProfile } from '../../types/profile';
 
+// Plan configuration based on your specifications
+const PLAN_CONFIG = {
+  TRIAL: {
+    id: 'trial',
+    name: 'Trial',
+    price: 0,
+    creditLimit: 30,
+    displayCredits: '30',
+  },
+  FREE: {
+    id: 'free',
+    name: 'Trial',
+    price: 0,
+    creditLimit: 30,
+    displayCredits: '30',
+  },
+  OCCASIONAL: {
+    id: 'occasional',
+    name: 'Occasional',
+    price: 4,
+    creditLimit: 50000,
+    displayCredits: '50K',
+  },
+  PREMIUM: {
+    id: 'occasional', // API maps PREMIUM to Occasional
+    name: 'Occasional',
+    price: 4,
+    creditLimit: 50000,
+    displayCredits: '50K',
+  },
+  REGULAR: {
+    id: 'regular',
+    name: 'Regular',
+    price: 15,
+    creditLimit: 200000,
+    displayCredits: '200K',
+  },
+  INTENSIVE: {
+    id: 'intensive',
+    name: 'Intensive',
+    price: 30,
+    creditLimit: 500000,
+    displayCredits: '500K',
+  },
+  DAILY_COMPANION: {
+    id: 'daily-companion',
+    name: 'Daily Companion',
+    price: 100,
+    creditLimit: 3000000,
+    displayCredits: '3M',
+  },
+} as const;
+
+// Helper to get plan configuration by tier
+const getPlanConfig = (tier: string | undefined) => {
+  if (!tier) return PLAN_CONFIG.TRIAL;
+  
+  // Handle API tier mapping
+  const normalizedTier = tier.toUpperCase();
+  if (normalizedTier === 'DAILY_COMPANION' || normalizedTier === 'DAILY-COMPANION') {
+    return PLAN_CONFIG.DAILY_COMPANION;
+  }
+  
+  return PLAN_CONFIG[normalizedTier as keyof typeof PLAN_CONFIG] || PLAN_CONFIG.TRIAL;
+};
+
 // Helper to check subscription tiers
 const isTier = (currentTier: string | undefined, tierToCheck: string): boolean => {
-  // Map API tiers to our display tiers
-  if (currentTier === 'FREE' || currentTier === 'TRIAL') {
-    return tierToCheck === 'Trial';
+  const currentPlan = getPlanConfig(currentTier);
+  return currentPlan.name === tierToCheck;
+};
+
+// Helper to format credit numbers for display
+const formatCredits = (credits: number): string => {
+  if (credits >= 1000000) {
+    return `${(credits / 1000000).toFixed(0)}M`;
   }
-  if (currentTier === 'PREMIUM' && tierToCheck === 'Occasional') return true;
-  // Direct match
-  return currentTier === tierToCheck;
+  if (credits >= 1000) {
+    return `${(credits / 1000).toFixed(0)}K`;
+  }
+  return credits.toString();
 };
 
 const ProfileScreen: React.FC = () => {
@@ -69,7 +141,7 @@ const ProfileScreen: React.FC = () => {
       setEmail(data.user.email);
     } catch (error) {
       console.error('Error loading profile:', error);
-      Alert.alert(t('general.error'), t('profile.loadError'));
+      Alert.alert(t('general.error.title'), t('profile.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +149,7 @@ const ProfileScreen: React.FC = () => {
 
   const handleSave = async () => {
     if (!name.trim() || !email.trim()) {
-      Alert.alert(t('general.error'), t('profile.requiredFields'));
+      Alert.alert(t('general.error.title'), t('profile.requiredFields'));
       return;
     }
     
@@ -93,7 +165,7 @@ const ProfileScreen: React.FC = () => {
       loadProfile(); // Reload profile to get latest data
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert(t('general.error'), t('profile.updateError'));
+      Alert.alert(t('general.error.title'), t('profile.updateError'));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +189,7 @@ const ProfileScreen: React.FC = () => {
     const url = `https://speech-aac.link/en/profile?upgrade=${plan.toLowerCase()}`;
     Linking.openURL(url).catch(err => {
       console.error('Failed to open upgrade URL:', err);
-      Alert.alert(t('general.error'), t('general.couldNotOpenBrowser'));
+      Alert.alert(t('general.error.title'), t('general.couldNotOpenBrowser'));
     });
   };
 
@@ -125,13 +197,9 @@ const ProfileScreen: React.FC = () => {
   const getUsageInfo = () => {
     if (!profile?.usage) return { percentage: 0, status: 'normal', planTotal: 0 };
     
-    // Get the correct total based on the plan
-    let planTotal = profile.usage.creditsTotal;
-    
-    // Override for TRIAL plan - force it to be 30 credits
-    if (isTier(profile.subscription?.tier, 'Trial')) {
-      planTotal = 30;
-    }
+    // Get the correct credit limit based on the current plan
+    const currentPlan = getPlanConfig(profile.subscription?.tier);
+    const planTotal = currentPlan.creditLimit;
     
     const used = profile.usage.creditsUsed.total;
     const percentage = Math.min(100, Math.round((used / planTotal) * 100));
@@ -148,14 +216,8 @@ const ProfileScreen: React.FC = () => {
 
   // Helper to get a display name for the subscription tier
   const getSubscriptionDisplayName = (tier: string | undefined): string => {
-    if (!tier) return t('profile.freeTier', 'Free Tier');
-    
-    // Map API tiers to display names
-    if (tier === 'FREE' || tier === 'TRIAL') return t('profile.plans.trial', 'Trial');
-    if (tier === 'PREMIUM') return t('profile.plans.occasional', 'Occasional');
-    
-    // Other tiers - display with first letter capitalized
-    return tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
+    const plan = getPlanConfig(tier);
+    return t(`profile.plans.${plan.id}`, plan.name);
   };
 
   if (isLoading) {
@@ -343,7 +405,7 @@ const ProfileScreen: React.FC = () => {
               )}
             </View>
             <Text style={styles.planPrice}>{t('profile.plans.free', 'Free')}</Text>
-            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '30' })}</Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: PLAN_CONFIG.TRIAL.displayCredits })}</Text>
             <Text style={styles.planDescription}>{t('profile.plans.trialDesc', 'Basic access to try out the service')}</Text>
           </View>
           
@@ -360,8 +422,8 @@ const ProfileScreen: React.FC = () => {
                 </View>
               )}
             </View>
-            <Text style={styles.planPrice}>€4<Text style={styles.planPriceMonth}>/month</Text></Text>
-            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '50K' })}</Text>
+            <Text style={styles.planPrice}>€{PLAN_CONFIG.OCCASIONAL.price}<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: PLAN_CONFIG.OCCASIONAL.displayCredits })}</Text>
             <Text style={styles.planDescription}>{t('profile.plans.occasionalDesc', 'Perfect for occasional use')}</Text>
             
             {(!profile.subscription?.tier || isTier(profile.subscription?.tier, 'Trial')) && (
@@ -387,8 +449,8 @@ const ProfileScreen: React.FC = () => {
                 </View>
               )}
             </View>
-            <Text style={styles.planPrice}>€15<Text style={styles.planPriceMonth}>/month</Text></Text>
-            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '200K' })}</Text>
+            <Text style={styles.planPrice}>€{PLAN_CONFIG.REGULAR.price}<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: PLAN_CONFIG.REGULAR.displayCredits })}</Text>
             <Text style={styles.planDescription}>{t('profile.plans.regularDesc', 'Ideal for regular users')}</Text>
             
             {(!profile.subscription?.tier || 
@@ -416,8 +478,8 @@ const ProfileScreen: React.FC = () => {
                 </View>
               )}
             </View>
-            <Text style={styles.planPrice}>€30<Text style={styles.planPriceMonth}>/month</Text></Text>
-            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '500K' })}</Text>
+            <Text style={styles.planPrice}>€{PLAN_CONFIG.INTENSIVE.price}<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: PLAN_CONFIG.INTENSIVE.displayCredits })}</Text>
             <Text style={styles.planDescription}>{t('profile.plans.intensiveDesc', 'For intensive daily usage')}</Text>
             
             {(!profile.subscription?.tier || 
@@ -446,8 +508,8 @@ const ProfileScreen: React.FC = () => {
                 </View>
               )}
             </View>
-            <Text style={styles.planPrice}>€100<Text style={styles.planPriceMonth}>/month</Text></Text>
-            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: '3M' })}</Text>
+            <Text style={styles.planPrice}>€{PLAN_CONFIG.DAILY_COMPANION.price}<Text style={styles.planPriceMonth}>/month</Text></Text>
+            <Text style={styles.planCredits}>{t('profile.plans.credits', '{{credits}} credits/month', { credits: PLAN_CONFIG.DAILY_COMPANION.displayCredits })}</Text>
             <Text style={styles.planDescription}>{t('profile.plans.dailyDesc', 'For professional or intensive usage')}</Text>
             
             {(!profile.subscription?.tier || 

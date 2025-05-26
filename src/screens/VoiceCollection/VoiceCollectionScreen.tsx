@@ -308,7 +308,7 @@ const VoiceCollectionScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Error searching voices:', error);
-      Alert.alert(t('general.error'), t('voice.collection.searchError'));
+      Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
     } finally {
       // Always reset search state
       setIsSearching(false);
@@ -663,7 +663,7 @@ const VoiceCollectionScreen: React.FC = () => {
                     } catch (retryError) {
                       console.error('Failed to add favorite on retry:', retryError);
                       Alert.alert(
-                        t('general.error'),
+                        t('general.error.title'),
                         t('voice.collection.errorAddingFavorite', { 
                           error: retryError instanceof Error ? retryError.message : String(retryError) 
                         })
@@ -684,7 +684,7 @@ const VoiceCollectionScreen: React.FC = () => {
       
       // Show a more detailed error message to help diagnose issues
       Alert.alert(
-        t('general.error'), 
+        t('general.error.title'), 
         isFavorite ? 
           t('voice.collection.errorAddingFavorite', { error: error instanceof Error ? error.message : String(error) }) :
           t('voice.collection.errorRemovingFavorite', { error: error instanceof Error ? error.message : String(error) })
@@ -999,7 +999,7 @@ const VoiceCollectionScreen: React.FC = () => {
       })
       .catch(error => {
         console.error('Error applying filters and searching:', error);
-        Alert.alert(t('general.error'), t('voice.collection.searchError'));
+        Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
       })
       .finally(() => {
         setIsSearching(false);
@@ -1046,7 +1046,7 @@ const VoiceCollectionScreen: React.FC = () => {
       return (
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={theme.error} />
-          <Text style={styles.errorText}>{t('general.error')}</Text>
+          <Text style={styles.errorText}>{t('general.error.title')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
             <Text style={styles.retryButtonText}>{t('general.retry')}</Text>
           </TouchableOpacity>
@@ -1263,7 +1263,7 @@ const VoiceCollectionScreen: React.FC = () => {
               })
               .catch(error => {
                 console.error('Error in search button press:', error);
-                Alert.alert(t('general.error'), t('voice.collection.searchError'));
+                Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
               })
               .finally(() => {
                 setIsSearching(false);

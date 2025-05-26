@@ -130,7 +130,7 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
     } catch (error) {
       console.error('Error saving sentence:', error);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('aacBoard.errorSavingSentence')
       );
     } finally {

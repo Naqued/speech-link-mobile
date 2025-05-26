@@ -175,7 +175,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
     } catch (error) {
       console.error('Error saving category:', error);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('aacBoard.errorSavingCategory')
       );
     } finally {

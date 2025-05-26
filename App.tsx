@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { I18nextProvider, useTranslation } from 'react-i18next';
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
+        <StatusBar style="auto" translucent backgroundColor="transparent" />
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>

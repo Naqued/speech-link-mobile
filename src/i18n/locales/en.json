@@ -360,6 +360,7 @@
   },
   "aac": {
     "title": "Quick Phrases",
+    "aacTitle": "AAC Table",
     "categories": {
       "basicNeeds": "Basic Needs",
       "greetings": "Greetings",
@@ -447,7 +448,26 @@
     "updateSuccess": "Profile updated successfully",
     "requiredFields": "Name and email are required",
     "namePlaceholder": "Your name",
-    "emailPlaceholder": "Your email"
+    "emailPlaceholder": "Your email",
+    "currentPlan": "Current",
+    "limitExceeded": "You have reached your monthly limit",
+    "limitWarning": "You are approaching your monthly limit",
+    "plans": {
+      "title": "Subscription Plans",
+      "trial": "Trial",
+      "free": "Free",
+      "credits": "{{credits}} credits/month",
+      "trialDesc": "Basic access to try out the service",
+      "occasional": "Occasional",
+      "occasionalDesc": "Perfect for occasional use",
+      "regular": "Regular",
+      "regularDesc": "Ideal for regular users",
+      "intensive": "Intensive",
+      "intensiveDesc": "For intensive daily usage",
+      "dailyCompanion": "Daily Companion",
+      "daily-companion": "Daily Companion",
+      "dailyDesc": "For professional or intensive usage"
+    }
   },
   "history": {
     "title": "History",
@@ -472,6 +492,7 @@
     "search": "Search",
     "loading": "Loading...",
     "error": {
+      "title": "Error",
       "required": "This field is required",
       "maxLength": "Maximum {{max}} characters allowed"
     },
@@ -482,7 +503,8 @@
     "enable": "Enable",
     "disable": "Disable",
     "notSpecified": "Not specified",
-    "general": "General"
+    "general": "General",
+    "couldNotOpenBrowser": "Could not open browser"
   },
   "language": {
     "select": "Select Language",

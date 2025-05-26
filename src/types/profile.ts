@@ -16,7 +16,7 @@ export interface UserInfo {
 }
 
 export interface SubscriptionInfo {
-  tier: 'FREE' | 'PREMIUM';
+  tier: 'FREE' | 'TRIAL' | 'PREMIUM' | 'OCCASIONAL' | 'REGULAR' | 'INTENSIVE' | 'DAILY_COMPANION';
   status: 'active' | 'inactive' | 'cancelled';
   currentPeriodStart: string;
   currentPeriodEnd: string;

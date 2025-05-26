@@ -157,7 +157,7 @@ const HistoryScreen: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to play history item', error);
-      Alert.alert(t('general.error'), 'Failed to play history item');
+      Alert.alert(t('general.error.title'), 'Failed to play history item');
       setIsSpeaking(false);
       setPlayingItemId(null);
     }
@@ -201,7 +201,7 @@ const HistoryScreen: React.FC = () => {
               console.log('History cleared');
             } catch (error) {
               console.error('Failed to clear history', error);
-              Alert.alert(t('general.error'), 'Failed to clear history');
+              Alert.alert(t('general.error.title'), 'Failed to clear history');
             } finally {
               setIsLoading(false);
             }

@@ -198,7 +198,7 @@ const VoiceSettingsScreen: React.FC = () => {
             onPress: async () => {
               const success = await toggleAudioRouting(true);
               if (!success) {
-                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed', 'Failed to enable audio routing'));
+                Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.enable_failed', 'Failed to enable audio routing'));
               }
             },
           },
@@ -208,7 +208,7 @@ const VoiceSettingsScreen: React.FC = () => {
       // No confirmation needed when disabling
       const success = await toggleAudioRouting(false);
       if (!success) {
-        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed', 'Failed to disable audio routing'));
+        Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.disable_failed', 'Failed to disable audio routing'));
       }
     }
   };

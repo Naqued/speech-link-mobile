@@ -219,7 +219,7 @@ const DiscordSettingsScreen: React.FC = () => {
       } catch (err) {
         console.error('Error during Discord authentication:', err);
         Alert.alert(
-          t('general.error'),
+          t('general.error.title'),
           t('discord.authError', 'Failed to connect to Discord. Please try again.')
         );
         setAuthInProgress(false);
@@ -227,7 +227,7 @@ const DiscordSettingsScreen: React.FC = () => {
     } catch (err) {
       setAuthInProgress(false);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         err instanceof Error ? err.message : 'Failed to connect to Discord'
       );
     }
@@ -243,7 +243,7 @@ const DiscordSettingsScreen: React.FC = () => {
         await Linking.openURL(inviteUrl);
       }
     } catch (err) {
-      Alert.alert(t('general.error'), t('discord.inviteUrlError', 'Failed to open invite URL'));
+      Alert.alert(t('general.error.title'), t('discord.inviteUrlError', 'Failed to open invite URL'));
     }
   }, []);
 
@@ -379,7 +379,7 @@ const DiscordSettingsScreen: React.FC = () => {
       if (!currentServer) {
         console.error('No server selected, cannot save channel settings');
         Alert.alert(
-          t('general.error'),
+          t('general.error.title'),
           t('discord.selectServerFirst', 'Please select a server first')
         );
         return;
@@ -446,14 +446,14 @@ const DiscordSettingsScreen: React.FC = () => {
       } else {
         console.error('Failed to save settings');
         Alert.alert(
-          t('general.error'),
+          t('general.error.title'),
           t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
         );
       }
     } catch (err) {
       console.error('Error saving settings:', err);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('discord.failedToSaveSettings', 'Failed to save Discord settings. Please try again.')
       );
     }
@@ -478,7 +478,7 @@ const DiscordSettingsScreen: React.FC = () => {
         } else {
           console.error('Failed to disconnect from Discord voice channel');
           Alert.alert(
-            t('general.error'),
+            t('general.error.title'),
             t('discord.disconnectFailed', 'Failed to disconnect from Discord voice channel')
           );
         }
@@ -487,7 +487,7 @@ const DiscordSettingsScreen: React.FC = () => {
         if (!currentServer || !currentChannel) {
           console.error(`Missing server or channel: Server=${currentServer?.id}, Channel=${currentChannel?.id}`);
           Alert.alert(
-            t('general.error'),
+            t('general.error.title'),
             t('discord.selectServerAndChannel', 'Please select a server and channel first')
           );
           return;
@@ -521,7 +521,7 @@ const DiscordSettingsScreen: React.FC = () => {
           if (!(response.status === 200 && response.data.success)) {
             console.error('Failed to save settings before connecting');
             Alert.alert(
-              t('general.error'),
+              t('general.error.title'),
               t('discord.failedToSaveSettings', 'Failed to save Discord settings before connecting')
             );
             return;
@@ -547,7 +547,7 @@ const DiscordSettingsScreen: React.FC = () => {
         } catch (err) {
           console.error('Error ensuring settings are saved:', err);
           Alert.alert(
-            t('general.error'),
+            t('general.error.title'),
             t('discord.failedToSaveSettings', 'Failed to save Discord settings before connecting')
           );
           return;
@@ -566,7 +566,7 @@ const DiscordSettingsScreen: React.FC = () => {
         } else {
           console.error('Failed to connect to Discord voice channel (reported by context connect)');
           Alert.alert(
-            t('general.error'),
+            t('general.error.title'),
             t('discord.connectionError', 'An error occurred while managing the Discord connection')
           );
         }
@@ -574,7 +574,7 @@ const DiscordSettingsScreen: React.FC = () => {
     } catch (err) {
       console.error('Error joining/disconnecting voice channel:', err);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('discord.connectionError', 'An error occurred while managing the Discord connection')
       );
     }
@@ -880,7 +880,7 @@ const DiscordSettingsScreen: React.FC = () => {
                     loadChannels(currentServer.id);
                     setChannelModalVisible(true);
                   } else {
-                    Alert.alert(t('general.error'), t('discord.selectServerFirst'));
+                    Alert.alert(t('general.error.title'), t('discord.selectServerFirst'));
                   }
                 }
               )}
