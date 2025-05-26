@@ -371,15 +371,109 @@ const AACBoardScreen: React.FC = () => {
     Linking.openURL('https://speechlink.example.com/subscribe');
   };
 
-  const speakCustomMessage = () => {
+  const speakCustomMessage = async () => {
     if (customMessage.trim()) {
-      speakPhrase(customMessage);
-      setCustomMessage('');
+      try {
+        // Don't continue if we're already speaking
+        if (isSpeaking) {
+          handleStopSpeaking();
+          return;
+        }
+        
+        // Check subscription limit
+        if (subscriptionLimitReached) {
+          Alert.alert(
+            t('general.subscriptionRequired'),
+            t('aac.subscriptionLimitReachedMessage'),
+            [
+              {
+                text: t('general.upgrade'),
+                onPress: () => handleSubscriptionUpgrade(),
+              },
+              {
+                text: t('general.cancel'),
+                style: 'cancel',
+              },
+            ]
+          );
+          return;
+        }
+        
+        // Create a temporary SentenceUIModel for the custom message
+        const customSentence: SentenceUIModel = {
+          id: `custom-${Date.now()}`,
+          text: customMessage.trim(),
+          categoryId: 'custom', // Use a special category ID for custom messages
+          isFavorite: false
+        };
+        
+        // Update recent phrases (add to beginning, keep only last 5)
+        if (!recentPhrases.find(p => p.text === customMessage.trim())) {
+          setRecentPhrases([customSentence, ...recentPhrases.slice(0, 4)]);
+        }
+        
+        // Set state to indicate speaking has started
+        setIsSpeaking(true);
+        setIsLoadingAudio(true);
+        setCurrentlyPlayingText(customMessage.trim());
+        
+        // Stream to Discord if connected
+        if (isConnected) {
+          setIsStreamingToDiscord(true);
+          try {
+            console.log('[AACBoard] Streaming custom message to Discord:', customMessage);
+            streamSpeech(customMessage).catch(err => {
+              console.log('[AACBoard] Discord streaming error (not critical):', err);
+            });
+          } catch (discordError) {
+            console.log('[AACBoard] Discord streaming catch block (should not occur):', discordError);
+          } finally {
+            setTimeout(() => {
+              setIsStreamingToDiscord(false);
+            }, 1000);
+          }
+        }
+        
+        // Speak the message directly
+        await speak(customMessage);
+        
+        // Clear the input
+        setCustomMessage('');
+      } catch (err) {
+        console.error('Error speaking custom message:', err);
+        setError('Failed to speak custom message');
+        setIsSpeaking(false);
+        setCurrentlyPlayingText(null);
+      } finally {
+        setIsLoadingAudio(false);
+      }
     }
   };
 
   const handleAddPhrase = () => {
-    setEditingSentence(undefined);
+    // Create a new sentence with pre-filled text if customMessage is set
+    if (customMessage.trim()) {
+      const newSentence: SentenceUIModel = {
+        id: '', // Empty ID indicates it's a new sentence
+        text: customMessage.trim(),
+        categoryId: categories.find(c => c.id !== 'all')?.id || '', // Default to first real category
+        isFavorite: false
+      };
+      setEditingSentence(newSentence);
+    } else {
+      setEditingSentence(undefined);
+    }
+    setSentenceFormVisible(true);
+  };
+  
+  const handleAddPhraseWithText = (prefillText: string) => {
+    const newSentence: SentenceUIModel = {
+      id: '', // Empty ID indicates it's a new sentence
+      text: prefillText,
+      categoryId: categories.find(c => c.id !== 'all')?.id || '', // Default to first real category
+      isFavorite: false
+    };
+    setEditingSentence(newSentence);
     setSentenceFormVisible(true);
   };
   
@@ -437,7 +531,7 @@ const AACBoardScreen: React.FC = () => {
       const categoryPhrases = [...(prev[sentence.categoryId] || [])];
       
       // Check if this is an update or a new sentence
-      const existingIndex = categoryPhrases.findIndex(p => p.id === sentence.id);
+      const existingIndex = sentence.id ? categoryPhrases.findIndex(p => p.id === sentence.id) : -1;
       
       if (existingIndex >= 0) {
         // Update existing sentence
@@ -464,6 +558,9 @@ const AACBoardScreen: React.FC = () => {
         return temp;
       });
     }
+    
+    // Clear the custom message after saving
+    setCustomMessage('');
   };
 
   const handleAddCategory = () => {
@@ -635,6 +732,36 @@ const AACBoardScreen: React.FC = () => {
   );
   
   const handlePhraseActions = (sentence: SentenceUIModel) => {
+    // Check if this is a custom message (ID starts with "custom-")
+    const isCustomMessage = sentence.id.startsWith('custom-');
+    
+    if (isCustomMessage) {
+      // For custom messages, offer speak and save options
+      Alert.alert(
+        sentence.text,
+        t('aacBoard.customMessage'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel'
+          },
+          {
+            text: t('aacBoard.speak'),
+            onPress: () => speakPhrase(sentence.text, sentence.id)
+          },
+          {
+            text: t('general.save'),
+            onPress: () => {
+              // Use handleAddPhraseWithText to open the add form with pre-filled text
+              handleAddPhraseWithText(sentence.text);
+            }
+          }
+        ]
+      );
+      return;
+    }
+    
+    // For regular phrases, show all options
     Alert.alert(
       sentence.text,
       t('aacBoard.selectAction'),
@@ -815,10 +942,16 @@ const AACBoardScreen: React.FC = () => {
             {recentPhrases.map((phrase) => (
               <TouchableOpacity
                 key={phrase.id}
-                style={styles.recentButton}
+                style={[
+                  styles.recentButton,
+                  phrase.id.startsWith('custom-') && styles.customRecentButton
+                ]}
                 onPress={() => speakPhrase(phrase.text, phrase.id)}
                 onLongPress={() => handlePhraseActions(phrase)}
               >
+                {phrase.id.startsWith('custom-') && (
+                  <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
+                )}
                 <Text style={styles.recentText} numberOfLines={1}>
                   {phrase.text}
                 </Text>
@@ -892,7 +1025,7 @@ const AACBoardScreen: React.FC = () => {
         visible={sentenceFormVisible}
         onClose={() => setSentenceFormVisible(false)}
         onSave={handleSaveSentence}
-        categories={categories}
+        categories={categories.filter(cat => cat.id !== 'all')}
         editSentence={editingSentence}
         currentLanguage={currentLanguage}
       />
@@ -1041,6 +1174,15 @@ const makeStyles = (theme: any) => StyleSheet.create({
     maxWidth: 200,
     borderWidth: 1,
     borderColor: theme.border,
+  },
+  customRecentButton: {
+    borderColor: theme.primary,
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  customIcon: {
+    marginRight: 5,
   },
   recentText: {
     color: theme.text,
