@@ -86,12 +86,12 @@ const MainTabs = () => {
       <Tab.Screen 
         name="AACBoard" 
         component={AACBoardScreen} 
-        options={{ title: t('aac.title'), headerShown: false }} 
+        options={{ title: t('aac.title') || 'AAC Board', headerShown: false }} 
       />
       <Tab.Screen 
         name="VoiceCollection" 
         component={VoiceCollectionScreen} 
-        options={{ title: t('voice.collection.title'), headerShown: false }} 
+        options={{ title: t('voice.collection.title') || 'Voice Collection', headerShown: false }} 
       />
       {/* <Tab.Screen 
         name="History" 
@@ -101,7 +101,7 @@ const MainTabs = () => {
       <Tab.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: t('settings.title'), headerShown: false }} 
+        options={{ title: t('settings.title') || 'Settings', headerShown: false }} 
       />
     </Tab.Navigator>
   );

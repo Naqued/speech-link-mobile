@@ -969,7 +969,7 @@ const AACBoardScreen: React.FC = () => {
             (categories.find(c => c.id === selectedCategory)?.isGlobal 
               ? t(`aac.categories.${selectedCategory}`) 
               : categories.find(c => c.id === selectedCategory)?.name || '')
-          ) : t('aac.title')}
+          ) : t('aac.title') || 'AAC Board'}
         </Text>
         <FlatList
           data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
