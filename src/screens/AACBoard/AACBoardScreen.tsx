@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   ScrollView,
   TextInput,
@@ -12,11 +11,14 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-  Dimensions
+  Dimensions,
+  Animated
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as Speech from 'expo-speech';
+import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
@@ -41,7 +43,9 @@ import {
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
 import DiscordIndicator from '../../components/UI/DiscordIndicator';
-import { SafeAreaWrapper } from '../../components/UI/SafeAreaWrapper';
+
+// Debug utilities (development only)
+import { quickHindiTest } from '../../utils/debugHindiAPI';
 
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
@@ -99,6 +103,16 @@ const AACBoardScreen: React.FC = () => {
     return () => subscription?.remove();
   }, [orientation]);
 
+  // Add state for tracking language fallback
+  const [languageFallbackUsed, setLanguageFallbackUsed] = useState(false);
+  const [originalLanguage, setOriginalLanguage] = useState<string | null>(null);
+
+  // Collapsible sections state
+  const [isRecentPhrasesCollapsed, setIsRecentPhrasesCollapsed] = useState(false);
+  
+  // Animation values for smooth transitions
+  const [recentPhrasesAnimation] = useState(new Animated.Value(1));
+
   // State
   const [categories, setCategories] = useState<CategoryUIModel[]>([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -127,6 +141,18 @@ const AACBoardScreen: React.FC = () => {
 
   const styles = makeStyles(theme);
 
+  // Collapsible section toggle function for recent phrases only
+  const toggleRecentPhrases = () => {
+    const toValue = isRecentPhrasesCollapsed ? 1 : 0;  // If currently collapsed, expand (1), if expanded, collapse (0)
+    setIsRecentPhrasesCollapsed(!isRecentPhrasesCollapsed);
+    
+    Animated.timing(recentPhrasesAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
   // Use effect to update isSpeaking state based on TTS service state
   useEffect(() => {
     if (!ttsIsPlaying && !isLoadingAudio && isSpeaking) {
@@ -142,6 +168,8 @@ const AACBoardScreen: React.FC = () => {
       try {
         setCategoriesLoading(true);
         setError(null);
+        setLanguageFallbackUsed(false);
+        setOriginalLanguage(null);
         
         // Debug log
         console.log('[AACBoard] fetchCategories - using language:', currentLanguage);
@@ -164,13 +192,45 @@ const AACBoardScreen: React.FC = () => {
           if (!selectedCategory) {
             setSelectedCategory('all');
           }
+          
+          // Check if we received English data when requesting Hindi
+          const hasHindiSpecificData = apiCategories.some(cat => 
+            cat.language === currentLanguage || 
+            (currentLanguage === 'hi' && cat.language === 'hi')
+          );
+          
+          if (currentLanguage === 'hi' && !hasHindiSpecificData) {
+            console.warn('[AACBoard] Received categories but none are Hindi-specific. Likely using fallback data.');
+            setLanguageFallbackUsed(true);
+            setOriginalLanguage('hi');
+          }
         } else {
           // Fallback to defaults if no categories found
           console.log('[AACBoard] No categories found for language:', currentLanguage, '- using defaults');
           setCategories([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
+          
+          // Set fallback state for Hindi
+          if (currentLanguage === 'hi') {
+            setLanguageFallbackUsed(true);
+            setOriginalLanguage('hi');
+          }
         }
       } catch (err) {
         console.error('Error fetching categories:', err);
+        
+        // Enhanced error handling for Hindi
+        if (currentLanguage === 'hi') {
+          console.error('[AACBoard] Hindi categories fetch failed. Error details:', {
+            error: err,
+            errorMessage: err instanceof Error ? err.message : 'Unknown error',
+            currentLanguage,
+            timestamp: new Date().toISOString()
+          });
+          
+          setLanguageFallbackUsed(true);
+          setOriginalLanguage('hi');
+        }
+        
         // Fallback to defaults on error
         setCategories([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
       } finally {
@@ -198,6 +258,23 @@ const AACBoardScreen: React.FC = () => {
         
         console.log('[AACBoard] fetchAllSentences - received sentences:', apiSentences.length);
         
+        // Check if we received Hindi-specific data
+        if (currentLanguage === 'hi') {
+          const hasHindiSpecificSentences = apiSentences.some(sentence => 
+            sentence.language === 'hi'
+          );
+          
+          if (!hasHindiSpecificSentences && apiSentences.length > 0) {
+            console.warn('[AACBoard] Received sentences but none are Hindi-specific. Likely using fallback data.');
+            setLanguageFallbackUsed(true);
+            setOriginalLanguage('hi');
+          } else if (apiSentences.length === 0) {
+            console.warn('[AACBoard] No sentences found for Hindi at all.');
+            setLanguageFallbackUsed(true);
+            setOriginalLanguage('hi');
+          }
+        }
+        
         // Map to UI model
         const uiSentences = apiSentences
           .map(mapToUISentenceModel)
@@ -216,6 +293,18 @@ const AACBoardScreen: React.FC = () => {
         setAllPhrases(uiSentences);
       } catch (err) {
         console.error('Error fetching all sentences:', err);
+        
+        // Enhanced error handling for Hindi
+        if (currentLanguage === 'hi') {
+          console.error('[AACBoard] Hindi sentences fetch failed. Error details:', {
+            error: err,
+            errorMessage: err instanceof Error ? err.message : 'Unknown error',
+            currentLanguage,
+            selectedCategory,
+            timestamp: new Date().toISOString()
+          });
+        }
+        
         setError('Failed to load phrases');
         setAllPhrases([]);
       } finally {
@@ -725,13 +814,20 @@ const AACBoardScreen: React.FC = () => {
   const renderPhraseItem = ({ item }: { item: SentenceUIModel }) => (
     <TouchableOpacity
       style={[
-        styles.phraseButton,
-        currentlyPlayingText === item.text && styles.playingPhraseButton
+        orientation === 'landscape' ? styles.phraseButtonLandscape : styles.phraseButton,
+        currentlyPlayingText === item.text && (orientation === 'landscape' ? styles.playingPhraseButtonLandscape : styles.playingPhraseButton)
       ]}
       onPress={() => speakPhrase(item.text, item.id)}
       onLongPress={() => handlePhraseActions(item)}
     >
-      <Text style={styles.phraseText} numberOfLines={2}>
+      <Text 
+        style={[
+          orientation === 'landscape' ? styles.phraseTextLandscape : styles.phraseText
+        ]} 
+        numberOfLines={orientation === 'landscape' ? 2 : 3}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+      >
         {item.text}
       </Text>
       {currentlyPlayingText === item.text && (
@@ -743,7 +839,7 @@ const AACBoardScreen: React.FC = () => {
               style={styles.stopButton}
               onPress={handleStopSpeaking}
             >
-              <Ionicons name="stop" size={16} color="#FFFFFF" />
+              <Ionicons name="stop" size={12} color="#FFFFFF" />
             </TouchableOpacity>
           )}
         </View>
@@ -850,21 +946,42 @@ const AACBoardScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper 
+    <SafeAreaView 
       style={styles.container}
-      edges={orientation === 'landscape' ? ['bottom'] : ['top', 'bottom']}
+      edges={['bottom']}
     >
-      <View style={styles.header}>
-        <View style={styles.headerRightContainer}>
-          {isAuthenticated && (
-            <DiscordIndicator 
-              size="medium" 
-              showLabel={isConnected}
-              isStreaming={isStreamingToDiscord} 
-            />
-          )}
-        </View>
-      </View>
+      <ScreenHeader
+        title={t('aac.title')}
+        rightComponent={
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
+              <Ionicons name="folder-outline" size={24} color={theme.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
+              <Ionicons name="add-outline" size={24} color={theme.primary} />
+            </TouchableOpacity>
+            {__DEV__ && currentLanguage === 'hi' && (
+              <TouchableOpacity 
+                style={styles.headerButton} 
+                onPress={() => {
+                  console.log('🔍 Running Hindi API Debug Test...');
+                  quickHindiTest().catch(err => console.error('Debug test failed:', err));
+                }}
+              >
+                <Ionicons name="bug-outline" size={24} color="#FF6B6B" />
+              </TouchableOpacity>
+            )}
+            {isAuthenticated && (
+              <DiscordIndicator 
+                size="medium" 
+                showLabel={isConnected}
+                isStreaming={isStreamingToDiscord} 
+              />
+            )}
+          </View>
+        }
+      />
+      
       {subscriptionLimitReached && (
         <TouchableOpacity 
           style={styles.limitBanner} 
@@ -916,18 +1033,22 @@ const AACBoardScreen: React.FC = () => {
         </TouchableOpacity>
       )}
       
-      {/* Header with title and actions - always full width */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>{t('aac.title')}</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
-            <Ionicons name="folder-outline" size={24} color={theme.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
-            <Ionicons name="add-outline" size={24} color={theme.primary} />
-          </TouchableOpacity>
+      {languageFallbackUsed && originalLanguage === 'hi' && (
+        <View style={styles.fallbackBanner}>
+          <View style={styles.fallbackBannerContent}>
+            <Ionicons name="information-circle-outline" size={20} color="#4F46E5" />
+            <Text style={styles.fallbackBannerText}>
+              {t('aacBoard.hindiDataNotAvailable', 'Hindi content is being prepared. English content is shown temporarily.')}
+            </Text>
+            <TouchableOpacity
+              style={styles.fallbackBannerButton}
+              onPress={() => setLanguageFallbackUsed(false)}
+            >
+              <Ionicons name="close" size={16} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
       
       {orientation === 'landscape' ? (
         // Landscape layout: horizontal split with categories on left
@@ -943,7 +1064,11 @@ const AACBoardScreen: React.FC = () => {
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={styles.categoriesListLandscape}
                 >
-                  {categories.map((item) => renderCategoryItem({ item }))}
+                  {categories.map((item) => (
+                    <View key={item.id}>
+                      {renderCategoryItem({ item })}
+                    </View>
+                  ))}
                   <TouchableOpacity
                     style={styles.addCategoryButtonLandscape}
                     onPress={handleAddCategory}
@@ -958,8 +1083,31 @@ const AACBoardScreen: React.FC = () => {
           
           <View style={styles.landscapeRight}>
             {recentPhrases.length > 0 && (
-              <View style={styles.recentContainerLandscape}>
-                <Text style={styles.sectionTitleSmall}>{t('aacBoard.recentPhrases')}</Text>
+              <Animated.View 
+                style={[
+                  styles.recentContainerLandscape,
+                  {
+                    opacity: recentPhrasesAnimation,
+                    maxHeight: recentPhrasesAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 100], // Appropriate height for landscape header + content
+                    }),
+                    overflow: 'hidden',
+                  },
+                ]}
+              >
+                <TouchableOpacity 
+                  style={styles.sectionHeaderSmall}
+                  onPress={toggleRecentPhrases}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.sectionTitleSmall}>{t('aacBoard.recentPhrases')}</Text>
+                  <Ionicons 
+                    name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
+                    size={16} 
+                    color={theme.text} 
+                  />
+                </TouchableOpacity>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -984,19 +1132,22 @@ const AACBoardScreen: React.FC = () => {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              </View>
+              </Animated.View>
+            )}
+            
+            {/* Floating expand button when recent phrases are collapsed in landscape */}
+            {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
+              <TouchableOpacity 
+                style={styles.floatingExpandButtonLandscape}
+                onPress={toggleRecentPhrases}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time-outline" size={14} color="#FFFFFF" />
+                <Ionicons name="chevron-down" size={12} color="#FFFFFF" />
+              </TouchableOpacity>
             )}
             
             <View style={styles.phrasesContainerLandscape}>
-              <Text style={styles.sectionTitleSmall}>
-                {selectedCategory ? (
-                  selectedCategory === 'all' ?
-                  t('aacBoard.allPhrases') :
-                  (categories.find(c => c.id === selectedCategory)?.isGlobal 
-                    ? t(`aac.categories.${selectedCategory}`) 
-                    : categories.find(c => c.id === selectedCategory)?.name || '')
-                ) : t('aac.title') || 'AAC Board'}
-              </Text>
               <FlatList
                 data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
                 renderItem={renderPhraseItem}
@@ -1038,8 +1189,31 @@ const AACBoardScreen: React.FC = () => {
           </View>
           
           {recentPhrases.length > 0 && (
-            <View style={styles.recentContainer}>
-              <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
+            <Animated.View 
+              style={[
+                styles.recentContainer,
+                {
+                  opacity: recentPhrasesAnimation,
+                  maxHeight: recentPhrasesAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 120], // Enough height for header + content
+                  }),
+                  overflow: 'hidden',
+                },
+              ]}
+            >
+              <TouchableOpacity 
+                style={styles.sectionHeader}
+                onPress={toggleRecentPhrases}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
+                <Ionicons 
+                  name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
+                  size={20} 
+                  color={theme.text} 
+                />
+              </TouchableOpacity>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -1064,19 +1238,22 @@ const AACBoardScreen: React.FC = () => {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-            </View>
+            </Animated.View>
+          )}
+          
+          {/* Floating expand button when recent phrases are collapsed */}
+          {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
+            <TouchableOpacity 
+              style={styles.floatingExpandButton}
+              onPress={toggleRecentPhrases}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time-outline" size={16} color="#FFFFFF" />
+              <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
+            </TouchableOpacity>
           )}
           
           <View style={styles.phrasesContainer}>
-            <Text style={styles.sectionTitle}>
-              {selectedCategory ? (
-                selectedCategory === 'all' ?
-                t('aacBoard.allPhrases') :
-                (categories.find(c => c.id === selectedCategory)?.isGlobal 
-                  ? t(`aac.categories.${selectedCategory}`) 
-                  : categories.find(c => c.id === selectedCategory)?.name || '')
-              ) : t('aac.title') || 'AAC Board'}
-            </Text>
             <FlatList
               data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
               renderItem={renderPhraseItem}
@@ -1151,7 +1328,7 @@ const AACBoardScreen: React.FC = () => {
         editCategory={editingCategory}
         currentLanguage={currentLanguage}
       />
-    </SafeAreaWrapper>
+    </SafeAreaView>
   );
 };
 
@@ -1159,24 +1336,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.text,
-  },
-  headerRightContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   limitBanner: {
     backgroundColor: theme.error || '#EF4444',
@@ -1206,18 +1365,10 @@ const makeStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   headerButton: {
     padding: 8,
@@ -1242,25 +1393,28 @@ const makeStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     margin: 6,
     padding: 10,
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: theme.card,
     width: 100,
     height: 70,
     shadowColor: theme.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: theme.border,
   },
   selectedCategoryButton: {
     backgroundColor: theme.primary,
   },
   categoryText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: theme.text,
     marginTop: 4,
     textAlign: 'center',
+    lineHeight: 16,
   },
   selectedCategoryText: {
     color: '#FFFFFF',
@@ -1312,25 +1466,27 @@ const makeStyles = (theme: any) => StyleSheet.create({
   phraseButton: {
     flex: 1,
     backgroundColor: theme.card,
-    margin: 6,
-    padding: 15,
-    borderRadius: 12,
+    margin: 4,
+    padding: 10,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 80,
+    minHeight: 60,
+    maxHeight: 80,
     shadowColor: theme.shadowColor,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
     elevation: 2,
     borderWidth: 1,
     borderColor: theme.border,
   },
   phraseText: {
     color: theme.text,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     textAlign: 'center',
+    lineHeight: 16,
   },
   customMessageContainer: {
     flexDirection: 'row',
@@ -1451,13 +1607,18 @@ const makeStyles = (theme: any) => StyleSheet.create({
     borderWidth: 2,
     backgroundColor: theme.card,
   },
+  playingPhraseButtonLandscape: {
+    borderColor: theme.primary,
+    borderWidth: 2,
+    backgroundColor: theme.card,
+  },
   playingIndicatorContainer: {
     position: 'absolute',
-    bottom: 5,
-    right: 5,
+    bottom: 3,
+    right: 3,
     backgroundColor: theme.primary,
-    borderRadius: 12,
-    padding: 5,
+    borderRadius: 10,
+    padding: 3,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -1571,6 +1732,102 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: theme.primary,
     marginTop: 2,
     textAlign: 'center',
+  },
+  fallbackBanner: {
+    backgroundColor: '#E0E7FF', // Light blue background
+    padding: 12,
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  fallbackBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  fallbackBannerText: {
+    color: '#4F46E5',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  fallbackBannerButton: {
+    padding: 4,
+  },
+  phraseButtonLandscape: {
+    flex: 1,
+    backgroundColor: theme.card,
+    margin: 3,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,
+    maxHeight: 65,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  phraseTextLandscape: {
+    color: theme.text,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  collapsibleContent: {
+    overflow: 'hidden',
+  },
+  sectionHeaderSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 8,
+  },
+  floatingExpandButton: {
+    position: 'absolute',
+    top: 93, // Position just below the categories
+    right: 25, // Move to left margin instead of right
+    padding: 6,
+    borderRadius: 16,
+    backgroundColor: theme.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+    zIndex: 1000,
+  },
+  floatingExpandButtonLandscape: {
+    position: 'absolute',
+    top: 5, // Position below the categories in landscape
+    right: 40, // Position it just to the right of the categories bar
+    padding: 5,
+    borderRadius: 14,
+    backgroundColor: theme.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+    zIndex: 1000,
   },
 });
 

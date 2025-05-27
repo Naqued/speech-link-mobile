@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Switch,
   Alert,
@@ -14,6 +13,7 @@ import {
   FlatList,
   TextInput
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +22,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
+
+// Components
+import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
 // Hooks
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
@@ -437,9 +440,7 @@ const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
-      </View>
+      <ScreenHeader title={t('settings.title')} />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.section}>
@@ -539,20 +540,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    height: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.text,
   },
   scrollView: {
     flex: 1,

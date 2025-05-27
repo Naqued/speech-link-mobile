@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   Image,
   TextInput,
@@ -13,6 +12,7 @@ import {
   Alert,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
@@ -25,6 +25,7 @@ import SelectedFiltersCard from '../../components/VoiceSearch/SelectedFiltersCar
 import VoiceDetailModal from '../../components/VoiceCollection/VoiceDetailModal';
 import SelectedVoiceCard from '../../components/VoiceCollection/SelectedVoiceCard';
 import { useToast } from '../../components/UI/ToastProvider';
+import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
 // Hooks and Services
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
@@ -1169,9 +1170,7 @@ const VoiceCollectionScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('voice.collection.title')}</Text>
-      </View>
+      <ScreenHeader title={t('voice.collection.title')} />
 
       <View style={styles.searchContainer}>
         <TouchableOpacity

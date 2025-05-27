@@ -2,7 +2,7 @@
   "expo": {
     "name": "Speech Link",
     "slug": "speech-link-mobile",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -15,7 +15,14 @@
       "**/*"
     ],
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "viewport": {
+        "width": "device-width",
+        "initialScale": 1,
+        "maximumScale": 1,
+        "userScalable": false,
+        "viewportFit": "cover"
+      }
     },
     "extra": {
       "eas": {
@@ -27,7 +34,7 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "versionCode": 5,
+      "versionCode": 7,
       "permissions": [
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS"
@@ -35,7 +42,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#4A6FEA"
-      }
+      },
+      "edgeToEdgeEnabled": true
     },
     "ios": {
       "bundleIdentifier": "com.naqued.speechlinkmobile",
@@ -45,7 +53,20 @@
       "appVersionSource": "remote"
     },
     "plugins": [
-      "./app.plugin.js"
+      "./app.plugin.js",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useNewNdkIntegration": true,
+            "useLegacyPackaging": false,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "ndkVersion": "27.0.12077973"
+          }
+        }
+      ]
     ],
     "doctor": {
       "reactNativeDirectoryCheck": {

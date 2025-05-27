@@ -12,23 +12,126 @@ import {
   TTSPreviewRequest
 } from '../models/AAC';
 
+// Language mapping for backend compatibility
+const LANGUAGE_CODE_MAPPING: Record<string, string> = {
+  'hi': 'hi', // Hindi
+  'en': 'en', // English
+  'fr': 'fr', // French
+  'de': 'de', // German
+  'es': 'es', // Spanish
+  'it': 'it', // Italian
+  'ja': 'ja', // Japanese
+  'ko': 'ko', // Korean
+  'zh': 'zh', // Chinese
+  'ar': 'ar', // Arabic
+  // Add more mappings as needed
+};
+
+/**
+ * Normalizes language code for backend compatibility
+ * @param language Language code from i18n
+ * @returns Normalized language code for backend
+ */
+const normalizeLanguageCode = (language: string): string => {
+  const normalized = LANGUAGE_CODE_MAPPING[language] || language;
+  console.log(`[aacService] Language normalization: ${language} -> ${normalized}`);
+  return normalized;
+};
+
+/**
+ * Enhanced API call with detailed error logging and language fallback
+ */
+const apiCallWithLanguageFallback = async <T>(
+  endpoint: string,
+  primaryLanguage: string,
+  fallbackLanguage: string = 'en'
+): Promise<T | null> => {
+  const normalizedPrimary = normalizeLanguageCode(primaryLanguage);
+  const normalizedFallback = normalizeLanguageCode(fallbackLanguage);
+  
+  try {
+    console.log(`[aacService] Attempting API call: ${endpoint} with language: ${normalizedPrimary}`);
+    const response = await apiService.get<T>(endpoint);
+    
+    // Log successful response details
+    console.log(`[aacService] Success for ${normalizedPrimary}:`, {
+      endpoint,
+      responseSize: JSON.stringify(response).length,
+      hasData: !!response
+    });
+    
+    return response;
+  } catch (primaryError) {
+    console.warn(`[aacService] Primary language (${normalizedPrimary}) failed for ${endpoint}:`, primaryError);
+    
+    // If primary language fails and it's not English, try English fallback
+    if (normalizedPrimary !== normalizedFallback) {
+      try {
+        const fallbackEndpoint = endpoint.replace(`language=${normalizedPrimary}`, `language=${normalizedFallback}`);
+        console.log(`[aacService] Attempting fallback: ${fallbackEndpoint}`);
+        
+        const fallbackResponse = await apiService.get<T>(fallbackEndpoint);
+        
+        console.log(`[aacService] Fallback success for ${normalizedPrimary} -> ${normalizedFallback}:`, {
+          endpoint: fallbackEndpoint,
+          responseSize: JSON.stringify(fallbackResponse).length,
+          hasData: !!fallbackResponse
+        });
+        
+        return fallbackResponse;
+      } catch (fallbackError) {
+        console.error(`[aacService] Fallback language (${normalizedFallback}) also failed for ${endpoint}:`, fallbackError);
+        throw fallbackError;
+      }
+    } else {
+      // Primary language is already the fallback language
+      throw primaryError;
+    }
+  }
+};
+
 /**
  * Service for handling all AAC-related API calls
  */
 export const aacService = {
   /**
    * Get all categories for the current user
-   * @param language Language code (e.g., 'en', 'fr')
+   * @param language Language code (e.g., 'en', 'fr', 'hi')
    * @returns Promise with array of categories
    */
   getCategories: async (language = 'en'): Promise<SentenceCategory[]> => {
     try {
-      console.log(`[aacService] getCategories called with language: ${language}`);
-      const response = await apiService.get<{ categories: SentenceCategory[] }>(`/api/sentence-categories?language=${language}`);
-      console.log(`[aacService] getCategories response for ${language}:`, response?.categories?.length || 0, 'categories');
-      return response?.categories || [];
+      const normalizedLanguage = normalizeLanguageCode(language);
+      console.log(`[aacService] getCategories called with language: ${language} (normalized: ${normalizedLanguage})`);
+      
+      const endpoint = `/api/sentence-categories?language=${normalizedLanguage}`;
+      const response = await apiCallWithLanguageFallback<{ categories: SentenceCategory[] }>(
+        endpoint,
+        language,
+        'en'
+      );
+      
+      const categories = response?.categories || [];
+      console.log(`[aacService] getCategories response for ${normalizedLanguage}:`, {
+        count: categories.length,
+        categoryIds: categories.map(c => c.id),
+        hasGlobalCategories: categories.some(c => c.isGlobal)
+      });
+      
+      // Additional validation for Hindi
+      if (language === 'hi' && categories.length === 0) {
+        console.warn(`[aacService] No categories found for Hindi. This might indicate backend data issue.`);
+        console.log(`[aacService] Backend endpoint called: ${endpoint}`);
+        console.log(`[aacService] Response structure:`, response);
+      }
+      
+      return categories;
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error(`[aacService] Error fetching categories for ${language}:`, {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   },
@@ -120,29 +223,50 @@ export const aacService = {
   /**
    * Get all sentences, optionally filtered by category
    * @param categoryId Optional category ID to filter by
-   * @param language Language code (e.g., 'en', 'fr')
+   * @param language Language code (e.g., 'en', 'fr', 'hi')
    * @returns Promise with array of sentences
    */
   getSentences: async (categoryId?: string, language = 'en'): Promise<SampleSentence[]> => {
     try {
-      let endpoint = `/api/sample-sentences?language=${language}`;
+      const normalizedLanguage = normalizeLanguageCode(language);
+      let endpoint = `/api/sample-sentences?language=${normalizedLanguage}`;
       if (categoryId) {
         endpoint += `&categoryId=${categoryId}`;
       }
       
-      console.log(`[aacService] getSentences called with language: ${language}, categoryId: ${categoryId || 'none'}`);
+      console.log(`[aacService] getSentences called with language: ${language} (normalized: ${normalizedLanguage}), categoryId: ${categoryId || 'none'}`);
       console.log(`[aacService] getSentences endpoint: ${endpoint}`);
       
-      const response = await apiService.get<{ sentences: SampleSentence[] }>(endpoint);
-      console.log(`[aacService] getSentences response for ${language}:`, response?.sentences?.length || 0, 'sentences');
+      const response = await apiCallWithLanguageFallback<{ sentences: SampleSentence[] }>(
+        endpoint,
+        language,
+        'en'
+      );
       
-      if (response?.sentences?.length === 0) {
-        console.log(`[aacService] No sentences found for language: ${language}, possibly falling back to English`);
+      const sentences = response?.sentences || [];
+      console.log(`[aacService] getSentences response for ${normalizedLanguage}:`, {
+        count: sentences.length,
+        categoryFilter: categoryId || 'none',
+        hasGlobalSentences: sentences.some(s => s.isGlobal),
+        sampleTexts: sentences.slice(0, 3).map(s => s.text)
+      });
+      
+      // Additional validation for Hindi
+      if (language === 'hi' && sentences.length === 0) {
+        console.warn(`[aacService] No sentences found for Hindi. This might indicate backend data issue.`);
+        console.log(`[aacService] Backend endpoint called: ${endpoint}`);
+        console.log(`[aacService] Response structure:`, response);
+        console.log(`[aacService] Category filter applied:`, categoryId);
       }
       
-      return response?.sentences || [];
+      return sentences;
     } catch (error) {
-      console.error('Error fetching sentences:', error);
+      console.error(`[aacService] Error fetching sentences for ${language}:`, {
+        error,
+        categoryId,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   },
