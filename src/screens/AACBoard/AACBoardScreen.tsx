@@ -12,9 +12,10 @@ import {
   ActivityIndicator,
   Linking,
   Dimensions,
-  Animated
+  Animated,
+  KeyboardAvoidingView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as Speech from 'expo-speech';
@@ -74,23 +75,17 @@ const AACBoardScreen: React.FC = () => {
   const { userSettings } = useVoiceSettings();
   const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   
+  // Safe area insets for proper layout handling
+  const insets = useSafeAreaInsets();
+  
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
   
-  // Orientation state
+  // Orientation state for responsive design
   const [orientation, setOrientation] = useState(
     Dimensions.get('window').width > Dimensions.get('window').height ? 'landscape' : 'portrait'
   );
   
-  // Log language for debugging
-  useEffect(() => {
-    console.log('=================== AAC LANGUAGE DEBUG ===================');
-    console.log('AACBoardScreen mounted/updated with language:', currentLanguage);
-    console.log('i18n.language:', i18n.language);
-    console.log('i18n supported languages:', i18n.languages);
-    console.log('=================== AAC LANGUAGE DEBUG ===================');
-  }, [currentLanguage, i18n.language]);
-
   // Listen for orientation changes
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -102,7 +97,7 @@ const AACBoardScreen: React.FC = () => {
 
     return () => subscription?.remove();
   }, [orientation]);
-
+  
   // Add state for tracking language fallback
   const [languageFallbackUsed, setLanguageFallbackUsed] = useState(false);
   const [originalLanguage, setOriginalLanguage] = useState<string | null>(null);
@@ -948,386 +943,399 @@ const AACBoardScreen: React.FC = () => {
   return (
     <SafeAreaView 
       style={styles.container}
-      edges={['bottom']}
+      edges={['top', 'left', 'right']}
     >
-      <ScreenHeader
-        title={t('aac.title')}
-        rightComponent={
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
-              <Ionicons name="folder-outline" size={24} color={theme.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
-              <Ionicons name="add-outline" size={24} color={theme.primary} />
-            </TouchableOpacity>
-            {__DEV__ && currentLanguage === 'hi' && (
-              <TouchableOpacity 
-                style={styles.headerButton} 
-                onPress={() => {
-                  console.log('🔍 Running Hindi API Debug Test...');
-                  quickHindiTest().catch(err => console.error('Debug test failed:', err));
-                }}
-              >
-                <Ionicons name="bug-outline" size={24} color="#FF6B6B" />
-              </TouchableOpacity>
-            )}
-            {isAuthenticated && (
-              <DiscordIndicator 
-                size="medium" 
-                showLabel={isConnected}
-                isStreaming={isStreamingToDiscord} 
-              />
-            )}
-          </View>
-        }
-      />
-      
-      {subscriptionLimitReached && (
-        <TouchableOpacity 
-          style={styles.limitBanner} 
-          onPress={() => {
-            // Open the profile page to upgrade
-            // For development, link to local profile, for production, link to website
-            const upgradeUrl = __DEV__ 
-              ? '/profile?upgrade=true' 
-              : 'https://speech-aac.link/en/profile?upgrade=true';
-            
-            // You'd need to implement navigation to the profile page here
-            // For example, using Linking.openURL for the website version:
-            // Linking.openURL(upgradeUrl);
-            Alert.alert(
-              t('subscription.limitTitle', 'Subscription Limit Reached'),
-              t('subscription.limitMessage', 'You have reached your monthly TTS usage limit. Upgrade your plan for unlimited access.'),
-              [
-                {
-                  text: t('general.later', 'Later'),
-                  style: 'cancel'
-                },
-                {
-                  text: t('subscription.upgrade', 'Upgrade'),
-                  onPress: () => {
-                    // Implementation depends on your navigation setup
-                    // This is a placeholder - replace with actual navigation
-                    const url = 'https://speech-aac.link/en/profile?upgrade=true';
-                    Linking.openURL(url).catch(err => {
-                      console.error('Failed to open upgrade URL:', err);
-                      Alert.alert(t('general.error.title'), t('general.couldNotOpenBrowser'));
-                    });
-                  }
-                }
-              ]
-            );
-          }}
-        >
-          <View style={styles.limitBannerContent}>
-            <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.limitBannerText}>
-              {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
-            </Text>
-            <View style={styles.limitBannerButton}>
-              <Text style={styles.limitBannerButtonText}>
-                {t('subscription.upgrade', 'Upgrade')}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      )}
-      
-      {languageFallbackUsed && originalLanguage === 'hi' && (
-        <View style={styles.fallbackBanner}>
-          <View style={styles.fallbackBannerContent}>
-            <Ionicons name="information-circle-outline" size={20} color="#4F46E5" />
-            <Text style={styles.fallbackBannerText}>
-              {t('aacBoard.hindiDataNotAvailable', 'Hindi content is being prepared. English content is shown temporarily.')}
-            </Text>
-            <TouchableOpacity
-              style={styles.fallbackBannerButton}
-              onPress={() => setLanguageFallbackUsed(false)}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.contentContainer}>
+          <ScreenHeader
+            title={t('aac.title')}
+            rightComponent={
+              <View style={styles.headerActions}>
+                <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
+                  <Ionicons name="folder-outline" size={24} color={theme.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
+                  <Ionicons name="add-outline" size={24} color={theme.primary} />
+                </TouchableOpacity>
+                {__DEV__ && currentLanguage === 'hi' && (
+                  <TouchableOpacity 
+                    style={styles.headerButton} 
+                    onPress={() => {
+                      console.log('🔍 Running Hindi API Debug Test...');
+                      quickHindiTest().catch(err => console.error('Debug test failed:', err));
+                    }}
+                  >
+                    <Ionicons name="bug-outline" size={24} color="#FF6B6B" />
+                  </TouchableOpacity>
+                )}
+                {isAuthenticated && (
+                  <DiscordIndicator 
+                    size="medium" 
+                    showLabel={isConnected}
+                    isStreaming={isStreamingToDiscord} 
+                  />
+                )}
+              </View>
+            }
+          />
+          
+          {subscriptionLimitReached && (
+            <TouchableOpacity 
+              style={styles.limitBanner} 
+              onPress={() => {
+                // Open the profile page to upgrade
+                // For development, link to local profile, for production, link to website
+                const upgradeUrl = __DEV__ 
+                  ? '/profile?upgrade=true' 
+                  : 'https://speech-aac.link/en/profile?upgrade=true';
+                
+                // You'd need to implement navigation to the profile page here
+                // For example, using Linking.openURL for the website version:
+                // Linking.openURL(upgradeUrl);
+                Alert.alert(
+                  t('subscription.limitTitle', 'Subscription Limit Reached'),
+                  t('subscription.limitMessage', 'You have reached your monthly TTS usage limit. Upgrade your plan for unlimited access.'),
+                  [
+                    {
+                      text: t('general.later', 'Later'),
+                      style: 'cancel'
+                    },
+                    {
+                      text: t('subscription.upgrade', 'Upgrade'),
+                      onPress: () => {
+                        // Implementation depends on your navigation setup
+                        // This is a placeholder - replace with actual navigation
+                        const url = 'https://speech-aac.link/en/profile?upgrade=true';
+                        Linking.openURL(url).catch(err => {
+                          console.error('Failed to open upgrade URL:', err);
+                          Alert.alert(t('general.error.title'), t('general.couldNotOpenBrowser'));
+                        });
+                      }
+                    }
+                  ]
+                );
+              }}
             >
-              <Ionicons name="close" size={16} color="#4F46E5" />
+              <View style={styles.limitBannerContent}>
+                <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
+                <Text style={styles.limitBannerText}>
+                  {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
+                </Text>
+                <View style={styles.limitBannerButton}>
+                  <Text style={styles.limitBannerButtonText}>
+                    {t('subscription.upgrade', 'Upgrade')}
+                  </Text>
+                </View>
+              </View>
             </TouchableOpacity>
-          </View>
-        </View>
-      )}
-      
-      {orientation === 'landscape' ? (
-        // Landscape layout: horizontal split with categories on left
-        <View style={styles.landscapeContainer}>
-          <View style={styles.landscapeLeft}>
-            <View style={styles.categoriesContainerLandscape}>
-              {isCategoriesLoading ? (
-                <View style={styles.loadingCategories}>
-                  <ActivityIndicator size="small" color={theme.primary} />
+          )}
+          
+          {languageFallbackUsed && originalLanguage === 'hi' && (
+            <View style={styles.fallbackBanner}>
+              <View style={styles.fallbackBannerContent}>
+                <Ionicons name="information-circle-outline" size={20} color="#4F46E5" />
+                <Text style={styles.fallbackBannerText}>
+                  {t('aacBoard.hindiDataNotAvailable', 'Hindi content is being prepared. English content is shown temporarily.')}
+                </Text>
+                <TouchableOpacity
+                  style={styles.fallbackBannerButton}
+                  onPress={() => setLanguageFallbackUsed(false)}
+                >
+                  <Ionicons name="close" size={16} color="#4F46E5" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          
+          <View style={styles.mainContent}>
+            <View style={styles.contentArea}>
+              {orientation === 'landscape' ? (
+                // Landscape layout: horizontal split with categories on left
+                <View style={styles.landscapeContainer}>
+                  <View style={styles.landscapeLeft}>
+                    <View style={styles.categoriesContainerLandscape}>
+                      {isCategoriesLoading ? (
+                        <View style={styles.loadingCategories}>
+                          <ActivityIndicator size="small" color={theme.primary} />
+                        </View>
+                      ) : (
+                        <ScrollView 
+                          showsVerticalScrollIndicator={false}
+                          contentContainerStyle={styles.categoriesListLandscape}
+                        >
+                          {categories.map((item) => (
+                            <View key={item.id}>
+                              {renderCategoryItem({ item })}
+                            </View>
+                          ))}
+                          <TouchableOpacity
+                            style={styles.addCategoryButtonLandscape}
+                            onPress={handleAddCategory}
+                          >
+                            <Ionicons name="add-circle-outline" size={20} color={theme.primary} />
+                            <Text style={styles.addCategoryTextLandscapeStyle}>{t('aacBoard.addCategory')}</Text>
+                          </TouchableOpacity>
+                        </ScrollView>
+                      )}
+                    </View>
+                  </View>
+                  
+                  <View style={styles.landscapeRight}>
+                    {recentPhrases.length > 0 && (
+                      <Animated.View 
+                        style={[
+                          styles.recentContainerLandscape,
+                          {
+                            opacity: recentPhrasesAnimation,
+                            maxHeight: recentPhrasesAnimation.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0, 100], // Appropriate height for landscape header + content
+                            }),
+                            overflow: 'hidden',
+                          },
+                        ]}
+                      >
+                        <TouchableOpacity 
+                          style={styles.sectionHeaderSmall}
+                          onPress={toggleRecentPhrases}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.sectionTitleSmall}>{t('aacBoard.recentPhrases')}</Text>
+                          <Ionicons 
+                            name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
+                            size={16} 
+                            color={theme.text} 
+                          />
+                        </TouchableOpacity>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.recentScrollViewLandscape}
+                        >
+                          {recentPhrases.slice(0, 3).map((phrase) => (
+                            <TouchableOpacity
+                              key={phrase.id}
+                              style={[
+                                styles.recentButtonSmall,
+                                phrase.id.startsWith('custom-') && styles.customRecentButton
+                              ]}
+                              onPress={() => speakPhrase(phrase.text, phrase.id)}
+                              onLongPress={() => handlePhraseActions(phrase)}
+                            >
+                              {phrase.id.startsWith('custom-') && (
+                                <Ionicons name="chatbox-outline" size={10} color={theme.primary} style={styles.customIcon} />
+                              )}
+                              <Text style={styles.recentTextSmall} numberOfLines={1}>
+                                {phrase.text}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </Animated.View>
+                    )}
+                    
+                    {/* Floating expand button when recent phrases are collapsed in landscape */}
+                    {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
+                      <TouchableOpacity 
+                        style={styles.floatingExpandButtonLandscape}
+                        onPress={toggleRecentPhrases}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="time-outline" size={14} color="#FFFFFF" />
+                        <Ionicons name="chevron-down" size={12} color="#FFFFFF" />
+                      </TouchableOpacity>
+                    )}
+                    
+                    <View style={styles.phrasesContainerLandscape}>
+                      <FlatList
+                        data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
+                        renderItem={renderPhraseItem}
+                        keyExtractor={(item) => item.id}
+                        numColumns={3}
+                        contentContainerStyle={styles.phrasesList}
+                        ListEmptyComponent={renderEmptyPhrases}
+                      />
+                    </View>
+                  </View>
                 </View>
               ) : (
-                <ScrollView 
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={styles.categoriesListLandscape}
-                >
-                  {categories.map((item) => (
-                    <View key={item.id}>
-                      {renderCategoryItem({ item })}
-                    </View>
-                  ))}
-                  <TouchableOpacity
-                    style={styles.addCategoryButtonLandscape}
-                    onPress={handleAddCategory}
-                  >
-                    <Ionicons name="add-circle-outline" size={20} color={theme.primary} />
-                    <Text style={styles.addCategoryTextLandscapeStyle}>{t('aacBoard.addCategory')}</Text>
-                  </TouchableOpacity>
-                </ScrollView>
+                // Portrait layout: original vertical stack
+                <View style={styles.portraitContainer}>
+                  <View style={styles.categoriesContainer}>
+                    {isCategoriesLoading ? (
+                      <View style={styles.loadingCategories}>
+                        <ActivityIndicator size="small" color={theme.primary} />
+                      </View>
+                    ) : (
+                      <FlatList
+                        data={categories}
+                        renderItem={renderCategoryItem}
+                        keyExtractor={(item) => item.id}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.categoriesList}
+                        ListFooterComponent={
+                          <TouchableOpacity
+                            style={styles.addCategoryButton}
+                            onPress={handleAddCategory}
+                          >
+                            <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
+                            <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
+                          </TouchableOpacity>
+                        }
+                      />
+                    )}
+                  </View>
+                  
+                  {recentPhrases.length > 0 && (
+                    <Animated.View 
+                      style={[
+                        styles.recentContainer,
+                        {
+                          opacity: recentPhrasesAnimation,
+                          maxHeight: recentPhrasesAnimation.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 120], // Enough height for header + content
+                          }),
+                          overflow: 'hidden',
+                        },
+                      ]}
+                    >
+                      <TouchableOpacity 
+                        style={styles.sectionHeader}
+                        onPress={toggleRecentPhrases}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
+                        <Ionicons 
+                          name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
+                          size={20} 
+                          color={theme.text} 
+                        />
+                      </TouchableOpacity>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.recentScrollView}
+                      >
+                        {recentPhrases.map((phrase) => (
+                          <TouchableOpacity
+                            key={phrase.id}
+                            style={[
+                              styles.recentButton,
+                              phrase.id.startsWith('custom-') && styles.customRecentButton
+                            ]}
+                            onPress={() => speakPhrase(phrase.text, phrase.id)}
+                            onLongPress={() => handlePhraseActions(phrase)}
+                          >
+                            {phrase.id.startsWith('custom-') && (
+                              <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
+                            )}
+                            <Text style={styles.recentText} numberOfLines={1}>
+                              {phrase.text}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </Animated.View>
+                  )}
+                  
+                  {/* Floating expand button when recent phrases are collapsed */}
+                  {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
+                    <TouchableOpacity 
+                      style={styles.floatingExpandButton}
+                      onPress={toggleRecentPhrases}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="time-outline" size={16} color="#FFFFFF" />
+                      <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  )}
+                  
+                  <View style={styles.phrasesContainer}>
+                    <FlatList
+                      data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
+                      renderItem={renderPhraseItem}
+                      keyExtractor={(item) => item.id}
+                      numColumns={2}
+                      contentContainerStyle={styles.phrasesList}
+                      ListEmptyComponent={renderEmptyPhrases}
+                    />
+                  </View>
+                </View>
               )}
             </View>
-          </View>
-          
-          <View style={styles.landscapeRight}>
-            {recentPhrases.length > 0 && (
-              <Animated.View 
-                style={[
-                  styles.recentContainerLandscape,
-                  {
-                    opacity: recentPhrasesAnimation,
-                    maxHeight: recentPhrasesAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 100], // Appropriate height for landscape header + content
-                    }),
-                    overflow: 'hidden',
-                  },
-                ]}
-              >
-                <TouchableOpacity 
-                  style={styles.sectionHeaderSmall}
-                  onPress={toggleRecentPhrases}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.sectionTitleSmall}>{t('aacBoard.recentPhrases')}</Text>
-                  <Ionicons 
-                    name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
-                    size={16} 
-                    color={theme.text} 
-                  />
-                </TouchableOpacity>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.recentScrollViewLandscape}
-                >
-                  {recentPhrases.slice(0, 3).map((phrase) => (
-                    <TouchableOpacity
-                      key={phrase.id}
-                      style={[
-                        styles.recentButtonSmall,
-                        phrase.id.startsWith('custom-') && styles.customRecentButton
-                      ]}
-                      onPress={() => speakPhrase(phrase.text, phrase.id)}
-                      onLongPress={() => handlePhraseActions(phrase)}
-                    >
-                      {phrase.id.startsWith('custom-') && (
-                        <Ionicons name="chatbox-outline" size={10} color={theme.primary} style={styles.customIcon} />
-                      )}
-                      <Text style={styles.recentTextSmall} numberOfLines={1}>
-                        {phrase.text}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </Animated.View>
-            )}
             
-            {/* Floating expand button when recent phrases are collapsed in landscape */}
-            {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
-              <TouchableOpacity 
-                style={styles.floatingExpandButtonLandscape}
-                onPress={toggleRecentPhrases}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="time-outline" size={14} color="#FFFFFF" />
-                <Ionicons name="chevron-down" size={12} color="#FFFFFF" />
-              </TouchableOpacity>
-            )}
-            
-            <View style={styles.phrasesContainerLandscape}>
-              <FlatList
-                data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
-                renderItem={renderPhraseItem}
-                keyExtractor={(item) => item.id}
-                numColumns={3}
-                contentContainerStyle={styles.phrasesList}
-                ListEmptyComponent={renderEmptyPhrases}
-              />
-            </View>
-          </View>
-        </View>
-      ) : (
-        // Portrait layout: original vertical stack
-        <View style={styles.portraitContainer}>
-          <View style={styles.categoriesContainer}>
-            {isCategoriesLoading ? (
-              <View style={styles.loadingCategories}>
-                <ActivityIndicator size="small" color={theme.primary} />
-              </View>
-            ) : (
-              <FlatList
-                data={categories}
-                renderItem={renderCategoryItem}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoriesList}
-                ListFooterComponent={
-                  <TouchableOpacity
-                    style={styles.addCategoryButton}
-                    onPress={handleAddCategory}
-                  >
-                    <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
-                    <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
-                  </TouchableOpacity>
-                }
-              />
-            )}
-          </View>
-          
-          {recentPhrases.length > 0 && (
-            <Animated.View 
-              style={[
-                styles.recentContainer,
-                {
-                  opacity: recentPhrasesAnimation,
-                  maxHeight: recentPhrasesAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 120], // Enough height for header + content
-                  }),
-                  overflow: 'hidden',
-                },
-              ]}
-            >
-              <TouchableOpacity 
-                style={styles.sectionHeader}
-                onPress={toggleRecentPhrases}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.sectionTitle}>{t('aacBoard.recentPhrases')}</Text>
-                <Ionicons 
-                  name={isRecentPhrasesCollapsed ? 'chevron-down' : 'chevron-up'} 
-                  size={20} 
-                  color={theme.text} 
+            {/* Custom Message Container - positioned at bottom */}
+            <View style={styles.customMessageContainer}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder={isSpeaking ? t('general.loading') : t('aacBoard.customMessage')}
+                  placeholderTextColor={theme.text + '80'}
+                  value={customMessage}
+                  onChangeText={setCustomMessage}
+                  multiline
+                  maxLength={100}
+                  editable={!isSpeaking}
                 />
-              </TouchableOpacity>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.recentScrollView}
-              >
-                {recentPhrases.map((phrase) => (
-                  <TouchableOpacity
-                    key={phrase.id}
-                    style={[
-                      styles.recentButton,
-                      phrase.id.startsWith('custom-') && styles.customRecentButton
-                    ]}
-                    onPress={() => speakPhrase(phrase.text, phrase.id)}
-                    onLongPress={() => handlePhraseActions(phrase)}
-                  >
-                    {phrase.id.startsWith('custom-') && (
-                      <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
-                    )}
-                    <Text style={styles.recentText} numberOfLines={1}>
-                      {phrase.text}
-                    </Text>
+                {customMessage.length > 0 && !isSpeaking && (
+                  <View style={styles.inputActions}>
+                    <TouchableOpacity style={styles.inputActionButton} onPress={() => handleAddPhraseWithText(customMessage.trim())}>
+                      <Ionicons name="bookmark-outline" size={20} color={theme.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.inputActionButton} onPress={() => setCustomMessage('')}>
+                      <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {isSpeaking && (
+                  <TouchableOpacity style={styles.inputActionButton} onPress={handleStopSpeaking}>
+                    <Ionicons name="stop-circle" size={20} color={theme.primary} />
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </Animated.View>
-          )}
-          
-          {/* Floating expand button when recent phrases are collapsed */}
-          {recentPhrases.length > 0 && isRecentPhrasesCollapsed && (
-            <TouchableOpacity 
-              style={styles.floatingExpandButton}
-              onPress={toggleRecentPhrases}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="time-outline" size={16} color="#FFFFFF" />
-              <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
-          
-          <View style={styles.phrasesContainer}>
-            <FlatList
-              data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}
-              renderItem={renderPhraseItem}
-              keyExtractor={(item) => item.id}
-              numColumns={2}
-              contentContainerStyle={styles.phrasesList}
-              ListEmptyComponent={renderEmptyPhrases}
-            />
-          </View>
-        </View>
-      )}
-      
-      <View style={styles.customMessageContainer}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder={isSpeaking ? t('general.loading') : t('aacBoard.customMessage')}
-            placeholderTextColor={theme.text + '80'}
-            value={customMessage}
-            onChangeText={setCustomMessage}
-            multiline
-            maxLength={100}
-            editable={!isSpeaking}
-          />
-          {customMessage.length > 0 && !isSpeaking && (
-            <View style={styles.inputActions}>
-              <TouchableOpacity style={styles.inputActionButton} onPress={() => handleAddPhraseWithText(customMessage.trim())}>
-                <Ionicons name="bookmark-outline" size={20} color={theme.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.inputActionButton} onPress={() => setCustomMessage('')}>
-                <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+                )}
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.speakButton,
+                  (!customMessage.trim() || isSpeaking) && styles.speakButtonDisabled,
+                ]}
+                onPress={speakCustomMessage}
+                disabled={!customMessage.trim() || isSpeaking}
+              >
+                {isLoadingAudio && isSpeaking ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Ionicons name="volume-high" size={24} color="#FFFFFF" />
+                )}
               </TouchableOpacity>
             </View>
-          )}
-          {isSpeaking && (
-            <TouchableOpacity style={styles.inputActionButton} onPress={handleStopSpeaking}>
-              <Ionicons name="stop-circle" size={20} color={theme.primary} />
-            </TouchableOpacity>
-          )}
+          </View>
+          
+          {/* Sentence Form Modal */}
+          <SentenceFormModal
+            visible={sentenceFormVisible}
+            onClose={() => setSentenceFormVisible(false)}
+            onSave={handleSaveSentence}
+            categories={categories.filter(cat => cat.id !== 'all')}
+            editSentence={editingSentence}
+            currentLanguage={currentLanguage}
+          />
+          
+          {/* Category Form Modal */}
+          <CategoryFormModal
+            visible={categoryFormVisible}
+            onClose={() => setCategoryFormVisible(false)}
+            onSave={handleSaveCategory}
+            editCategory={editingCategory}
+            currentLanguage={currentLanguage}
+          />
         </View>
-        <TouchableOpacity
-          style={[
-            styles.speakButton,
-            (!customMessage.trim() || isSpeaking) && styles.speakButtonDisabled,
-          ]}
-          onPress={speakCustomMessage}
-          disabled={!customMessage.trim() || isSpeaking}
-        >
-          {isLoadingAudio && isSpeaking ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Ionicons name="volume-high" size={24} color="#FFFFFF" />
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      {/* Sentence Form Modal */}
-      <SentenceFormModal
-        visible={sentenceFormVisible}
-        onClose={() => setSentenceFormVisible(false)}
-        onSave={handleSaveSentence}
-        categories={categories.filter(cat => cat.id !== 'all')}
-        editSentence={editingSentence}
-        currentLanguage={currentLanguage}
-      />
-      
-      {/* Category Form Modal */}
-      <CategoryFormModal
-        visible={categoryFormVisible}
-        onClose={() => setCategoryFormVisible(false)}
-        onSave={handleSaveCategory}
-        editCategory={editingCategory}
-        currentLanguage={currentLanguage}
-      />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -1828,6 +1836,19 @@ const makeStyles = (theme: any) => StyleSheet.create({
     shadowRadius: 3,
     elevation: 5,
     zIndex: 1000,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  mainContent: {
+    flex: 1,
+    flexDirection: 'column', // Ensure vertical layout
+  },
+  contentArea: {
+    flex: 1,
   },
 });
 

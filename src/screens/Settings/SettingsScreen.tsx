@@ -439,7 +439,7 @@ const SettingsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScreenHeader title={t('settings.title')} />
 
       <ScrollView style={styles.scrollView}>
@@ -519,7 +519,7 @@ const SettingsScreen: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.1</Text>
+          <Text style={styles.versionText}>Version 1.3</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

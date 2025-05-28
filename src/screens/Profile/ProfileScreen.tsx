@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   ScrollView,
   TextInput,
@@ -12,6 +11,7 @@ import {
   ActivityIndicator,
   Linking
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -222,7 +222,7 @@ const ProfileScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -232,7 +232,7 @@ const ProfileScreen: React.FC = () => {
 
   if (!profile) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{t('profile.loadError')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadProfile}>
@@ -244,7 +244,7 @@ const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}

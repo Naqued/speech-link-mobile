@@ -1169,7 +1169,7 @@ const VoiceCollectionScreen: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScreenHeader title={t('voice.collection.title')} />
 
       <View style={styles.searchContainer}>

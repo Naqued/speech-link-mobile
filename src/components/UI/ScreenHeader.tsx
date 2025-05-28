@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,9 +32,26 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   
+  // Track orientation changes for responsive design
+  const [orientation, setOrientation] = useState(
+    Dimensions.get('window').width > Dimensions.get('window').height ? 'landscape' : 'portrait'
+  );
+  
   // Get screen dimensions for responsive header height
   const { width, height } = Dimensions.get('window');
   const isLandscape = width > height;
+  
+  // Listen for orientation changes
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      const newOrientation = window.width > window.height ? 'landscape' : 'portrait';
+      if (newOrientation !== orientation) {
+        setOrientation(newOrientation);
+      }
+    });
+
+    return () => subscription?.remove();
+  }, [orientation]);
   
   const styles = makeStyles(theme, insets, isLandscape);
 
@@ -78,7 +95,6 @@ const makeStyles = (theme: any, insets: any, isLandscape: boolean) => StyleSheet
     backgroundColor: theme.background,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
-    paddingTop: insets.top,
     shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
