@@ -39,9 +39,10 @@
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS"
       ],
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#4A6FEA"
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
