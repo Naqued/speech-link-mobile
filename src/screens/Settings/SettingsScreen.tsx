@@ -519,7 +519,7 @@ const SettingsScreen: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.3</Text>
+          <Text style={styles.versionText}>Version 1.4</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

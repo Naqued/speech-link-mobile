@@ -15,7 +15,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Voice } from '../../services/ttsService';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTranslation } from 'react-i18next';
+import { PremiumBadge, UpgradePrompt } from '../UI';
 
 interface VoiceDetailModalProps {
   visible: boolean;
@@ -45,6 +47,7 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
     stopSpeaking, 
     previewVoice 
   } = useTextToSpeech();
+  const { canPreviewVoice, canSelectVoice, getVoiceAccess } = useVoiceSettings();
   
   const [isModalButtonLoading, setIsModalButtonLoading] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -52,6 +55,12 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
   const [showSubscriptionError, setShowSubscriptionError] = useState(false);
 
   if (!voice) return null;
+
+  // Get voice access information
+  const voiceAccess = getVoiceAccess(voice.id);
+  const canPreview = canPreviewVoice(voice.id);
+  const canSelect = canSelectVoice(voice.id);
+  const isPremiumVoice = voice.isPremium || voice.accessLevel === 'premium';
 
   const playVoiceSample = async () => {
     if (isTTSHookPlaying) { // If sound is actually playing globally from the hook
@@ -65,6 +74,12 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
       console.log('[VDM] Stop command due to isModalButtonLoading being true (cancel attempt)');
       stopSpeaking(); // Attempt to cancel any operation initiated by this modal
       setIsModalButtonLoading(false);
+      return;
+    }
+
+    // Check access before attempting preview
+    if (!canPreview) {
+      console.log('[VDM] Preview denied - user does not have access to this voice');
       return;
     }
 
@@ -139,6 +154,13 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
 
   const handleSelectVoice = async () => {
     if (!voice) return;
+    
+    // Check access before allowing selection
+    if (!canSelect) {
+      console.log('[VDM] Selection denied - user does not have access to this voice');
+      return;
+    }
+    
     setSelectLoading(true);
     try {
       await onSelectVoice(voice);
@@ -199,184 +221,215 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer}>
-        <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          {/* Header with close button */}
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('voice.details.title')}</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={theme.text} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Subscription limit banner */}
-          {showSubscriptionError && (
-            <View style={[styles.subscriptionErrorBanner, { backgroundColor: theme.error || '#EF4444' }]}>
-              <Ionicons name="warning-outline" size={18} color="#FFFFFF" />
-              <Text style={styles.subscriptionErrorText}>
-                {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
-              </Text>
-              <TouchableOpacity 
-                style={styles.upgradeButton}
-                onPress={() => {
-                  const url = 'https://speech-aac.link/en/profile?upgrade=true';
-                  Linking.openURL(url).catch(err => {
-                    console.error('Failed to open upgrade URL:', err);
-                  });
-                }}
-              >
-                <Text style={styles.upgradeButtonText}>
-                  {t('subscription.upgrade', 'Upgrade')}
+      <View style={styles.modalOverlay}>
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <View style={styles.headerLeft}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>
+                  {t('voice.modal.title', 'Voice Details')}
                 </Text>
+                {isPremiumVoice && (
+                  <PremiumBadge size="small" style={styles.premiumBadge} />
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
             </View>
-          )}
 
-          <ScrollView style={styles.scrollView}>
-            {/* Voice avatar and name section */}
-            <View style={styles.voiceProfileSection}>
-              <Image source={{ uri: avatarUrl }} style={styles.voiceAvatar} />
-              <View style={styles.nameContainer}>
-                <Text style={[styles.voiceName, { color: theme.text }]}>{voice.name}</Text>
-                <View style={styles.badgeContainer}>
-                  <View style={[styles.providerBadge, { backgroundColor: theme.primary }]}>
-                    <Text style={styles.providerText}>ElevenLabs</Text>
-                  </View>
-                  {voice.gender && (
-                    <View style={styles.genderBadge}>
-                      <Ionicons
-                        name={voice.gender === 'male' ? 'male' : voice.gender === 'female' ? 'female' : 'person'}
-                        size={14}
-                        color="#FFFFFF"
-                      />
+            <ScrollView style={styles.scrollView}>
+              {/* Voice avatar and name section */}
+              <View style={styles.voiceProfileSection}>
+                <Image source={{ uri: avatarUrl }} style={styles.voiceAvatar} />
+                <View style={styles.nameContainer}>
+                  <Text style={[styles.voiceName, { color: theme.text }]}>{voice.name}</Text>
+                  <View style={styles.badgeContainer}>
+                    <View style={[styles.providerBadge, { backgroundColor: theme.primary }]}>
+                      <Text style={styles.providerText}>ElevenLabs</Text>
                     </View>
-                  )}
+                    {voice.gender && (
+                      <View style={styles.genderBadge}>
+                        <Ionicons
+                          name={voice.gender === 'male' ? 'male' : voice.gender === 'female' ? 'female' : 'person'}
+                          size={14}
+                          color="#FFFFFF"
+                        />
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
 
-            {/* Voice details section */}
-            <View style={styles.detailsSection}>
-              {detailsItems.map((item, index) => (
-                <View key={index} style={styles.detailItem}>
-                  <Text style={[styles.detailLabel, { color: theme.text + '80' }]}>{item.label}</Text>
-                  <Text style={[styles.detailValue, { color: theme.text }]}>{item.value}</Text>
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-
-          {/* Footer with action buttons */}
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity
-              style={[styles.playButton, { backgroundColor: theme.primary }]}
-              onPress={playVoiceSample}
-              disabled={isTTSHookLoading && !isTTSHookPlaying && !isModalButtonLoading}
-            >
-              {isTTSHookPlaying ? (
-                <View style={styles.buttonContent}>
-                  <Ionicons name="stop-circle-outline" size={22} color="#FFFFFF" />
-                  <Text style={styles.buttonText}>{t('voice.actions.stop', 'Stop')}</Text>
-                </View>
-              ) : isModalButtonLoading ? (
-                <View style={styles.buttonContent}>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                  <Text style={styles.buttonText}>{t('voice.actions.processing', 'Processing...')}</Text>
-                </View>
-              ) : (
-                <View style={styles.buttonContent}>
-                  <Ionicons name="play" size={16} color="#FFFFFF" />
-                  <Text style={styles.buttonText}>{t('voice.actions.preview', 'Preview')}</Text>
-                </View>
+              {/* Voice details section */}
+              <View style={styles.detailsSection}>
+                {detailsItems.map((item, index) => (
+                  <View key={index} style={styles.detailItem}>
+                    <Text style={[styles.detailLabel, { color: theme.text + '80' }]}>{item.label}</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>{item.value}</Text>
+                  </View>
+                ))}
+              </View>
+              
+              {/* Show upgrade prompt if voice requires premium but user doesn't have access */}
+              {voiceAccess?.requiresUpgrade && (
+                <UpgradePrompt
+                  variant="card"
+                  size="medium"
+                  title={t('upgrade.premiumVoiceTitle', 'Premium Voice Access')}
+                  message={t('upgrade.premiumVoiceFullMessage', 'This premium voice requires an Intensive or Daily Companion plan. Upgrade now to unlock all premium voices and features.')}
+                  style={styles.upgradePrompt}
+                />
               )}
-            </TouchableOpacity>
+            </ScrollView>
 
-            <View style={styles.secondaryActionsContainer}>
-              <TouchableOpacity
-                style={styles.favoriteButton}
+            {/* Footer with action buttons */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={[
+                  styles.favoriteButton,
+                  { backgroundColor: isFavorite ? theme.error : 'transparent' },
+                  { borderColor: isFavorite ? theme.error : theme.text + '40' }
+                ]}
                 onPress={handleToggleFavorite}
                 disabled={favoriteLoading}
               >
                 {favoriteLoading ? (
-                  <ActivityIndicator size="small" color={theme.primary} />
+                  <ActivityIndicator size="small" color={theme.text} />
                 ) : (
                   <Ionicons
-                    name={isFavorite ? 'heart' : 'heart-outline'}
-                    size={24}
-                    color={isFavorite ? theme.error : theme.text}
+                    name={isFavorite ? "heart" : "heart-outline"}
+                    size={20}
+                    color={isFavorite ? "#FFFFFF" : theme.text}
                   />
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.selectButton, isSelected && styles.selectButtonSelected, { borderColor: theme.primary }]} 
+              <TouchableOpacity 
+                style={[
+                  styles.previewButton,
+                  { backgroundColor: canPreview ? theme.primary : theme.text + '40' },
+                  (isModalButtonLoading || !canPreview) && { opacity: 0.7 }
+                ]}
+                onPress={playVoiceSample}
+                disabled={isModalButtonLoading || !canPreview}
+              >
+                {isModalButtonLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons
+                      name={isTTSHookPlaying ? "stop" : "play"}
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.previewButtonText}>
+                      {isTTSHookPlaying 
+                        ? t('voice.actions.stop', 'Stop')
+                        : t('voice.actions.preview', 'Preview')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[
+                  styles.selectButton,
+                  isSelected 
+                    ? { backgroundColor: theme.success, borderColor: theme.success }
+                    : canSelect
+                      ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                      : { backgroundColor: theme.text + '40', borderColor: theme.text + '40' },
+                  (selectLoading || (!canSelect && !isSelected)) && { opacity: 0.7 }
+                ]}
                 onPress={handleSelectVoice}
-                disabled={selectLoading}
+                disabled={selectLoading || (!canSelect && !isSelected)}
               >
                 {selectLoading ? (
-                  <ActivityIndicator size="small" color={theme.primary} />
+                  <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text 
-                    style={[
-                      styles.selectButtonText, 
-                      { color: theme.primary }, 
-                      isSelected && styles.selectButtonTextSelected
-                    ]}
-                  >
-                    {isSelected ? t('voice.actions.use', 'Use') : t('voice.actions.select', 'Select')}
-                  </Text>
+                  <>
+                    <Ionicons
+                      name={isSelected ? "checkmark-circle" : canSelect ? "radio-button-off" : "lock-closed"}
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.selectButtonText}>
+                      {isSelected 
+                        ? t('voice.actions.selected', 'Selected')
+                        : canSelect
+                          ? t('voice.actions.select', 'Select')
+                          : t('voice.actions.selection', 'Selection')}
+                    </Text>
+                  </>
                 )}
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 16,
     maxHeight: '90%',
+    minHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 16,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+    borderBottomColor: '#E0E0E0',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+  },
+  premiumBadge: {
+    marginLeft: 8,
   },
   closeButton: {
     padding: 4,
   },
   scrollView: {
-    maxHeight: '70%',
+    flex: 1,
+    padding: 20,
   },
   voiceProfileSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginBottom: 20,
   },
   voiceAvatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    marginRight: 16,
   },
   nameContainer: {
-    marginLeft: 16,
     flex: 1,
   },
   voiceName: {
@@ -389,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   providerBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     marginRight: 8,
@@ -400,106 +453,81 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   genderBadge: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 12,
+    backgroundColor: '#757575',
     width: 24,
     height: 24,
-    alignItems: 'center',
+    borderRadius: 12,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   detailsSection: {
-    marginTop: 16,
+    marginBottom: 20,
   },
   detailItem: {
-    marginBottom: 16,
-  },
-  detailLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  actionButtonsContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  playButton: {
-    borderRadius: 20,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  secondaryActionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  detailLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 16,
+    flex: 1,
+    textAlign: 'right',
+  },
+  upgradePrompt: {
+    marginBottom: 20,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    gap: 12,
   },
   favoriteButton: {
-    padding: 12,
-    borderRadius: 20,
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 50,
-    height: 50,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  previewButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  previewButtonText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
   selectButton: {
     flex: 1,
-    marginLeft: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectButtonSelected: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-  },
-  selectButtonText: {
-    fontWeight: 'bold',
-  },
-  selectButtonTextSelected: {
-    fontWeight: 'bold',
-  },
-  subscriptionErrorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    marginTop: 8,
-    marginBottom: 8,
+    justifyContent: 'center',
+    paddingVertical: 12,
     borderRadius: 8,
+    borderWidth: 1,
   },
-  subscriptionErrorText: {
+  selectButtonText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontSize: 12,
-    flex: 1,
-    marginHorizontal: 8,
-  },
-  upgradeButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  upgradeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
 });
 

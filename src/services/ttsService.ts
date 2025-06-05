@@ -35,6 +35,10 @@ export interface Voice {
   accent?: string;
   age?: string;
   use_case?: string;
+  // Premium access control fields
+  isPremium?: boolean;
+  accessLevel?: 'basic' | 'premium';
+  category?: string; // Add category field for voice-settings endpoint support
 }
 
 // Interface matching ElevenLabs API response
@@ -54,6 +58,40 @@ export interface ElevenLabsVoice {
   preview_url: string;
   is_added_by_user?: boolean;
   [key: string]: any;
+}
+
+// Interface for voice-settings endpoint response
+export interface VoiceSettingsResponse {
+  settings: {
+    id: string;
+    userId: string;
+    provider: string;
+    selectedVoice: string;
+    speed: number;
+    pitch: number;
+    enhancementEnabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    sttProvider: string;
+    autoSpeakEnabled: boolean;
+    language: string;
+  };
+  voices: Array<{
+    id: string;
+    name: string;
+    category: string;
+    labels: {
+      accent?: string;
+      descriptive?: string;
+      age?: string;
+      gender?: string;
+      language?: string;
+      use_case?: string;
+      languages?: string[];
+      primaryLanguage?: string;
+    };
+    provider: string;
+  }>;
 }
 
 export interface VoicePreviewRequest {
@@ -93,26 +131,81 @@ class TTSService {
       public_owner_id: voice.public_owner_id,
       accent: voice.accent,
       age: voice.age,
-      use_case: voice.use_case
+      use_case: voice.use_case,
+      category: voice.category,
+      // Mark as premium voice (from shared-voices endpoint)
+      isPremium: true,
+      accessLevel: 'premium'
+    };
+  }
+
+  private mapVoiceSettingsToAppVoice(voice: VoiceSettingsResponse['voices'][0]): Voice {
+    // Map from voice-settings response format to our app's Voice format
+    return {
+      id: voice.id,
+      name: voice.name,
+      provider: voice.provider as 'ELEVENLABS' | 'OPENAI',
+      gender: voice.labels.gender === 'male' ? 'male' : 
+              voice.labels.gender === 'female' ? 'female' : 'neutral',
+      language: voice.labels.primaryLanguage?.toUpperCase() || voice.labels.language?.toUpperCase() || 'EN',
+      languageCode: voice.labels.primaryLanguage || voice.labels.language,
+      description: voice.labels.descriptive || '',
+      accent: voice.labels.accent,
+      age: voice.labels.age,
+      use_case: voice.labels.use_case,
+      category: voice.category,
+      // Mark as basic voice (from voice-settings endpoint)
+      isPremium: false,
+      accessLevel: 'basic'
     };
   }
 
   public async getAvailableVoices(): Promise<Voice[]> {
     try {
-      console.log('Fetching available voices from API...');
-      // Add cache busting parameter to prevent browser/network caching
+      console.log('Fetching available voices from both endpoints...');
       const cacheBuster = new Date().getTime();
-      const response = await apiService.get<{ voices: ElevenLabsVoice[], has_more: boolean }>(
-        `/api/shared-voices?_=${cacheBuster}`
-      );
       
-      if (!response || !response.voices) {
-        console.error('Unexpected response format:', response);
-        return [];
+      // Fetch from both endpoints in parallel
+      const [basicVoicesResponse, premiumVoicesResponse] = await Promise.allSettled([
+        // Basic voices from voice-settings endpoint
+        apiService.get<VoiceSettingsResponse>(`/api/voice-settings?_=${cacheBuster}`),
+        // Premium voices from shared-voices endpoint  
+        apiService.get<{ voices: ElevenLabsVoice[], has_more: boolean }>(`/api/shared-voices?_=${cacheBuster}`)
+      ]);
+
+      const allVoices: Voice[] = [];
+
+      // Process basic voices
+      if (basicVoicesResponse.status === 'fulfilled' && basicVoicesResponse.value?.voices) {
+        console.log(`Received ${basicVoicesResponse.value.voices.length} basic voices from voice-settings`);
+        const basicVoices = basicVoicesResponse.value.voices.map(voice => this.mapVoiceSettingsToAppVoice(voice));
+        allVoices.push(...basicVoices);
+      } else {
+        console.warn('Failed to fetch basic voices:', basicVoicesResponse);
       }
+
+      // Process premium voices
+      if (premiumVoicesResponse.status === 'fulfilled' && premiumVoicesResponse.value?.voices) {
+        console.log(`Received ${premiumVoicesResponse.value.voices.length} premium voices from shared-voices`);
+        const premiumVoices = premiumVoicesResponse.value.voices.map(voice => this.mapElevenLabsVoiceToAppVoice(voice));
+        allVoices.push(...premiumVoices);
+      } else {
+        console.warn('Failed to fetch premium voices:', premiumVoicesResponse);
+      }
+
+      // Remove duplicates based on voice ID (prioritize premium version if both exist)
+      const uniqueVoices = new Map<string, Voice>();
+      allVoices.forEach(voice => {
+        const existing = uniqueVoices.get(voice.id);
+        if (!existing || (voice.isPremium && !existing.isPremium)) {
+          uniqueVoices.set(voice.id, voice);
+        }
+      });
+
+      const finalVoices = Array.from(uniqueVoices.values());
+      console.log(`Total unique voices: ${finalVoices.length} (${finalVoices.filter(v => v.isPremium).length} premium, ${finalVoices.filter(v => !v.isPremium).length} basic)`);
       
-      console.log(`Received ${response.voices.length} voices from API`);
-      return response.voices.map(voice => this.mapElevenLabsVoiceToAppVoice(voice));
+      return finalVoices;
     } catch (error) {
       console.error('Error fetching available voices:', error);
       throw error;

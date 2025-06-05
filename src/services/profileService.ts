@@ -30,6 +30,35 @@ class ProfileService {
       throw error;
     }
   }
+
+  // NEW: Helper method to extract subscription tier for quick access
+  public async getSubscriptionTier(): Promise<string | undefined> {
+    try {
+      const profile = await this.getProfile();
+      return profile.subscription?.tier;
+    } catch (error) {
+      console.error('Error fetching subscription tier:', error);
+      return undefined;
+    }
+  }
+
+  // NEW: Helper method to extract plan info from existing profile data
+  public extractPlanInfo(profileData: UserProfile | null): {
+    tier: string | undefined;
+    hasSubscription: boolean;
+    isPremium: boolean;
+  } {
+    if (!profileData) {
+      return { tier: undefined, hasSubscription: false, isPremium: false };
+    }
+
+    const tier = profileData.subscription?.tier;
+    const hasSubscription = !!profileData.subscription;
+    // Check for premium tiers: INTENSIVE and DAILY_COMPANION (handle both API variations)
+    const isPremium = tier === 'INTENSIVE' || tier === 'DAILY_COMPANION';
+
+    return { tier, hasSubscription, isPremium };
+  }
 }
 
 export const profileService = ProfileService.getInstance(); 

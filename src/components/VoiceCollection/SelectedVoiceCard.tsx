@@ -10,7 +10,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Voice } from '../../services/ttsService';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTranslation } from 'react-i18next';
+import { PremiumBadge, UpgradePrompt } from '../UI';
 
 interface SelectedVoiceCardProps {
   voice: Voice | null;
@@ -25,6 +27,7 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { previewVoice, stopSpeaking } = useTextToSpeech();
+  const { canPreviewVoice, getVoiceAccess } = useVoiceSettings();
   const [isPlaying, setIsPlaying] = useState(false);
 
   if (!voice) {
@@ -46,12 +49,22 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
   }
 
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(voice.name)}&background=4A6FEA&color=fff`;
+  
+  // Get voice access information
+  const voiceAccess = getVoiceAccess(voice.id);
+  const canPreview = canPreviewVoice(voice.id);
+  const isPremiumVoice = voice.isPremium || voice.accessLevel === 'premium';
 
   const handlePlayPreview = async () => {
     try {
       if (isPlaying) {
         stopSpeaking();
         setIsPlaying(false);
+        return;
+      }
+
+      if (!canPreview) {
+        // Don't attempt to preview if user doesn't have access
         return;
       }
 
@@ -73,14 +86,21 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
   return (
     <View style={[styles.container, { backgroundColor: theme.card }]}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          {t('voice.settings.currentVoice', 'Current Voice')}
-        </Text>
+        <View style={styles.headerContent}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
+            {t('voice.settings.currentVoice', 'Current Voice')}
+          </Text>
+          {isPremiumVoice && (
+            <PremiumBadge size="small" style={styles.premiumBadge} />
+          )}
+        </View>
       </View>
       <View style={styles.content}>
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         <View style={styles.voiceInfo}>
-          <Text style={[styles.voiceName, { color: theme.text }]}>{voice.name}</Text>
+          <View style={styles.voiceNameContainer}>
+            <Text style={[styles.voiceName, { color: theme.text }]}>{voice.name}</Text>
+          </View>
           <View style={styles.voiceDetails}>
             <View style={[styles.providerBadge, { backgroundColor: theme.primary }]}>
               <Text style={styles.providerText}>{voice.provider}</Text>
@@ -91,11 +111,27 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
           </View>
         </View>
       </View>
+      
+      {/* Show upgrade prompt if voice requires premium but user doesn't have access */}
+      {voiceAccess?.requiresUpgrade && (
+        <UpgradePrompt
+          variant="inline"
+          size="small"
+          title={t('upgrade.premiumVoiceTitle', 'Premium Voice')}
+          message={t('upgrade.premiumVoiceMessage', 'This voice requires a premium plan for full access.')}
+          style={styles.upgradePrompt}
+        />
+      )}
+      
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.playButton, { backgroundColor: theme.primary }, isPlaying && { opacity: 0.7 }]}
+          style={[
+            styles.playButton, 
+            { backgroundColor: canPreview ? theme.primary : theme.text + '40' },
+            (isPlaying || !canPreview) && { opacity: 0.7 }
+          ]}
           onPress={handlePlayPreview}
-          disabled={isPlaying}
+          disabled={isPlaying || !canPreview}
         >
           <Ionicons
             name={isPlaying ? "stop" : "play"}
@@ -105,7 +141,9 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
           <Text style={styles.buttonText}>
             {isPlaying 
               ? t('voice.actions.stopping', 'Stopping...')
-              : t('voice.actions.preview', 'Preview')}
+              : canPreview 
+                ? t('voice.actions.preview', 'Preview')
+                : t('voice.actions.previewLocked', 'Preview Locked')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -138,9 +176,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  premiumBadge: {
+    marginLeft: 8,
   },
   content: {
     flexDirection: 'row',
@@ -154,6 +200,10 @@ const styles = StyleSheet.create({
   voiceInfo: {
     flex: 1,
     marginLeft: 12,
+  },
+  voiceNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   voiceName: {
     fontSize: 16,
@@ -177,6 +227,9 @@ const styles = StyleSheet.create({
   voiceLanguage: {
     fontSize: 14,
   },
+  upgradePrompt: {
+    marginTop: 12,
+  },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -199,17 +252,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    borderWidth: 2,
+    borderWidth: 1,
   },
   changeButtonText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '500',
   },
   noVoiceText: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
 });
 

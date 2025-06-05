@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,11 @@ import {
   ScrollView,
   TextInput,
   Platform,
+  Image,
+  Linking,
+  Modal,
+  SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
@@ -21,6 +26,10 @@ import { VoiceSettings } from '../../services/voiceSettingsService';
 import { Audio } from 'expo-av';
 import { apiService } from '../../services/apiService';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '../../components/UI/ToastProvider';
+import { SelectedVoiceCard, VoiceDetailModal } from '../../components/VoiceCollection';
+import { ScreenHeader } from '../../components/UI/ScreenHeader';
+import { PremiumBadge, UpgradePrompt } from '../../components/UI';
 
 const VoiceSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
@@ -35,7 +44,10 @@ const VoiceSettingsScreen: React.FC = () => {
     toggleFavoriteVoice,
     refreshSettings,
     profileData,
-    fetchProfileData
+    fetchProfileData,
+    canPreviewVoice,
+    canSelectVoice,
+    getVoiceAccess
   } = useVoiceSettings();
   
   const { 
@@ -213,72 +225,109 @@ const VoiceSettingsScreen: React.FC = () => {
     }
   };
 
+  const isVoiceLoading = (voiceId: string) => {
+    return (isSpeaking || isPreviewLoading) && userSettings?.voiceSettings?.voiceId === voiceId;
+  };
+
   const renderVoiceItem = ({ item }: { item: Voice }) => {
-    // Check if the voice is selected using both the local userSettings and profileData
-    const isSelectedFromSettings = userSettings?.voiceSettings?.voiceId === item.id;
-    const isSelectedFromProfile = profileData?.voiceSettings?.selectedVoice?.id === item.id;
-    const isSelected = isSelectedFromSettings || isSelectedFromProfile;
-    
-    // Only use API favorites (from userSettings.favorites.voices), not the item.isFavorite property
     const isFavorite = userSettings?.favorites?.voices?.includes(item.id);
-    const isPreviewing = isPreviewLoading && (isSelected);
+    const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
+    const isLoading = isVoiceLoading(item.id);
     
-    // Get voice name from profile if possible (for more accurate display)
-    let voiceName = item.name;
-    if (profileData?.favoriteVoices) {
-      const profileVoice = profileData.favoriteVoices.find(
-        (voice: any) => voice.voiceId === item.id
-      );
-      if (profileVoice && profileVoice.name) {
-        voiceName = profileVoice.name;
-      }
-    }
-    
+    // Voice access control
+    const canPreview = canPreviewVoice(item.id);
+    const canSelect = canSelectVoice(item.id);
+    const voiceAccess = getVoiceAccess(item.id);
+    const isPremiumVoice = item.isPremium || item.accessLevel === 'premium';
+
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4A6FEA&color=fff`;
+
     return (
-      <TouchableOpacity
+      <TouchableOpacity 
         style={[
           styles.voiceItem,
-          isSelected && { backgroundColor: theme.background + '30' },
+          isSelected && styles.selectedVoiceItem,
+          // Add disabled styling for inaccessible voices
+          !canSelect && !isSelected && styles.voiceItemDisabled
         ]}
-        onPress={() => handleVoiceSelect(item)}
+        onPress={() => {
+          if (canSelect || isSelected) {
+            handleVoiceSelect(item);
+          }
+        }}
+        disabled={!canSelect && !isSelected}
       >
+        <Image 
+          source={{ uri: avatarUrl }} 
+          style={[
+            styles.voiceAvatar,
+            // Dim avatar for inaccessible voices
+            !canSelect && !isSelected && styles.avatarDisabled
+          ]} 
+        />
         <View style={styles.voiceInfo}>
-          <Text style={[styles.voiceName, { color: theme.text }]}>
-            {voiceName}
-          </Text>
-          <Text style={[styles.voiceDetails, { color: theme.text + '80' }]}>
-            {item.provider} • {item.language || 'English'}
-          </Text>
-        </View>
-        
-        <View style={styles.voiceActions}>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => handleToggleFavorite(item)}
-          >
-            <Ionicons
-              name={isFavorite ? "heart" : "heart-outline"}
-              size={24}
-              color={isFavorite ? "#FF3B30" : theme.text + '80'}
-            />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={() => handlePreviewVoice(item)}
-            disabled={isPreviewing}
-          >
-            {isPreviewing ? (
-              <ActivityIndicator size="small" color={theme.primary} />
-            ) : (
-              <Ionicons
-                name="play-circle-outline"
-                size={26}
-                color={theme.primary}
+          <View style={styles.voiceNameContainer}>
+            <Text style={[
+              styles.voiceName,
+              isSelected && styles.selectedVoiceName,
+              // Dim text for inaccessible voices
+              !canSelect && !isSelected && styles.textDisabled
+            ]}>
+              {item.name}
+            </Text>
+            {isPremiumVoice && (
+              <PremiumBadge 
+                size="small" 
+                style={styles.premiumBadge}
+                iconOnly={true}
               />
             )}
-          </TouchableOpacity>
+            {isSelected && (
+              <Ionicons name="checkmark-circle" size={16} color={theme.primary} style={styles.checkIcon} />
+            )}
+          </View>
+          <Text style={[
+            styles.voiceProvider,
+            !canSelect && !isSelected && styles.textDisabled
+          ]}>
+            {item.provider} • {item.language || 'English'}
+          </Text>
+          
+          {/* Show upgrade prompt for premium voices that require upgrade */}
+          {voiceAccess?.requiresUpgrade && (
+            <UpgradePrompt
+              variant="inline"
+              size="small"
+              title={t('upgrade.premiumRequired', 'Premium Required')}
+              message={t('upgrade.upgradeForVoice', 'Upgrade to access this premium voice.')}
+              style={styles.upgradePromptInline}
+            />
+          )}
         </View>
+        <TouchableOpacity
+          style={[
+            styles.playButton,
+            // Style play button based on access
+            !canPreview && styles.playButtonDisabled
+          ]}
+          onPress={(e) => {
+            e.stopPropagation();
+            if (canPreview) {
+              handlePreviewVoice(item);
+            }
+          }}
+          disabled={isLoading || !canPreview}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Ionicons 
+              name={canPreview ? "play" : "lock-closed"} 
+              size={16} 
+              color="#FFFFFF" 
+            />
+          )}
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -414,7 +463,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginVertical: 16,
+    marginVertical: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -424,7 +473,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   settingItem: {
@@ -471,48 +520,94 @@ const styles = StyleSheet.create({
   voiceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     marginBottom: 8,
+    backgroundColor: theme.card,
+  },
+  voiceItemDisabled: {
+    opacity: 0.6,
+    backgroundColor: theme.background + '40',
   },
   voiceInfo: {
     flex: 1,
   },
+  voiceNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   voiceName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontWeight: '500',
+    color: theme.text,
   },
-  voiceDetails: {
-    fontSize: 14,
+  selectedVoiceItem: {
+    backgroundColor: theme.primary + '20',
+    borderColor: theme.primary,
+    borderWidth: 2,
   },
-  voiceActions: {
+  textDisabled: {
+    opacity: 0.5,
+  },
+  voiceAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 16,
+  },
+  avatarDisabled: {
+    opacity: 0.5,
+  },
+  voiceNameContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
-  favoriteButton: {
-    padding: 8,
-    marginLeft: 4,
+  premiumBadge: {
+    marginLeft: 8,
+  },
+  checkIcon: {
+    marginLeft: 8,
+  },
+  voiceProvider: {
+    fontSize: 14,
+    color: theme.text + '80',
+    marginTop: 2,
+  },
+  upgradePromptInline: {
+    marginTop: 4,
   },
   playButton: {
-    padding: 8,
-    marginLeft: 4,
+    backgroundColor: theme.primary,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonDisabled: {
+    backgroundColor: theme.text + '40',
+    opacity: 0.5,
   },
   separator: {
     height: 1,
     backgroundColor: 'transparent',
   },
   loadingContainer: {
-    padding: 20,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
+    color: theme.text,
+    marginTop: 16,
   },
   emptyText: {
+    fontSize: 16,
+    color: theme.text + '80',
     textAlign: 'center',
-    padding: 20,
-    fontSize: 14,
+    marginTop: 16,
   },
   errorText: {
     fontSize: 16,
@@ -528,6 +623,10 @@ const styles = StyleSheet.create({
   retryText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  selectedVoiceName: {
+    fontWeight: 'bold',
+    color: theme.primary,
   },
 });
 

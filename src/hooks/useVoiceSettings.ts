@@ -3,6 +3,7 @@ import { voiceSettingsService, VoiceSettings, UserSettings, FavoriteVoice } from
 import { Voice } from '../services/ttsService';
 import { ttsService } from '../services/ttsService';
 import { apiService } from '../services/apiService';
+import { voiceAccessService, VoiceAccessResult } from '../services/voiceAccessService';
 
 export interface UseVoiceSettingsResult {
   userSettings: UserSettings | null;
@@ -47,6 +48,15 @@ export interface UseVoiceSettingsResult {
     page?: number;
     page_size?: number;
   }) => Promise<{ voices: Voice[], hasMore: boolean }>;
+  // Voice access control methods
+  canPreviewVoice: (voiceId: string) => boolean;
+  canSelectVoice: (voiceId: string) => boolean;
+  canFavoriteVoice: (voiceId: string) => boolean;
+  getUserPlan: () => string | undefined;
+  getVoiceAccess: (voiceId: string) => VoiceAccessResult | null;
+  getAccessibleVoices: () => Voice[];
+  getPremiumVoices: () => Voice[];
+  getBasicVoices: () => Voice[];
 }
 
 export const useVoiceSettings = (): UseVoiceSettingsResult => {
@@ -302,6 +312,60 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     }
   }, []);
 
+  // Voice access control methods
+  const getUserPlan = useCallback((): string | undefined => {
+    return profileData?.subscription?.tier;
+  }, [profileData]);
+
+  const findVoiceById = useCallback((voiceId: string): Voice | undefined => {
+    return availableVoices.find(voice => voice.id === voiceId);
+  }, [availableVoices]);
+
+  const canPreviewVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return false;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canPreviewVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const canSelectVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return false;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canSelectVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const canFavoriteVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return true; // Allow favoriting unknown voices
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canFavoriteVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const getVoiceAccess = useCallback((voiceId: string): VoiceAccessResult | null => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return null;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.getVoiceAccess(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const getAccessibleVoices = useCallback((): Voice[] => {
+    const userPlan = getUserPlan();
+    return voiceAccessService.filterAccessibleVoices(availableVoices, userPlan);
+  }, [availableVoices, getUserPlan]);
+
+  const getPremiumVoices = useCallback((): Voice[] => {
+    return availableVoices.filter(voice => voice.isPremium || voice.accessLevel === 'premium');
+  }, [availableVoices]);
+
+  const getBasicVoices = useCallback((): Voice[] => {
+    return availableVoices.filter(voice => !voice.isPremium && voice.accessLevel !== 'premium');
+  }, [availableVoices]);
+
   useEffect(() => {
     fetchUserSettings();
     fetchAvailableVoices();
@@ -325,6 +389,15 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     previewVoice,
     setPreferredLanguage,
     fetchProfileData,
-    searchVoices
+    searchVoices,
+    // Voice access control methods
+    canPreviewVoice,
+    canSelectVoice,
+    canFavoriteVoice,
+    getUserPlan,
+    getVoiceAccess,
+    getAccessibleVoices,
+    getPremiumVoices,
+    getBasicVoices
   };
 }; 

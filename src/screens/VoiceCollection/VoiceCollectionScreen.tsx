@@ -26,6 +26,8 @@ import VoiceDetailModal from '../../components/VoiceCollection/VoiceDetailModal'
 import SelectedVoiceCard from '../../components/VoiceCollection/SelectedVoiceCard';
 import { useToast } from '../../components/UI/ToastProvider';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
+import PremiumBadge from '../../components/UI/PremiumBadge';
+import UpgradePrompt from '../../components/UI/UpgradePrompt';
 
 // Hooks and Services
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
@@ -73,10 +75,11 @@ const VoiceCollectionScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
-  // Tab state (using simple toggle instead of TabView)
-  const [showFavorites, setShowFavorites] = useState(false);
+  // Tab state - now supporting three tabs
+  type TabType = 'default' | 'all' | 'favorites';
+  const [activeTab, setActiveTab] = useState<TabType>('default');
   
-  // Filter states - keep these as they're used by the advanced filter
+  // Filter states - only used for "All Voices" tab
   const [selectedProvider, setSelectedProvider] = useState('all');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [selectedGender, setSelectedGender] = useState('all');
@@ -86,25 +89,28 @@ const VoiceCollectionScreen: React.FC = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<FilterParams>({});
   
-  // Pagination states
+  // Pagination states - only for "All Voices" tab
   const [page, setPage] = useState(0);
   const [hasMoreResults, setHasMoreResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Voice[]>([]);
 
   // Voice hooks
-  const { 
-    userSettings, 
-    availableVoices, 
-    loadingVoices, 
-    error, 
-    toggleFavoriteVoice,
-    refreshSettings,
-    updateVoiceSettings,
+  const {
+    userSettings,
+    availableVoices,
     favoriteVoices,
+    loadingVoices,
+    refreshSettings,
     searchVoices,
+    toggleFavoriteVoice,
     profileData,
-    fetchProfileData
+    fetchProfileData,
+    updateVoiceSettings,
+    // Voice access control methods
+    canPreviewVoice,
+    canSelectVoice,
+    getVoiceAccess
   } = useVoiceSettings();
   
   const { speak, isLoading: ttsLoading, isPlaying: ttsPlaying, stopSpeaking, previewVoice } = useTextToSpeech();
@@ -122,6 +128,19 @@ const VoiceCollectionScreen: React.FC = () => {
   // Track voices in loading/playing state - this will stay true from click until sound finishes
   const [loadingVoiceIds, setLoadingVoiceIds] = useState<Set<string>>(new Set());
   
+  // Separate state for each tab's voices
+  const [defaultVoices, setDefaultVoices] = useState<Voice[]>([]);
+  const [allVoices, setAllVoices] = useState<Voice[]>([]);
+  const [favoriteVoicesList, setFavoriteVoicesList] = useState<Voice[]>([]);
+  
+  // Modal state for voice details
+  const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  const { showToast } = useToast();
+
+  const styles = makeStyles(theme);
+
   // Helper functions to manage loading states
   const addVoiceToLoading = useCallback((voiceId: string) => {
     console.log('Adding voice to loading state:', voiceId);
@@ -141,14 +160,6 @@ const VoiceCollectionScreen: React.FC = () => {
     });
   }, []);
 
-  // Modal state for voice details
-  const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-
-  const { showToast } = useToast();
-
-  const styles = makeStyles(theme);
-
   // At the start of your component, add a useEffect to fetch profile data if needed
   useEffect(() => {
     // If we don't have profile data yet, fetch it
@@ -157,94 +168,90 @@ const VoiceCollectionScreen: React.FC = () => {
     }
   }, [profileData, fetchProfileData]);
 
+  // Add state to track when we're intentionally clearing search
+  const [isIntentionallyClearingSearch, setIsIntentionallyClearingSearch] = useState(false);
+
   // Combine available voices with favorites that might not be in the main list
   useEffect(() => {
     const processVoices = async () => {
-      // If we have search results, use those instead and return early
-      if (searchResults.length > 0 && !showFavorites) {
-        console.log('Using search results:', searchResults.length);
-        
-        // Find the selected voice ID
-        const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
-                               profileData?.voiceSettings?.selectedVoice?.id;
-                               
-        if (selectedVoiceId) {
-          // Check if the selected voice is in the search results
-          const selectedIndex = searchResults.findIndex(voice => voice.id === selectedVoiceId);
-          
-          if (selectedIndex > 0) {
-            // If found and not already at position 0, move it to the beginning
-            const reorderedResults = [...searchResults];
-            const selectedVoice = reorderedResults.splice(selectedIndex, 1)[0];
-            reorderedResults.unshift(selectedVoice);
-            setCombinedVoices(reorderedResults);
-            return;
-          }
-        }
-        
-        // If no selected voice or already first, use results as is
-        setCombinedVoices(searchResults);
+      // If we're intentionally clearing search results, skip processing
+      if (isIntentionallyClearingSearch) {
+        console.log('🚫 Intentionally clearing search - skipping voice processing');
         return;
       }
       
-      // Create a copy of the available voices
-      let voices = [...availableVoices];
-      
-      // If we have favorites data from the API
-      if (userSettings?.favorites?.voices?.length && favoriteVoices?.length) {
-        console.log(`Processing ${favoriteVoices.length} favorites from API`);
-        
-        // Check if any favorite is missing from available voices
-        for (const favorite of favoriteVoices) {
-          const exists = voices.some(voice => voice.id === favorite.voiceId);
+      // Handle each tab separately
+      switch (activeTab) {
+        case 'default':
+          // Default tab: Only basic voices from voice-settings - NEVER affected by filters
+          const basicVoices = availableVoices.filter(voice => !voice.isPremium && voice.accessLevel !== 'premium');
+          console.log(`📋 Default tab: Using ${basicVoices.length} basic voices from voice-settings`);
+          setCombinedVoices(basicVoices);
+          break;
           
-          if (!exists) {
-            console.log(`Creating Voice object for missing favorite: ${favorite.voiceId} - ${favorite.voiceName}`);
-            
-            // Create a Voice object from the favorite data
-            const favoriteVoice: Voice = {
-              id: favorite.voiceId,
-              name: favorite.voiceName,
-              provider: favorite.voiceProvider === 'ELEVEN_LABS' ? 'ELEVENLABS' : favorite.voiceProvider as any,
-              language: 'English', // Default if not provided
-              previewUrl: favorite.previewUrl,
-              // Use any additional data from labels if available
-              gender: favorite.labels?.gender === 'male' ? 'male' : 
-                     favorite.labels?.gender === 'female' ? 'female' : 'neutral'
-            };
-            
-            // Add to the voices array
-            voices.push(favoriteVoice);
+        case 'all':
+          // All voices tab: Use search results if available, otherwise show all available voices
+          if (searchResults.length > 0) {
+            console.log('🔍 All tab: Using search results:', searchResults.length);
+            setCombinedVoices(searchResults);
+          } else {
+            // Show all available voices when no search is active
+            console.log(`📋 All tab: Using ${availableVoices.length} available voices`);
+            setCombinedVoices(availableVoices);
           }
-        }
+          break;
+          
+        case 'favorites':
+          // Favorites tab: Only user's favorite voices - NEVER affected by filters
+          const favoriteIds = userSettings?.favorites?.voices || [];
+          const userFavoriteVoices = availableVoices.filter(voice => favoriteIds.includes(voice.id));
+          
+          // Add any missing favorites from the favoriteVoices data
+          if (favoriteVoices?.length) {
+            for (const favorite of favoriteVoices) {
+              const exists = userFavoriteVoices.some(voice => voice.id === favorite.voiceId);
+              
+              if (!exists) {
+                const favoriteVoice: Voice = {
+                  id: favorite.voiceId,
+                  name: favorite.voiceName,
+                  provider: favorite.voiceProvider === 'ELEVEN_LABS' ? 'ELEVENLABS' : favorite.voiceProvider as any,
+                  language: 'English',
+                  previewUrl: favorite.previewUrl,
+                  gender: favorite.labels?.gender === 'male' ? 'male' : 
+                         favorite.labels?.gender === 'female' ? 'female' : 'neutral'
+                };
+                
+                userFavoriteVoices.push(favoriteVoice);
+              }
+            }
+          }
+          
+          console.log(`❤️ Favorites tab: Using ${userFavoriteVoices.length} favorite voices`);
+          setCombinedVoices(userFavoriteVoices);
+          break;
       }
-      
-      // Find the selected voice ID
-      const selectedVoiceId = userSettings?.voiceSettings?.voiceId || 
-                             profileData?.voiceSettings?.selectedVoice?.id;
-                             
-      if (selectedVoiceId) {
-        // Check if the selected voice is in the array
-        const selectedIndex = voices.findIndex(voice => voice.id === selectedVoiceId);
-        
-        if (selectedIndex > 0) {
-          // If found and not already at position 0, move it to the beginning
-          const selectedVoice = voices.splice(selectedIndex, 1)[0];
-          voices.unshift(selectedVoice);
-        }
-      }
-      
-      // Update the combined voices
-      setCombinedVoices(voices);
     };
     
     processVoices();
-  }, [availableVoices, userSettings?.favorites?.voices, favoriteVoices, searchResults, showFavorites, userSettings?.voiceSettings?.voiceId, profileData?.voiceSettings?.selectedVoice?.id]);
+  }, [availableVoices, searchResults, activeTab, userSettings?.voiceSettings?.voiceId, 
+      profileData?.voiceSettings?.selectedVoice?.id, isIntentionallyClearingSearch, 
+      userSettings?.favorites?.voices, favoriteVoices]);
 
   // Generic search handler that uses the current filter states
-  const handleSearch = async () => {
-    if (showFavorites) {
+  const handleSearch = useCallback(async () => {
+    console.log('🔍 handleSearch called with current filter states:', {
+      activeTab,
+      advancedFilters,
+      selectedProvider,
+      selectedGender,
+      selectedLanguage,
+      searchQuery
+    });
+    
+    if (activeTab === 'favorites') {
       // In favorites tab, no need to search - just refresh
+      console.log('📝 In favorites tab, skipping search');
       return;
     }
     
@@ -285,7 +292,7 @@ const VoiceCollectionScreen: React.FC = () => {
       // Add a cache buster to prevent caching
       params._ = new Date().getTime();
       
-      console.log('Searching with params:', params);
+      console.log('🚀 Searching with params:', params);
       
       // Execute search with service
       const result = await searchVoices(params);
@@ -301,24 +308,24 @@ const VoiceCollectionScreen: React.FC = () => {
       setHasMoreResults(result.hasMore || false);
       
       // Log the results for debugging
-      console.log(`Search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
+      console.log(`✅ Search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
       
       // If search returned no results, make sure we show the no results message
       if (!uniqueVoices.length) {
-        console.log('No voices found for search criteria');
+        console.log('⚠️ No voices found for search criteria');
       }
     } catch (error) {
-      console.error('Error searching voices:', error);
+      console.error('❌ Error searching voices:', error);
       Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
     } finally {
       // Always reset search state
       setIsSearching(false);
     }
-  };
+  }, [activeTab, advancedFilters, selectedProvider, selectedGender, selectedLanguage, searchQuery, searchVoices, t]);
 
   // Load more results when reaching the end of the list
   const handleLoadMore = useCallback(() => {
-    if (hasMoreResults && !isSearching && !showFavorites && searchResults.length > 0) {
+    if (hasMoreResults && !isSearching && activeTab !== 'favorites' && searchResults.length > 0) {
       // Increment page
       const nextPage = page + 1;
       setPage(nextPage);
@@ -326,11 +333,11 @@ const VoiceCollectionScreen: React.FC = () => {
       // Execute search with the next page
       handleLoadMoreSearch(nextPage);
     }
-  }, [hasMoreResults, isSearching, showFavorites, searchResults.length, page]);
+  }, [hasMoreResults, isSearching, activeTab, searchResults.length, page]);
   
   // Search handler specifically for loading more results
   const handleLoadMoreSearch = async (currentPage: number) => {
-    if (showFavorites) return;
+    if (activeTab === 'favorites') return;
     
     // Set search state
     setIsSearching(true);
@@ -423,15 +430,15 @@ const VoiceCollectionScreen: React.FC = () => {
 
   // Clear search results when switching to favorites tab
   useEffect(() => {
-    if (showFavorites) {
+    if (activeTab === 'favorites') {
       setSearchResults([]);
     }
-  }, [showFavorites]);
+  }, [activeTab]);
 
   // Filter voices based on selected criteria - only used for favorites tab
   const getFilteredVoices = useCallback(() => {
     // When on favorites tab, only return voices that are in user favorites
-    if (showFavorites) {
+    if (activeTab === 'favorites') {
       // Get favorite voice IDs from userSettings
       const favoriteIds = userSettings?.favorites?.voices || [];
       
@@ -441,27 +448,172 @@ const VoiceCollectionScreen: React.FC = () => {
     
     // Otherwise return full list (for when no search is active)
     return combinedVoices;
-  }, [combinedVoices, userSettings?.favorites?.voices, showFavorites]);
+  }, [combinedVoices, userSettings?.favorites?.voices, activeTab]);
+
+  // Clear a specific filter
+  const handleClearFilter = useCallback((key: keyof FilterParams) => {
+    console.log(`🎯 Clearing filter: ${key}`);
+    console.log('Current filter states before clear:', {
+      advancedFilters,
+      selectedProvider,
+      selectedGender,
+      selectedLanguage,
+      searchQuery
+    });
+    
+    // Set flag to prevent unwanted searches during state updates
+    setIsIntentionallyClearingSearch(true);
+    
+    // Create a new filters object without the specified key
+    const updatedFilters = { ...advancedFilters };
+    delete updatedFilters[key];
+    
+    // Reset the corresponding state based on the key
+    switch (key) {
+      case 'provider':
+        setSelectedProvider('all');
+        break;
+      case 'gender':
+        setSelectedGender('all');
+        break;
+      case 'language':
+        setSelectedLanguage('all');
+        break;
+      case 'search':
+        setSearchQuery('');
+        break;
+    }
+    
+    // Update advanced filters
+    setAdvancedFilters(updatedFilters);
+    
+    // Check if any filters remain active
+    const hasActiveFilters = Object.keys(updatedFilters).length > 0;
+    
+    console.log('Filter states after clear:', {
+      updatedFilters,
+      hasActiveFilters,
+      selectedProvider: key === 'provider' ? 'all' : selectedProvider,
+      selectedGender: key === 'gender' ? 'all' : selectedGender,
+      selectedLanguage: key === 'language' ? 'all' : selectedLanguage,
+      searchQuery: key === 'search' ? '' : searchQuery
+    });
+    
+    if (!hasActiveFilters) {
+      // No filters left, clear search results and return to basic voices
+      console.log('✅ No filters left, clearing search results and returning to basic voices');
+      setSearchResults([]);
+      setPage(0);
+      setHasMoreResults(false);
+      setIsSearching(false);
+      
+      // Reset all filter states to ensure clean state
+      setSelectedProvider('all');
+      setSelectedGender('all');
+      setSelectedLanguage('all');
+      setSearchQuery('');
+      setAdvancedFilters({});
+      
+      // Reset the flag after a brief delay to allow the useEffect to skip processing
+      setTimeout(() => {
+        setIsIntentionallyClearingSearch(false);
+      }, 100);
+    } else {
+      // Still have filters, perform search with updated filters
+      console.log('🔄 Still have filters, performing search with updated filters');
+      
+      // Create a clean params object with only the remaining filters
+      const params: any = {
+        _: new Date().getTime() // Add cache buster
+      };
+      
+      // Only add filters that are actually active
+      Object.keys(updatedFilters).forEach(filterKey => {
+        if (updatedFilters[filterKey as keyof FilterParams] !== undefined) {
+          params[filterKey] = updatedFilters[filterKey as keyof FilterParams];
+        }
+      });
+      
+      console.log('🔍 Searching with cleaned params:', params);
+      
+      // Reset the intentionally clearing flag before the search
+      setIsIntentionallyClearingSearch(false);
+      
+      // Execute search with clean params
+      searchVoices(params)
+        .then(result => {
+          const uniqueVoices = ensureUniqueIds(result.voices || []);
+          setSearchResults(uniqueVoices);
+          setHasMoreResults(result.hasMore || false);
+          console.log(`✅ Search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
+        })
+        .catch(error => {
+          console.error('❌ Error in search:', error);
+          Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }
+  }, [advancedFilters, selectedProvider, selectedGender, selectedLanguage, searchQuery, searchVoices, ensureUniqueIds, t]);
+
+  // Clear all filters
+  const handleClearAllFilters = useCallback(() => {
+    console.log('🧹 Clearing all filters');
+    setAdvancedFilters({});
+    setSelectedProvider('all');
+    setSelectedGender('all');
+    setSelectedLanguage('all');
+    setSearchQuery('');
+    // Set flag to prevent useEffect from overriding our clear action
+    setIsIntentionallyClearingSearch(true);
+    // Instead of calling handleSearch(), directly clear search results
+    // This prevents race condition and lets the component fall back to basic voices
+    setSearchResults([]);
+    setPage(0);
+    setHasMoreResults(false);
+    setIsSearching(false);
+    
+    // Reset the flag after a brief delay
+    setTimeout(() => {
+      setIsIntentionallyClearingSearch(false);
+    }, 100);
+  }, []);
 
   // Handle refresh
   const onRefresh = useCallback(async () => {
+    console.log('🔄 onRefresh called:', {
+      activeTab,
+      searchResultsLength: searchResults.length,
+      refreshing,
+      isIntentionallyClearingSearch
+    });
+    
+    // Don't refresh if we're in the process of intentionally clearing search
+    if (isIntentionallyClearingSearch) {
+      console.log('🚫 Skipping refresh - intentionally clearing search');
+      return;
+    }
+    
     setRefreshing(true);
     try {
       // Always refresh settings to get latest favorites/voices
       await refreshSettings();
       
-      // If we're in search mode, refresh the search
-      if (!showFavorites && (searchQuery !== '' || Object.keys(advancedFilters).length > 0 || 
-          selectedProvider !== 'all' || selectedGender !== 'all' || selectedLanguage !== 'all')) {
+      // Only refresh search if we currently have search results active
+      // AND we're not in the process of clearing filters
+      if (activeTab !== 'favorites' && searchResults.length > 0 && !isIntentionallyClearingSearch) {
+        console.log('🔄 Refreshing active search results');
         await handleSearch();
+      } else {
+        console.log('📝 No active search to refresh');
       }
     } catch (err) {
-      console.error("Failed to refresh:", err);
+      console.error("❌ Failed to refresh:", err);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshSettings, handleSearch, showFavorites, searchQuery, advancedFilters, 
-      selectedProvider, selectedGender, selectedLanguage]);
+  }, [refreshSettings, handleSearch, activeTab, searchResults.length, isIntentionallyClearingSearch]);
 
   // Stop any speech when unmounting
   useEffect(() => {
@@ -512,18 +664,6 @@ const VoiceCollectionScreen: React.FC = () => {
     console.log('Loading/Playing state changed:', { ttsLoading, ttsPlaying, playingVoiceId });
   }, [ttsLoading, ttsPlaying, playingVoiceId]);
   
-  // Refresh the filtered voices based on current settings
-  const refreshFilteredVoices = useCallback(() => {
-    // Get the filtered voices using the current filter settings
-    const filteredVoices = getFilteredVoices();
-    
-    // Update combined voices
-    setCombinedVoices(filteredVoices);
-    
-    // Reset loading states
-    setIsSearching(false);
-    setRefreshing(false);
-  }, [getFilteredVoices, setCombinedVoices, setIsSearching, setRefreshing]);
 
   const playVoiceSample = async (voice: Voice) => {
     const currentVoiceId = voice.id;
@@ -740,7 +880,7 @@ const VoiceCollectionScreen: React.FC = () => {
         </Text>
       </View>
     );
-  }, [theme, t]);
+  }, [theme]);
 
   // Enhance the renderVoiceItem function to better highlight selected voice
   const renderVoiceItem = ({ item }: { item: Voice }) => {
@@ -756,6 +896,12 @@ const VoiceCollectionScreen: React.FC = () => {
     const isItemActuallyPlayingViaTTS = ttsPlaying && playingVoiceId === item.id;
 
     const isFavoriteLoading = favoriteOperation?.voiceId === item.id && favoriteOperation.loading;
+    
+    // Voice access control
+    const canPreview = canPreviewVoice(item.id);
+    const canSelect = canSelectVoice(item.id);
+    const voiceAccess = getVoiceAccess(item.id);
+    const isPremiumVoice = item.isPremium || item.accessLevel === 'premium';
     
     // Try to get enhanced name from profile data
     let enhancedVoiceName = item.name;
@@ -790,7 +936,9 @@ const VoiceCollectionScreen: React.FC = () => {
             borderColor: theme.primary,
             borderWidth: 2,
             backgroundColor: theme.primary + '10',
-          }
+          },
+          // Add disabled styling for inaccessible voices
+          !canSelect && !isSelected && styles.voiceCardDisabled
         ]}
         onPress={() => {
           setSelectedVoice(item);
@@ -798,31 +946,70 @@ const VoiceCollectionScreen: React.FC = () => {
         }}
       >
         <View style={styles.voiceCardHeader}>
-          <Image source={{ uri: avatarUrl }} style={styles.voiceAvatar} />
+          <Image 
+            source={{ uri: avatarUrl }} 
+            style={[
+              styles.voiceAvatar,
+              // Dim avatar for inaccessible voices
+              !canSelect && !isSelected && styles.avatarDisabled
+            ]} 
+          />
           <View style={styles.voiceInfo}>
             <View style={styles.voiceNameContainer}>
-              <Text style={styles.voiceName}>{enhancedVoiceName}</Text>
+              <Text style={[
+                styles.voiceName,
+                // Dim text for inaccessible voices
+                !canSelect && !isSelected && styles.textDisabled
+              ]}>
+                {enhancedVoiceName}
+              </Text>
+              {isPremiumVoice && (
+                <PremiumBadge 
+                  size="small" 
+                  style={styles.premiumBadge}
+                  iconOnly={true}
+                />
+              )}
               {isSelected && (
                 <Ionicons name="checkmark-circle" size={16} color={theme.primary} style={styles.voiceNameIcon} />
               )}
             </View>
-            <Text style={styles.voiceProvider}>
+            <Text style={[
+              styles.voiceProvider,
+              !canSelect && !isSelected && styles.textDisabled
+            ]}>
               {getTranslatedUseCase(item.use_case)}
             </Text>
             <View style={styles.voiceLanguageContainer}>
-              <Text style={styles.voiceLanguage}>{item.language || 'English'}</Text>
+              <Text style={[
+                styles.voiceLanguage,
+                !canSelect && !isSelected && styles.textDisabled
+              ]}>
+                {item.language || 'English'}
+              </Text>
               {item.gender && (
-                <View style={styles.genderBadge}>
+                <View style={[
+                  styles.genderBadge,
+                  !canSelect && !isSelected && styles.badgeDisabled
+                ]}>
                   <Ionicons 
                     name={item.gender === 'male' ? 'male' : item.gender === 'female' ? 'female' : 'person'} 
                     size={12} 
-                    color="#FFFFFF" 
+                    color={!canSelect && !isSelected ? "#CCCCCC" : "#FFFFFF"} 
                   />
                 </View>
               )}
               {item.accent && (
-                <View style={styles.accentBadge}>
-                  <Text style={styles.accentText}>{getTranslatedAccent(item.accent)}</Text>
+                <View style={[
+                  styles.accentBadge,
+                  !canSelect && !isSelected && styles.badgeDisabled
+                ]}>
+                  <Text style={[
+                    styles.accentText,
+                    !canSelect && !isSelected && styles.textDisabled
+                  ]}>
+                    {getTranslatedAccent(item.accent)}
+                  </Text>
                 </View>
               )}
             </View>
@@ -848,12 +1035,18 @@ const VoiceCollectionScreen: React.FC = () => {
         </View>
         <View style={styles.voiceCardFooter}>
           <TouchableOpacity
-            style={styles.playButton}
+            style={[
+              styles.playButton,
+              // Style play button based on access
+              !canPreview && styles.playButtonDisabled
+            ]}
             onPress={(e) => {
               e.stopPropagation();
-              playVoiceSample(item);
+              if (canPreview) {
+                playVoiceSample(item);
+              }
             }}
-            disabled={loadingVoiceIds.size > 0 && !isItemActiveInUI}
+            disabled={!canPreview}
           >
             {isItemActiveInUI ? (
               isItemActuallyPlayingViaTTS ? (
@@ -862,15 +1055,21 @@ const VoiceCollectionScreen: React.FC = () => {
                 <ActivityIndicator size="small" color="#FFFFFF" />
               )
             ) : (
-              <Ionicons name="play" size={16} color="#FFFFFF" />
+              <Ionicons 
+                name={canPreview ? "play" : "lock-closed"} 
+                size={16} 
+                color="#FFFFFF" 
+              />
             )}
             <Text style={styles.playButtonText}>
               {isItemActiveInUI ? (
                 isItemActuallyPlayingViaTTS ? 
                   t('voice.actions.stop', 'Stop') : 
                   t('general.loading', 'Loading...')
-              ) : (
+              ) : canPreview ? (
                 t('voice.actions.preview', 'Preview')
+              ) : (
+                t('voice.actions.previewLocked', 'Locked')
               )}
             </Text>
           </TouchableOpacity>
@@ -880,58 +1079,61 @@ const VoiceCollectionScreen: React.FC = () => {
               isSelected && {
                 backgroundColor: theme.primary,
                 borderColor: theme.primary
-              }
+              },
+              // Style select button based on access
+              !canSelect && !isSelected && styles.selectButtonDisabled
             ]}
             onPress={(e) => {
               e.stopPropagation(); // Prevent triggering the parent touchable
-              handleSelectVoice(item);
+              if (canSelect || isSelected) {
+                handleSelectVoice(item);
+              }
             }}
+            disabled={!canSelect && !isSelected}
           >
             <Text style={[
               styles.selectButtonText, 
-              isSelected && { color: '#FFFFFF' }
+              isSelected && { color: '#FFFFFF' },
+              !canSelect && !isSelected && styles.textDisabled
             ]}>
-              {isSelected ? t('voice.actions.selected', 'Selected') : t('voice.actions.select', 'Select')}
+              {isSelected ? 
+                t('voice.actions.selected', 'Selected') : 
+                canSelect ? 
+                  t('voice.actions.select', 'Select') : 
+                  t('voice.actions.selectLocked', 'Locked')
+              }
             </Text>
           </TouchableOpacity>
         </View>
+        
+        {/* Show upgrade prompt for premium voices that require upgrade */}
+        {voiceAccess?.requiresUpgrade && (
+          <View style={styles.upgradeSection}>
+            <UpgradePrompt
+              variant="banner"
+              size="small"
+              title={t('upgrade.premiumRequired', 'Premium Required')}
+              message={t('upgrade.upgradeForVoice', 'Upgrade to access this premium voice.')}
+              ctaText={t('upgrade.upgrade', 'Upgrade')}
+              style={styles.upgradePrompt}
+            />
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
 
-  // Clear a specific filter
-  const handleClearFilter = useCallback((key: keyof FilterParams) => {
-    // Create a new filters object without the specified key
-    const updatedFilters = { ...advancedFilters };
-    delete updatedFilters[key];
-    
-    // Also reset the main filter states if applicable
-    if (key === 'provider') {
-      setSelectedProvider('all');
-    } else if (key === 'gender') {
-      setSelectedGender('all');
-    } else if (key === 'language') {
-      setSelectedLanguage('all');
-    } else if (key === 'search') {
-      setSearchQuery('');
-    }
-    
-    setAdvancedFilters(updatedFilters);
-    handleSearch();
-  }, [advancedFilters, setSelectedProvider, setSelectedGender, setSelectedLanguage, setSearchQuery, handleSearch]);
-
-  // Clear all filters
-  const handleClearAllFilters = useCallback(() => {
-    setAdvancedFilters({});
-    setSelectedProvider('all');
-    setSelectedGender('all');
-    setSelectedLanguage('all');
-    setSearchQuery('');
-    handleSearch();
-  }, [setAdvancedFilters, setSelectedProvider, setSelectedGender, setSelectedLanguage, setSearchQuery, handleSearch]);
-
   // Apply filters from the modal
   const handleApplyFilters = useCallback((filters: FilterParams) => {
+    console.log('🎯 Applying filters from modal:', filters);
+    console.log('Current filter states before apply:', {
+      advancedFilters,
+      selectedProvider,
+      selectedGender,
+      selectedLanguage,
+      searchQuery
+    });
+    
     // Update all filter states first
     setAdvancedFilters(filters);
     if (filters.provider) {
@@ -958,11 +1160,20 @@ const VoiceCollectionScreen: React.FC = () => {
       setSearchQuery('');
     }
     
+    // console.log('New filter states after apply:', {
+    //   advancedFilters: filters,
+    //   selectedProvider: filters.provider || 'all',
+    //   selectedGender: filters.gender || 'all',
+    //   selectedLanguage: filters.language || 'all',
+    //   searchQuery: filters.search || ''
+    // });
+    
     // Immediately perform search with the new filters
     // We'll trigger a direct search similar to the search button logic
     
     // Skip search if in favorites tab
-    if (showFavorites) {
+    if (activeTab === 'favorites') {
+      console.log('📝 In favorites tab, skipping search after filter apply');
       return;
     }
     
@@ -979,6 +1190,8 @@ const VoiceCollectionScreen: React.FC = () => {
     const params: any = {
       _: new Date().getTime() // Add cache buster
     };
+
+    
     
     // Use the filters that were just passed in
     Object.keys(filters).forEach(key => {
@@ -987,26 +1200,26 @@ const VoiceCollectionScreen: React.FC = () => {
       }
     });
     
-    console.log('Applying filters and searching with params:', params);
+    console.log('🚀 Applying filters and searching with params:', params);
     
     // Execute search immediately
+    console.log('🚀 Applying filters and searching with params:', params);
     searchVoices(params)
       .then(result => {
         const uniqueVoices = ensureUniqueIds(result.voices || []);
-        setCombinedVoices([]);
         setSearchResults(uniqueVoices);
         setHasMoreResults(result.hasMore || false);
-        console.log(`Applied filters and search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
+        console.log(`✅ Applied filters and search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
       })
       .catch(error => {
-        console.error('Error applying filters and searching:', error);
+        console.error('❌ Error applying filters and searching:', error);
         Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
       })
       .finally(() => {
         setIsSearching(false);
       });
 
-  }, [showFavorites, searchVoices, ensureUniqueIds, setIsSearching, setSearchResults, setCombinedVoices, setHasMoreResults, t]);
+  }, [activeTab, searchVoices, ensureUniqueIds, setIsSearching, setSearchResults, setCombinedVoices, setHasMoreResults, t, advancedFilters, selectedProvider, selectedGender, selectedLanguage, searchQuery]);
 
   // Render footer component
   const renderFooter = useCallback(() => {
@@ -1022,7 +1235,10 @@ const VoiceCollectionScreen: React.FC = () => {
 
   // Update the renderVoiceList function to sort the selected voice to appear first
   const renderVoiceList = useCallback(() => {
-    const displayVoices = showFavorites ? getFilteredVoices() : (searchResults.length > 0 ? searchResults : combinedVoices);
+    // Only use search results for the "All" tab, other tabs always use combinedVoices
+    const displayVoices = activeTab === 'all' && searchResults.length > 0 
+      ? searchResults 
+      : combinedVoices;
     
     // Get the selected voice ID
     const selectedVoiceId = userSettings?.voiceSettings?.voiceId;
@@ -1043,37 +1259,25 @@ const VoiceCollectionScreen: React.FC = () => {
       );
     }
 
-    if (error) {
-      return (
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={theme.error} />
-          <Text style={styles.errorText}>{t('general.error.title')}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-            <Text style={styles.retryButtonText}>{t('general.retry')}</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
     if (displayVoices.length === 0) {
       return (
         <View style={styles.emptyContainer}>
           <Ionicons name="mic-off-outline" size={48} color={theme.text} />
           <Text style={styles.emptyText}>
-            {showFavorites 
+            {activeTab === 'favorites' 
               ? t('voice.collection.noFavorites') 
               : isSearching 
                 ? t('voice.collection.searching')
-                : searchQuery || Object.keys(advancedFilters).length > 0 || selectedProvider !== 'all' || selectedGender !== 'all' || selectedLanguage !== 'all'
+                : activeTab === 'all' && (searchQuery || Object.keys(advancedFilters).length > 0 || selectedProvider !== 'all' || selectedGender !== 'all' || selectedLanguage !== 'all')
                   ? t('voice.collection.noSearchResults')
                   : t('voice.collection.noVoicesFound')}
           </Text>
-          {showFavorites && (
+          {activeTab === 'favorites' && (
             <Text style={styles.emptySubText}>
               {t('voice.collection.addFavoritesHint')}
             </Text>
           )}
-          {!showFavorites && (searchQuery !== '' || Object.keys(advancedFilters).length > 0) && (
+          {activeTab === 'all' && (searchQuery !== '' || Object.keys(advancedFilters).length > 0) && (
             <TouchableOpacity style={styles.retryButton} onPress={handleClearAllFilters}>
               <Text style={styles.retryButtonText}>
                 {t('voice.collection.clearSearch')}
@@ -1100,7 +1304,7 @@ const VoiceCollectionScreen: React.FC = () => {
         extraData={[
           searchResults.length,
           combinedVoices.length,
-          showFavorites,
+          activeTab,
           userSettings?.voiceSettings?.voiceId,
           ttsLoading,
           ttsPlaying,
@@ -1110,8 +1314,7 @@ const VoiceCollectionScreen: React.FC = () => {
       />
     );
   }, [
-    showFavorites,
-    getFilteredVoices,
+    activeTab,
     searchResults,
     combinedVoices,
     userSettings?.voiceSettings?.voiceId,
@@ -1119,7 +1322,6 @@ const VoiceCollectionScreen: React.FC = () => {
     refreshing,
     isSearching,
     theme,
-    t,
     renderVoiceItem,
     onRefresh,
     handleLoadMore,
@@ -1172,150 +1374,158 @@ const VoiceCollectionScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScreenHeader title={t('voice.collection.title')} />
 
-      <View style={styles.searchContainer}>
-        <TouchableOpacity
-          style={styles.fullSearchBtn}
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Ionicons name="search" size={20} color={theme.text + '80'} style={styles.searchIcon} />
-          <Text 
-            style={[
-              styles.searchInput, 
-              searchQuery ? styles.searchInputWithText : styles.searchInputPlaceholder
-            ]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {searchQuery || t('voice.collection.searchPlaceholder')}
-          </Text>
-          {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => {
-              setSearchQuery('');
-              handleClearFilter('search');
-            }} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+      {/* Only show search and filters on "All Voices" tab */}
+      {activeTab === 'all' && (
+        <>
+          <View style={styles.searchContainer}>
+            <TouchableOpacity
+              style={styles.fullSearchBtn}
+              onPress={() => setShowFilterModal(true)}
+            >
+              <Ionicons name="search" size={20} color={theme.text + '80'} style={styles.searchIcon} />
+              <Text 
+                style={[
+                  styles.searchInput, 
+                  searchQuery ? styles.searchInputWithText : styles.searchInputPlaceholder
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {searchQuery || t('voice.collection.searchPlaceholder')}
+              </Text>
+              {searchQuery !== '' && (
+                <TouchableOpacity onPress={() => {
+                  setSearchQuery('');
+                  handleClearFilter('search');
+                }} style={styles.clearButton}>
+                  <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+                </TouchableOpacity>
+              )}
+              {!searchQuery && (
+                <Ionicons name="options-outline" size={18} color={theme.text + '60'} style={styles.filterIcon} />
+              )}
             </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.filterButton} 
+              onPress={() => setShowFilterModal(true)}
+            >
+              <Ionicons name="options-outline" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.searchButton} 
+              onPress={() => {
+                // Reset pagination
+                setPage(0);
+                // Clear existing search results
+                setSearchResults([]);
+                // Show loading state
+                setIsSearching(true);
+                
+                // Build a clean params object from current filters
+                const cleanParams: any = {
+                  _: new Date().getTime() // Add cache buster
+                };
+                
+                // Include advanced filters
+                Object.keys(advancedFilters).forEach(key => {
+                  cleanParams[key] = advancedFilters[key as keyof FilterParams];
+                });
+                
+                // Add basic filters if they're not in advanced filters
+                if (!cleanParams.provider && selectedProvider !== 'all') {
+                  cleanParams.provider = selectedProvider;
+                }
+                
+                if (!cleanParams.language && selectedLanguage !== 'all') {
+                  cleanParams.language = selectedLanguage;
+                }
+                
+                if (!cleanParams.gender && selectedGender !== 'all') {
+                  cleanParams.gender = selectedGender;
+                }
+                
+                // Always include search query if it exists
+                if (searchQuery && !cleanParams.search) {
+                  cleanParams.search = searchQuery;
+                }
+                
+                console.log('Search button pressed with params:', cleanParams);
+                
+                // Execute search directly
+                searchVoices(cleanParams)
+                  .then(result => {
+                    // Process results as normal
+                    const uniqueVoices = ensureUniqueIds(result.voices || []);
+                    setSearchResults(uniqueVoices);
+                    setHasMoreResults(result.hasMore || false);
+                    console.log(`Search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
+                  })
+                  .catch(error => {
+                    console.error('Error in search button press:', error);
+                    Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
+                  })
+                  .finally(() => {
+                    setIsSearching(false);
+                  });
+              }}
+              disabled={isSearching}
+            >
+              {isSearching ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="search" size={20} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          {/* Selected Filters Card - only show on All Voices tab */}
+          {(searchQuery !== '' || Object.keys(advancedFilters).length > 0 || 
+            selectedProvider !== 'all' || selectedGender !== 'all' || selectedLanguage !== 'all') && (
+            <SelectedFiltersCard
+              filters={{
+                ...(searchQuery !== '' && { search: searchQuery }),
+                ...(selectedProvider !== 'all' && { provider: selectedProvider }),
+                ...(selectedGender !== 'all' && { gender: selectedGender }),
+                ...(selectedLanguage !== 'all' && { language: selectedLanguage }),
+                ...advancedFilters
+              }}
+              onClearFilter={handleClearFilter}
+              onClearAll={handleClearAllFilters}
+              theme={theme}
+            />
           )}
-          {!searchQuery && (
-            <Ionicons name="options-outline" size={18} color={theme.text + '60'} style={styles.filterIcon} />
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.filterButton} 
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Ionicons name="options-outline" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.searchButton} 
-          onPress={() => {
-            // Reset pagination
-            setPage(0);
-            // Clear existing search results
-            setSearchResults([]);
-            // Show loading state
-            setIsSearching(true);
-            
-            // Build a clean params object from current filters
-            const cleanParams: any = {
-              _: new Date().getTime() // Add cache buster
-            };
-            
-            // Include advanced filters
-            Object.keys(advancedFilters).forEach(key => {
-              cleanParams[key] = advancedFilters[key as keyof FilterParams];
-            });
-            
-            // Add basic filters if they're not in advanced filters
-            if (!cleanParams.provider && selectedProvider !== 'all') {
-              cleanParams.provider = selectedProvider;
-            }
-            
-            if (!cleanParams.language && selectedLanguage !== 'all') {
-              cleanParams.language = selectedLanguage;
-            }
-            
-            if (!cleanParams.gender && selectedGender !== 'all') {
-              cleanParams.gender = selectedGender;
-            }
-            
-            // Always include search query if it exists
-            if (searchQuery && !cleanParams.search) {
-              cleanParams.search = searchQuery;
-            }
-            
-            console.log('Search button pressed with params:', cleanParams);
-            
-            // If we're in favorites tab, switch to all voices
-            if (showFavorites) {
-              setShowFavorites(false);
-            }
-            
-            // Execute search directly
-            searchVoices(cleanParams)
-              .then(result => {
-                // Process results as normal
-                const uniqueVoices = ensureUniqueIds(result.voices || []);
-                setSearchResults(uniqueVoices);
-                setHasMoreResults(result.hasMore || false);
-                console.log(`Search returned ${uniqueVoices.length} voices, hasMore: ${result.hasMore}`);
-              })
-              .catch(error => {
-                console.error('Error in search button press:', error);
-                Alert.alert(t('general.error.title'), t('voice.collection.searchError'));
-              })
-              .finally(() => {
-                setIsSearching(false);
-              });
-          }}
-          disabled={isSearching}
-        >
-          {isSearching ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Ionicons name="search" size={20} color="#FFFFFF" />
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      {/* Selected Filters Card */}
-      {(searchQuery !== '' || Object.keys(advancedFilters).length > 0 || 
-        selectedProvider !== 'all' || selectedGender !== 'all' || selectedLanguage !== 'all') && (
-        <SelectedFiltersCard
-          filters={{
-            ...(searchQuery !== '' && { search: searchQuery }),
-            ...(selectedProvider !== 'all' && { provider: selectedProvider }),
-            ...(selectedGender !== 'all' && { gender: selectedGender }),
-            ...(selectedLanguage !== 'all' && { language: selectedLanguage }),
-            ...advancedFilters
-          }}
-          onClearFilter={handleClearFilter}
-          onClearAll={handleClearAllFilters}
-          theme={theme}
-        />
+        </>
       )}
       
-      {/* Simple tab buttons instead of TabView */}
+      {/* Simple tab buttons for three tabs */}
       <View style={styles.tabBar}>
         <TouchableOpacity 
-          style={[styles.tabButton, !showFavorites && styles.activeTab]} 
-          onPress={() => setShowFavorites(false)}
+          style={[styles.tabButton, activeTab === 'default' && styles.activeTab]} 
+          onPress={() => setActiveTab('default')}
         >
-          <Text style={[styles.tabLabel, !showFavorites && styles.activeTabLabel]}>
+          <Text style={[styles.tabLabel, activeTab === 'default' && styles.activeTabLabel]}>
+            {t('voice.collection.default', 'Default')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tabButton, activeTab === 'all' && styles.activeTab]} 
+          onPress={() => setActiveTab('all')}
+        >
+          <Text style={[styles.tabLabel, activeTab === 'all' && styles.activeTabLabel]}>
             {t('voice.collection.all')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.tabButton, showFavorites && styles.activeTab]} 
+          style={[styles.tabButton, activeTab === 'favorites' && styles.activeTab]} 
           onPress={() => {
-            setShowFavorites(true);
+            setActiveTab('favorites');
             // Clear search results when switching to favorites
             if (searchResults.length > 0) {
               setSearchResults([]);
             }
           }}
         >
-          <Text style={[styles.tabLabel, showFavorites && styles.activeTabLabel]}>
+          <Text style={[styles.tabLabel, activeTab === 'favorites' && styles.activeTabLabel]}>
             {t('voice.collection.favorites')}
           </Text>
         </TouchableOpacity>
@@ -1504,16 +1714,15 @@ const makeStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
   },
   favoriteButton: {
-    padding: 8,
+    padding: 10,
   },
   voiceCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 3,
   },
   playButton: {
     flexDirection: 'row',
@@ -1763,6 +1972,54 @@ const makeStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+  },
+  avatarDisabled: {
+    opacity: 0.5,
+  },
+  textDisabled: {
+    opacity: 0.5,
+  },
+  badgeDisabled: {
+    opacity: 0.5,
+  },
+  playButtonDisabled: {
+    opacity: 0.5,
+  },
+  selectButtonDisabled: {
+    opacity: 0.5,
+  },
+  upgradeSection: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  upgradePrompt: {
+    backgroundColor: 'transparent',
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: theme.primary,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    zIndex: 1,
+  },
+  voiceCardDisabled: {
+    opacity: 0.6,
+    backgroundColor: theme.background + '40',
   },
 });
 

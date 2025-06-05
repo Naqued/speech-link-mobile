@@ -37,7 +37,8 @@ import {
   CategoryUIModel,
   SentenceUIModel,
   mapToUICategoryModel,
-  mapToUISentenceModel
+  mapToUISentenceModel,
+  deduplicateSentences
 } from '../../models/AAC';
 
 // Components
@@ -253,17 +254,23 @@ const AACBoardScreen: React.FC = () => {
         
         console.log('[AACBoard] fetchAllSentences - received sentences:', apiSentences.length);
         
+        // Deduplicate sentences to avoid showing both default and user's custom versions
+        const deduplicatedSentences = deduplicateSentences(apiSentences);
+        
+        console.log('[AACBoard] fetchAllSentences - after deduplication:', deduplicatedSentences.length, 
+          'removed:', apiSentences.length - deduplicatedSentences.length, 'duplicates');
+        
         // Check if we received Hindi-specific data
         if (currentLanguage === 'hi') {
-          const hasHindiSpecificSentences = apiSentences.some(sentence => 
+          const hasHindiSpecificSentences = deduplicatedSentences.some(sentence => 
             sentence.language === 'hi'
           );
           
-          if (!hasHindiSpecificSentences && apiSentences.length > 0) {
+          if (!hasHindiSpecificSentences && deduplicatedSentences.length > 0) {
             console.warn('[AACBoard] Received sentences but none are Hindi-specific. Likely using fallback data.');
             setLanguageFallbackUsed(true);
             setOriginalLanguage('hi');
-          } else if (apiSentences.length === 0) {
+          } else if (deduplicatedSentences.length === 0) {
             console.warn('[AACBoard] No sentences found for Hindi at all.');
             setLanguageFallbackUsed(true);
             setOriginalLanguage('hi');
@@ -271,7 +278,7 @@ const AACBoardScreen: React.FC = () => {
         }
         
         // Map to UI model
-        const uiSentences = apiSentences
+        const uiSentences = deduplicatedSentences
           .map(mapToUISentenceModel)
           .sort((a, b) => {
             // Sort by category and then by order/id
@@ -280,8 +287,8 @@ const AACBoardScreen: React.FC = () => {
             if (catA !== catB) return catA - catB;
             
             // For sentences in the same category, sort by their original order if available
-            const itemA = apiSentences.find(s => s.id === a.id);
-            const itemB = apiSentences.find(s => s.id === b.id);
+            const itemA = deduplicatedSentences.find(s => s.id === a.id);
+            const itemB = deduplicatedSentences.find(s => s.id === b.id);
             return (itemA?.order || 0) - (itemB?.order || 0);
           });
         
@@ -327,12 +334,18 @@ const AACBoardScreen: React.FC = () => {
         
         console.log('[AACBoard] fetchSentences - received sentences for category:', apiSentences.length);
         
+        // Deduplicate sentences to avoid showing both default and user's custom versions
+        const deduplicatedSentences = deduplicateSentences(apiSentences);
+        
+        console.log('[AACBoard] fetchSentences - after deduplication for category', selectedCategory + ':', 
+          deduplicatedSentences.length, 'removed:', apiSentences.length - deduplicatedSentences.length, 'duplicates');
+        
         // Map to UI model and sort by order
-        const uiSentences = apiSentences
+        const uiSentences = deduplicatedSentences
           .map(mapToUISentenceModel)
           .sort((a, b) => {
-            const itemA = apiSentences.find(s => s.id === a.id);
-            const itemB = apiSentences.find(s => s.id === b.id);
+            const itemA = deduplicatedSentences.find(s => s.id === a.id);
+            const itemB = deduplicatedSentences.find(s => s.id === b.id);
             return (itemA?.order || 0) - (itemB?.order || 0);
           });
         
@@ -440,7 +453,7 @@ const AACBoardScreen: React.FC = () => {
       }
       
       // Use TTS service to speak
-      await speak(text);
+      await speak(text, undefined, undefined, currentLanguage);
       
       // Increment usage count for the sentence if it has an ID
       if (phraseId) {
@@ -538,7 +551,7 @@ const AACBoardScreen: React.FC = () => {
         }
         
         // Speak the message directly
-        await speak(customMessage);
+        await speak(customMessage, undefined, undefined, currentLanguage);
         
         // Clear the input
         setCustomMessage('');

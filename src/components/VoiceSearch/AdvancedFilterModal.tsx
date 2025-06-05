@@ -366,7 +366,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
           )}
           
           {renderFilterSection(
-            t('voice.filters.descriptives', 'Voice Style'),
+            t('voice.filters.descriptives.all', 'Voice Style'),
             DESCRIPTIVES(t),
             selectedDescriptive,
             setSelectedDescriptive
