@@ -27,7 +27,12 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "permissions": ["INTERNET"]
+      "permissions": ["INTERNET"],
+      "manifest": {
+        "application": {
+          "android:supports16KbPages": true
+        }
+      }
     },
     "ios": {
       "bundleIdentifier": "com.naqued.speechlinkmobile",
