@@ -79,7 +79,7 @@ const MainTabs = () => {
       <Tab.Screen 
         name="AACBoard" 
         component={AACBoardScreen} 
-        options={{ title: t('aac.title'), headerShown: false }} 
+        options={{ title: t('aac.title') || 'AAC Board', headerShown: false }} 
       />
       <Tab.Screen 
         name="VoiceCollection" 

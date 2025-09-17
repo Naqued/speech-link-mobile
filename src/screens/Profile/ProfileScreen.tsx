@@ -149,7 +149,7 @@ const ProfileScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        <View style={styles.statsSection}>
+        {/* <View style={styles.statsSection}>
           <Text style={styles.statsSectionTitle}>Usage Statistics</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
@@ -169,7 +169,7 @@ const ProfileScreen: React.FC = () => {
               <Text style={styles.statLabel}>Total Usage</Text>
             </View>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );

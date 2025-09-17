@@ -28,6 +28,9 @@
     "android": {
       "package": "com.naqued.speechlinkmobile",
       "permissions": ["INTERNET"],
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "buildToolsVersion": "35.0.0",
       "manifest": {
         "application": {
           "android:supports16KbPages": true
