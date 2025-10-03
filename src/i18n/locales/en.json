@@ -297,6 +297,8 @@
     "title": "Settings",
     "theme": "Theme",
     "language": "Language",
+    "audio": "Audio",
+    "audioOutput": "Audio Output / Device Selection",
     "account": "Account",
     "about": "About",
     "privacy": "Privacy Policy",
@@ -322,6 +324,28 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "feedback": "Send Feedback"
+  },
+  "audioOutput": {
+    "title": "Audio Output",
+    "description": "Choose where audio should play. This is useful when using the app for in-person communication with Bluetooth devices connected.",
+    "modeChanged": "Audio Output Changed",
+    "modeChangedDescription": "Audio will now play through the selected output.",
+    "errorChangingMode": "Failed to change audio output mode. Please try again.",
+    "helpText": "Tip: In the AAC Board screen, tap the speaker icon to quickly toggle force speaker mode, or long-press to open these settings.",
+    "modes": {
+      "default": {
+        "label": "System Default",
+        "description": "Use system default audio routing (Bluetooth/headphones when connected)"
+      },
+      "force_speaker": {
+        "label": "Always Speaker",
+        "description": "Always play through phone speaker, even with Bluetooth/headphones connected"
+      },
+      "force_earpiece": {
+        "label": "Always Earpiece",
+        "description": "Always play through phone earpiece (for private listening)"
+      }
+    }
   },
   "profile": {
     "title": "Profile",
@@ -433,6 +457,36 @@
     "removeFromFavorites": "Remove from Favorites",
     "favoriteVoices": "Favorite Voices",
     "noVoicesFound": "No voices found matching your criteria."
+  },
+  "dictionary": {
+    "title": "Dictionary",
+    "searchPlaceholder": "Search words or pronunciations...",
+    "emptyTitle": "No Dictionary Entries",
+    "emptyDescription": "Add words and pronunciations to improve speech recognition",
+    "addFirst": "Add Your First Entry",
+    "addEntry": "Add Entry",
+    "editEntry": "Edit Entry",
+    "deleteEntry": "Delete Entry",
+    "word": "Word",
+    "pronunciation": "Pronunciation",
+    "wordPlaceholder": "Enter word...",
+    "pronunciationPlaceholder": "Enter pronunciation...",
+    "preview": "Preview",
+    "save": "Save",
+    "loading": "Loading dictionary...",
+    "wordRequired": "Word is required",
+    "pronunciationRequired": "Pronunciation is required",
+    "wordTooLong": "Word must be 50 characters or less",
+    "pronunciationTooLong": "Pronunciation must be 100 characters or less",
+    "invalidCharacters": "Word contains invalid characters",
+    "entryExists": "This word already exists in your dictionary",
+    "entryAdded": "Dictionary entry added successfully",
+    "entryUpdated": "Dictionary entry updated successfully",
+    "entryDeleted": "Dictionary entry deleted successfully",
+    "previewFailed": "Failed to preview pronunciation",
+    "loadFailed": "Failed to load dictionary entries",
+    "saveFailed": "Failed to save dictionary entry",
+    "deleteFailed": "Failed to delete dictionary entry"
   },
   "comingSoon": "Coming Soon",
   "comingSoonDescription": "We're working on something special. Be among the first to experience it.",

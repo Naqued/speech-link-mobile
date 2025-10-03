@@ -1,5 +1,5 @@
 import { apiService } from './apiService';
-import Sound from 'react-native-sound';
+import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { authService } from './authService';
 import { API_CONFIG } from '../config/api';
@@ -235,7 +235,7 @@ class TTSService {
     }
   }
 
-  public async generateSpeech(request: TTSRequest): Promise<Sound> {
+  public async generateSpeech(request: TTSRequest): Promise<Audio.Sound> {
     try {
       console.log('ttsService.generateSpeech starting with:', {
         textLength: request.text.length,
@@ -319,27 +319,23 @@ class TTSService {
         encoding: FileSystem.EncodingType.Base64
       });
 
-      console.log('File written successfully, creating Sound object...');
+      console.log('File written successfully, creating Sound object with Expo AV...');
 
-      // Play audio with sound
-      return new Promise((resolve, reject) => {
-        const sound = new Sound(fileUri, '', (error) => {
-          if (error) {
-            console.error('Error creating Sound object:', error);
-            reject(error);
-            return;
-          }
-          console.log('Sound object created successfully');
-          resolve(sound);
-        });
-      });
+      // Create and return Expo AV Sound object
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: fileUri },
+        { shouldPlay: false }
+      );
+      
+      console.log('Expo AV Sound object created successfully');
+      return sound;
     } catch (error) {
       console.error('Error in ttsService.generateSpeech:', error);
       throw error;
     }
   }
 
-  public async playTTS(text: string, voiceId: string, provider: 'ELEVENLABS' | 'OPENAI'): Promise<Sound> {
+  public async playTTS(text: string, voiceId: string, provider: 'ELEVENLABS' | 'OPENAI'): Promise<Audio.Sound> {
     const request: TTSRequest = {
       text,
       provider,

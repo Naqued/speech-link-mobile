@@ -11,16 +11,19 @@ import { ThemeContext } from '../contexts/ThemeContext';
 import HomeScreen from '../screens/Home/HomeScreen';
 import AACBoardScreen from '../screens/AACBoard/AACBoardScreen';
 import VoiceCollectionScreen from '../screens/VoiceCollection/VoiceCollectionScreen';
+import DictionaryScreen from '../screens/Dictionary/DictionaryScreen';
 import HistoryScreen from '../screens/History/HistoryScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import VoiceSettingsScreen from '../screens/VoiceSettings/VoiceSettingsScreen';
+import AudioOutputSettings from '../screens/Settings/AudioOutputSettings';
 
 // Types
 export type MainTabParamList = {
   Home: undefined;
   AACBoard: undefined;
   VoiceCollection: undefined;
+  Dictionary: undefined;
   History: undefined;
   Settings: undefined;
 };
@@ -29,6 +32,7 @@ export type MainStackParamList = {
   Main: undefined;
   Profile: undefined;
   VoiceSettings: undefined;
+  AudioOutputSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -50,6 +54,8 @@ const MainTabs = () => {
             iconName = focused ? 'grid' : 'grid-outline';
           } else if (route.name === 'VoiceCollection') {
             iconName = focused ? 'mic' : 'mic-outline';
+          } else if (route.name === 'Dictionary') {
+            iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'History') {
             iconName = focused ? 'time' : 'time-outline';
           } else if (route.name === 'Settings') {
@@ -86,6 +92,11 @@ const MainTabs = () => {
         component={VoiceCollectionScreen} 
         options={{ title: t('voice.collection.title'), headerShown: false }} 
       />
+      <Tab.Screen 
+        name="Dictionary" 
+        component={DictionaryScreen} 
+        options={{ title: t('dictionary.title') || 'Dictionary', headerShown: false }} 
+      />
       {/* <Tab.Screen 
         name="History" 
         component={HistoryScreen} 
@@ -110,6 +121,7 @@ export const MainNavigator = () => {
       <Stack.Screen name="Main" component={MainTabs} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="VoiceSettings" component={VoiceSettingsScreen} />
+      <Stack.Screen name="AudioOutputSettings" component={AudioOutputSettings} />
     </Stack.Navigator>
   );
 }; 

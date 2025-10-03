@@ -123,42 +123,31 @@ const SettingsScreen: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-          {LANGUAGE_OPTIONS.map((language) => (
-            <TouchableOpacity
-              key={language.id}
-              style={styles.languageOption}
-              onPress={() => handleChangeLanguage(language.id)}
-            >
-              <Text style={styles.languageText}>{t(`languages.${language.id}`)}</Text>
-              {i18n.language === language.id && (
-                <Ionicons name="checkmark" size={22} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-          ))}
+          {renderSettingItem(
+            'globe-outline',
+            t('settings.appLanguage'),
+            <Text style={styles.settingValueText}>{t(`languages.${i18n.language}`)}</Text>,
+            () => navigation.navigate('LanguageSettings' as never)
+          )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('voice.settings.title')}</Text>
-          {renderSettingItem(
-            'mic-outline',
-            t('voice.settings.manage'),
-            undefined,
-            () => navigation.navigate('VoiceSettings' as never)
-          )}
-          {renderSettingItem(
-            'speedometer-outline',
-            t('voice.settings.speed'),
-            <Text style={styles.settingValueText}>Normal</Text>
-          )}
-          {renderSettingItem(
-            'trending-up-outline',
-            t('voice.settings.pitch'),
-            <Text style={styles.settingValueText}>Medium</Text>
-          )}
+          <Text style={styles.sectionTitle}>{t('settings.audio')}</Text>
           {renderSettingItem(
             'volume-high-outline',
-            t('voice.settings.volume'),
-            <Text style={styles.settingValueText}>80%</Text>
+            t('settings.audioOutput'),
+            undefined,
+            () => navigation.navigate('AudioOutputSettings' as never)
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.integrations')}</Text>
+          {renderSettingItem(
+            'logo-discord',
+            'Discord',
+            undefined,
+            () => navigation.navigate('DiscordSettings' as never)
           )}
         </View>
 
@@ -175,7 +164,8 @@ const SettingsScreen: React.FC = () => {
             t('profile.subscription'),
             <View style={styles.premiumBadge}>
               <Text style={styles.premiumBadgeText}>Premium</Text>
-            </View>
+            </View>,
+            () => navigation.navigate('Profile' as never)
           )}
         </View>
 

@@ -298,6 +298,8 @@
     "title": "Paramètres",
     "theme": "Thème",
     "language": "Langue",
+    "audio": "Audio",
+    "audioOutput": "Sortie Audio / Sélection Appareil",
     "account": "Compte",
     "about": "À propos",
     "privacy": "Politique de Confidentialité",
@@ -323,6 +325,28 @@
     "privacyPolicy": "Politique de Confidentialité",
     "termsOfService": "Conditions d'Utilisation",
     "feedback": "Envoyer un Commentaire"
+  },
+  "audioOutput": {
+    "title": "Sortie Audio",
+    "description": "Choisissez où le son doit être diffusé. Ceci est utile lors de l'utilisation de l'application pour la communication en personne avec des appareils Bluetooth connectés.",
+    "modeChanged": "Sortie Audio Modifiée",
+    "modeChangedDescription": "L'audio sera désormais diffusé via la sortie sélectionnée.",
+    "errorChangingMode": "Échec de la modification du mode de sortie audio. Veuillez réessayer.",
+    "helpText": "Astuce : Dans l'écran du tableau CAA, appuyez sur l'icône de haut-parleur pour activer rapidement le mode haut-parleur forcé, ou appuyez longuement pour ouvrir ces paramètres.",
+    "modes": {
+      "default": {
+        "label": "Par Défaut Système",
+        "description": "Utiliser le routage audio par défaut du système (Bluetooth/écouteurs lorsqu'ils sont connectés)"
+      },
+      "force_speaker": {
+        "label": "Toujours Haut-Parleur",
+        "description": "Toujours diffuser via le haut-parleur du téléphone, même avec Bluetooth/écouteurs connectés"
+      },
+      "force_earpiece": {
+        "label": "Toujours Écouteur",
+        "description": "Toujours diffuser via l'écouteur du téléphone (pour une écoute privée)"
+      }
+    }
   },
   "profile": {
     "title": "Profil",
@@ -434,6 +458,36 @@
     "removeFromFavorites": "Retirer des Favoris",
     "favoriteVoices": "Voix Favorites",
     "noVoicesFound": "Aucune voix trouvée correspondant à vos critères."
+  },
+  "dictionary": {
+    "title": "Dictionnaire",
+    "searchPlaceholder": "Rechercher des mots ou prononciations...",
+    "emptyTitle": "Aucune Entrée de Dictionnaire",
+    "emptyDescription": "Ajoutez des mots et prononciations pour améliorer la reconnaissance vocale",
+    "addFirst": "Ajouter Votre Première Entrée",
+    "addEntry": "Ajouter une Entrée",
+    "editEntry": "Modifier l'Entrée",
+    "deleteEntry": "Supprimer l'Entrée",
+    "word": "Mot",
+    "pronunciation": "Prononciation",
+    "wordPlaceholder": "Entrez le mot...",
+    "pronunciationPlaceholder": "Entrez la prononciation...",
+    "preview": "Aperçu",
+    "save": "Enregistrer",
+    "loading": "Chargement du dictionnaire...",
+    "wordRequired": "Le mot est requis",
+    "pronunciationRequired": "La prononciation est requise",
+    "wordTooLong": "Le mot doit faire 50 caractères ou moins",
+    "pronunciationTooLong": "La prononciation doit faire 100 caractères ou moins",
+    "invalidCharacters": "Le mot contient des caractères invalides",
+    "entryExists": "Ce mot existe déjà dans votre dictionnaire",
+    "entryAdded": "Entrée de dictionnaire ajoutée avec succès",
+    "entryUpdated": "Entrée de dictionnaire mise à jour avec succès",
+    "entryDeleted": "Entrée de dictionnaire supprimée avec succès",
+    "previewFailed": "Échec de l'aperçu de la prononciation",
+    "loadFailed": "Échec du chargement des entrées du dictionnaire",
+    "saveFailed": "Échec de l'enregistrement de l'entrée du dictionnaire",
+    "deleteFailed": "Échec de la suppression de l'entrée du dictionnaire"
   },
   "comingSoon": "Bientôt Disponible",
   "comingSoonDescription": "Nous travaillons sur quelque chose de spécial. Soyez parmi les premiers à l'expérimenter.",

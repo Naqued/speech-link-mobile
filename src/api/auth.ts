@@ -19,6 +19,41 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
+export const registerUser = async (email: string, password: string, name: string) => {
+  try {
+    // Split name into first and last name
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || nameParts[0]; // Use first name as last name if only one name provided
+    
+    console.log('Registering user:', { email, firstName, lastName });
+    
+    const response = await apiClient.post('/api/auth/mobile-register', {
+      email,
+      password,
+      firstName,
+      lastName
+    });
+    
+    console.log('Registration response:', response.data);
+    
+    // The API returns { access_token, user }
+    return {
+      token: response.data.access_token,
+      user: response.data.user
+    };
+  } catch (error: any) {
+    console.error('User registration failed:', error);
+    
+    // Extract error message from response
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+    
+    throw error;
+  }
+};
+
 export const loginWithGoogle = async (accessToken: string) => {
   try {
     const response = await apiClient.post('/api/auth/mobile/google', { accessToken });

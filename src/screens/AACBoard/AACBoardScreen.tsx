@@ -37,6 +37,7 @@ import {
 // Components
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
+import { AudioOutputToggle } from '../../components/AudioOutputToggle';
 
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
@@ -688,6 +689,10 @@ const AACBoardScreen: React.FC = () => {
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('aac.title') || 'AAC Board'}</Text>
         <View style={styles.headerActions}>
+          <AudioOutputToggle 
+            size={24} 
+            color={theme.primary}
+          />
           <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
             <Ionicons name="folder-outline" size={24} color={theme.primary} />
           </TouchableOpacity>

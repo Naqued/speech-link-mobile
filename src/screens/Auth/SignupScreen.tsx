@@ -22,6 +22,9 @@ import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 
+// API
+import { registerUser } from '../../api/auth';
+
 // Types
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
 
@@ -58,14 +61,36 @@ const SignupScreen: React.FC = () => {
       return;
     }
 
+    // Validate password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      Alert.alert(
+        t('general.error'), 
+        'Password must contain at least 8 characters, including uppercase, lowercase, number and special character'
+      );
+      return;
+    }
+
     try {
       setIsLoading(true);
-      // For demonstration, we're using a mock token
-      // In a real app, you'd make an API call here
-      await signIn('mock-token');
-    } catch (error) {
-      Alert.alert(t('general.error'), 'Signup failed');
-      console.error(error);
+      console.log('Starting registration process...');
+      
+      // Call the registration API
+      const response = await registerUser(email, password, name);
+      
+      console.log('Registration successful, signing in...');
+      
+      // Sign in with the received token
+      await signIn(response.token);
+      
+      // Success - navigation will happen automatically via AuthContext
+      Alert.alert('Success', 'Account created successfully!');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      
+      // Show user-friendly error message
+      const errorMessage = error.message || 'Signup failed. Please try again.';
+      Alert.alert(t('general.error'), errorMessage);
     } finally {
       setIsLoading(false);
     }
