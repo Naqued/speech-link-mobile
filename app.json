@@ -27,9 +27,9 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
+      "versionCode": 4,
       "permissions": [
         "INTERNET",
-        "RECORD_AUDIO",
         "MODIFY_AUDIO_SETTINGS"
       ],
       "compileSdkVersion": 35,

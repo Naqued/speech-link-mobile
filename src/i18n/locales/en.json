@@ -23,6 +23,62 @@
     "passwordResetSent": "Password reset instructions have been sent to your email.",
     "signUpSuccess": "Account created successfully! Please sign in."
   },
+  "discord": {
+    "discordSettings": "Discord Settings",
+    "connection": "Connection",
+    "configuration": "Configuration",
+    "server": "Server",
+    "voiceChannel": "Voice Channel",
+    "selectServer": "Select a server",
+    "selectChannel": "Select a channel",
+    "selectServerFirst": "Please select a server first",
+    "notConnectedHelp": "Connect your Discord account to stream your voice to Discord voice channels",
+    "linkAccount": "Connect Discord Account",
+    "accountConnected": "Discord Account Connected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "inviteBot": "Invite Bot",
+    "about": "About",
+    "helpText": "Discord integration allows you to stream your synthesized speech directly to Discord voice channels. Connect your account, select a server and channel, and start speaking!",
+    "autoDisconnectNotice": "Discord will automatically disconnect when not in use to save resources.",
+    "authSuccess": "Authentication Successful",
+    "authSuccessMessage": "Your Discord account has been successfully connected",
+    "authFailed": "Authentication Failed",
+    "authFailedMessage": "Failed to connect to Discord. Please try again.",
+    "authError": "Failed to connect to Discord. Please try again.",
+    "connectionStatus": "Connection Status",
+    "connectionActive": "Connection Active",
+    "notConnected": "Bot is not connected to a voice channel",
+    "channelMembers": "Channel Members",
+    "noMembers": "No members in this channel",
+    "connectToSeeMembers": "Connect to a voice channel to see members",
+    "connectedTo": "Connected to",
+    "connectedSince": "Connected since",
+    "connectionDuration": "Connection duration",
+    "minutes": "minutes",
+    "selectServerAndChannel": "Please select a server and channel first",
+    "settingsSaved": "Discord settings saved",
+    "failedToSaveSettings": "Failed to save Discord settings",
+    "connecting": "Connecting...",
+    "connectToChannel": "Connect to channel",
+    "joinVoice": "Join Voice Channel",
+    "leaveVoice": "Leave Voice Channel",
+    "joinChannel": "Join {{channel}}",
+    "disconnectChannel": "Disconnect from channel",
+    "disconnecting": "Disconnecting...",
+    "test": "Test Connection",
+    "testing": "Testing...",
+    "account": "Discord Account",
+    "connected": "Connected",
+    "disconnectedFromChannel": "Disconnected from Discord voice channel",
+    "disconnectFailed": "Failed to disconnect from Discord voice channel",
+    "connectionError": "An error occurred while managing the Discord connection",
+    "noServersFound": "No Discord servers found",
+    "checkDiscordConnection": "Make sure your Discord account is properly connected",
+    "noChannelsFound": "No voice channels found in this server",
+    "createVoiceChannel": "Make sure this server has at least one voice channel",
+    "inviteUrlError": "Failed to open invite URL"
+  },
   "home": {
     "title": "Voice Enhancer",
     "tap_to_speak": "Tap to speak",
@@ -98,7 +154,16 @@
       "age": "Age",
       "category": "Category",
       "useCase": "Use Case",
-      "descriptives": "Voice Style",
+      "descriptives": {
+        "all": "All Descriptives",
+        "calm": "Calm",
+        "energetic": "Energetic",
+        "professional": "Professional",
+        "friendly": "Friendly",
+        "authoritative": "Authoritative",
+        "cheerful": "Cheerful",
+        "serious": "Serious"
+      },
       "applyWithCount": "Apply {{count}} Filters",
       "apply": "Apply Filters",
       "activeFilters": "Active Filters",
@@ -168,16 +233,6 @@
         "gaming": "Gaming",
         "narration": "Narration",
         "advertisement": "Advertisement"
-      },
-      "descriptives": {
-        "all": "All Descriptives",
-        "calm": "Calm",
-        "energetic": "Energetic",
-        "professional": "Professional",
-        "friendly": "Friendly",
-        "authoritative": "Authoritative",
-        "cheerful": "Cheerful",
-        "serious": "Serious"
       }
     },
     "metadata": {
@@ -238,12 +293,15 @@
       "description": "Description: "
     },
     "actions": {
-      "preview": "Listen",
+      "preview": "Preview",
       "stopPreview": "Stop",
       "select": "Select",
       "selected": "Selected",
       "stop": "Stop",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "success": "Success",
+      "voiceSelected": "{{name}} has been selected as your voice",
+      "errorSelectingVoice": "Failed to select voice. Please try again."
     },
     "characteristics": {
       "expressive": "Expressive and Dynamic",
@@ -260,12 +318,45 @@
       "deep": "Deep and Resonant",
       "authoritative": "Authoritative and Clear",
       "trustworthy": "Trustworthy and Professional"
+    },
+    "preview": {
+      "text-1": "Hello, nice to meet you! I use this voice to communicate. Could you please tell me where the nearest restaurant is? Thank you for your help.",
+      "text-2": "Hi there! I'd like to order a coffee, please. Medium size with a little sugar and almond milk. Also, those pastries look delicious. Which one would you recommend?",
+      "text-3": "Good morning! It's nice to see you again. I really enjoyed our conversation yesterday. Could we continue where we left off? I have some interesting thoughts to share.",
+      "text-4": "Hello! My name is Alex. I'm feeling a bit tired today. Would you mind if we take the elevator instead of the stairs? I appreciate your understanding."
     }
   },
   "languages": {
     "all": "All Languages",
     "en": "English",
-    "fr": "French"
+    "fr": "French",
+    "ja": "Japanese",
+    "zh": "Chinese",
+    "de": "German",
+    "hi": "Hindi",
+    "ko": "Korean",
+    "pt": "Portuguese",
+    "it": "Italian",
+    "es": "Spanish",
+    "id": "Indonesian",
+    "nl": "Dutch",
+    "tr": "Turkish",
+    "fil": "Filipino",
+    "pl": "Polish",
+    "sv": "Swedish",
+    "bg": "Bulgarian",
+    "ro": "Romanian",
+    "ar": "Arabic",
+    "cs": "Czech",
+    "el": "Greek",
+    "fi": "Finnish",
+    "hr": "Croatian",
+    "ms": "Malay",
+    "sk": "Slovak",
+    "da": "Danish",
+    "ta": "Tamil",
+    "uk": "Ukrainian",
+    "ru": "Russian"
   },
   "aac": {
     "title": "Quick Phrases",
@@ -276,7 +367,6 @@
       "questions": "Questions",
       "medical": "Medical",
       "activities": "Activities",
-      
       "cat_basic_needs_en": "Basic Needs",
       "cat_basic_needs_fr": "Basic Needs",
       "cat_social_interaction_en": "Social Interaction",
@@ -309,6 +399,7 @@
     "darkMode": "Dark Mode",
     "audioSettings": "Audio Settings",
     "voiceSettings": "Voice Settings",
+    "autoSpeakEnabled": "Auto-Speak",
     "appearance": "Appearance",
     "light": "Light",
     "dark": "Dark",
@@ -325,7 +416,10 @@
     "version": "Version",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "feedback": "Send Feedback"
+    "feedback": "Send Feedback",
+    "integrations": "Integrations",
+    "discordSettings": "Discord Settings",
+    "audioRouting": "Audio Routing"
   },
   "audioOutput": {
     "title": "Audio Output",
@@ -354,6 +448,7 @@
     "name": "Name",
     "email": "Email",
     "subscription": "Subscription",
+    "subscriptionExpiry": "Subscription Expiry",
     "edit": "Edit Profile",
     "save": "Save Profile",
     "changePassword": "Change Password",
@@ -400,7 +495,10 @@
     "create": "Create",
     "search": "Search",
     "loading": "Loading...",
-    "error": "Error",
+    "error": {
+      "required": "This field is required",
+      "maxLength": "Maximum {{max}} characters allowed"
+    },
     "success": "Success",
     "retry": "Retry",
     "back": "Back",
@@ -408,11 +506,7 @@
     "enable": "Enable",
     "disable": "Disable",
     "notSpecified": "Not specified",
-    "general": "General",
-    "error": {
-      "required": "This field is required",
-      "maxLength": "Maximum {{max}} characters allowed"
-    }
+    "general": "General"
   },
   "language": {
     "select": "Select Language",
@@ -436,6 +530,7 @@
     "speak": "Speak",
     "allPhrases": "All Phrases",
     "phraseText": "Phrase Text",
+    "noPhrases": "No phrases in this category",
     "enterPhraseText": "Enter your phrase here",
     "category": "Category",
     "selectedCategory": "Selected Category",
@@ -531,4 +626,4 @@
     "aacBoardDesc": "Quick access to commonly used phrases",
     "legal": "Legal"
   }
-} 
+}

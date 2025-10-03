@@ -63,7 +63,9 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       } else {
         // For new sentences, pre-select first category if available
         setText('');
-        setCategoryId(categories.length > 0 ? categories[0].id : '');
+        // Find the first category that's not "all"
+        const firstRealCategory = categories.find(c => c.id !== 'all');
+        setCategoryId(firstRealCategory ? firstRealCategory.id : '');
       }
       setErrors({});
     }
@@ -107,8 +109,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       
       let savedSentence: SampleSentence;
       
-      if (editSentence) {
-        // Update existing sentence
+      if (editSentence && editSentence.id) {
+        // Update existing sentence (only if it has a valid ID)
         savedSentence = await aacService.updateSentence(editSentence.id, backendModel);
       } else {
         // Create new sentence
@@ -139,6 +141,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   const getCategoryById = (id: string) => {
     return categories.find(c => c.id === id);
   };
+
+  const categoryName = getCategoryById(categoryId)?.name || '';
   
   return (
     <Modal
@@ -163,25 +167,6 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
             </View>
             
             <ScrollView style={styles.content}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>{t('aacBoard.phraseText')}</Text>
-                <TextInput
-                  style={[styles.input, errors.text ? styles.inputError : null]}
-                  value={text}
-                  onChangeText={setText}
-                  placeholder={t('aacBoard.enterPhraseText')}
-                  placeholderTextColor={theme.text + '60'}
-                  multiline
-                  maxLength={200}
-                />
-                {errors.text ? (
-                  <Text style={styles.errorText}>{errors.text}</Text>
-                ) : null}
-                <Text style={styles.charCounter}>
-                  {text.length}/200
-                </Text>
-              </View>
-              
               <View style={styles.formGroup}>
                 <Text style={styles.label}>{t('aacBoard.category')}</Text>
                 <ScrollView 
@@ -210,7 +195,7 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                           categoryId === category.id && styles.selectedCategoryChipText
                         ]}
                       >
-                        {category.isGlobal ? t(`aac.categories.${category.id}`) : category.name}
+                        {category.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -218,27 +203,46 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                 {errors.categoryId ? (
                   <Text style={styles.errorText}>{errors.categoryId}</Text>
                 ) : null}
-              </View>
-              
-              {categoryId && (
-                <View style={styles.selectedCategory}>
-                  <Text style={styles.selectedCategoryLabel}>
-                    {t('aacBoard.selectedCategory')}:
-                  </Text>
-                  <View 
-                    style={[
-                      styles.selectedCategoryBadge,
-                      { backgroundColor: getCategoryById(categoryId)?.color || theme.primary }
-                    ]}
-                  >
-                    <Text style={styles.selectedCategoryText}>
-                      {getCategoryById(categoryId)?.isGlobal 
-                        ? t(`aac.categories.${categoryId}`) 
-                        : getCategoryById(categoryId)?.name || ''}
+                
+                {categoryId && (
+                  <View style={styles.selectedCategory}>
+                    <Text style={styles.selectedCategoryLabel}>
+                      {t('aacBoard.selectedCategory')}:
                     </Text>
+                    <View 
+                      style={[
+                        styles.selectedCategoryBadge,
+                        { backgroundColor: getCategoryById(categoryId)?.color || theme.primary }
+                      ]}
+                    >
+                      <Text style={styles.selectedCategoryText}>
+                        {getCategoryById(categoryId)?.isGlobal 
+                          ? categoryName 
+                          : categoryName}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              )}
+                )}
+              </View>
+
+              <View style={[styles.formGroup, styles.phraseFormGroup]}>
+                <Text style={styles.label}>{t('aacBoard.phraseText')}</Text>
+                <TextInput
+                  style={[styles.input, errors.text ? styles.inputError : null]}
+                  value={text}
+                  onChangeText={setText}
+                  placeholder={t('aacBoard.enterPhraseText')}
+                  placeholderTextColor={theme.text + '60'}
+                  multiline
+                  maxLength={200}
+                />
+                {errors.text ? (
+                  <Text style={styles.errorText}>{errors.text}</Text>
+                ) : null}
+                <Text style={styles.charCounter}>
+                  {text.length}/200
+                </Text>
+              </View>
             </ScrollView>
             
             <View style={styles.footer}>
@@ -366,7 +370,10 @@ const makeStyles = (theme: any) => StyleSheet.create({
   selectedCategory: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
   },
   selectedCategoryLabel: {
     fontSize: 14,
@@ -422,6 +429,9 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
+  },
+  phraseFormGroup: {
+    marginTop: 20,
   },
 });
 

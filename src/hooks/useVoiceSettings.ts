@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { voiceSettingsService, VoiceSettings, UserSettings, FavoriteVoice } from '../services/voiceSettingsService';
 import { Voice } from '../services/ttsService';
 import { ttsService } from '../services/ttsService';
+import { apiService } from '../services/apiService';
 
 export interface UseVoiceSettingsResult {
   userSettings: UserSettings | null;
@@ -11,6 +12,7 @@ export interface UseVoiceSettingsResult {
   loadingVoices: boolean;
   favoriteVoices: FavoriteVoice[];
   loadingFavorites: boolean;
+  profileData: any;
   updateVoiceSettings: (settings: VoiceSettings) => Promise<void>;
   toggleFavoriteVoice: (
     voiceId: string, 
@@ -28,8 +30,9 @@ export interface UseVoiceSettingsResult {
   ) => Promise<void>;
   refreshSettings: () => Promise<void>;
   getFavoriteVoices: () => Promise<FavoriteVoice[]>;
-  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => Promise<string>;
+  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string, language?: string) => Promise<string>;
   setPreferredLanguage: (language: string) => Promise<void>;
+  fetchProfileData: () => Promise<any>;
   searchVoices: (params: {
     search?: string;
     provider?: string;
@@ -54,6 +57,7 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
   const [loadingVoices, setLoadingVoices] = useState<boolean>(true);
   const [favoriteVoices, setFavoriteVoices] = useState<FavoriteVoice[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState<boolean>(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
   const fetchUserSettings = useCallback(async () => {
     try {
@@ -93,6 +97,19 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
       return [];
     } finally {
       setLoadingFavorites(false);
+    }
+  }, []);
+
+  const fetchProfileData = useCallback(async () => {
+    try {
+      console.log('Fetching profile data...');
+      const response = await apiService.get('/api/auth/mobile-profile');
+      console.log('Profile data fetched successfully');
+      setProfileData(response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+      return null;
     }
   }, []);
 
@@ -195,9 +212,21 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     }
   }, [userSettings, getFavoriteVoices]);
 
-  const previewVoice = useCallback(async (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => {
+  const previewVoice = useCallback(async (
+    voiceId: string, 
+    provider: 'ELEVENLABS' | 'OPENAI', 
+    publicOwnerId?: string, 
+    voiceName?: string,
+    language?: string
+  ) => {
     try {
-      return await voiceSettingsService.getVoicePreview(voiceId, provider, publicOwnerId, voiceName);
+      return await voiceSettingsService.getVoicePreview(
+        voiceId, 
+        provider, 
+        publicOwnerId, 
+        voiceName,
+        language
+      );
     } catch (err) {
       console.error('Error previewing voice:', err);
       throw err;
@@ -226,12 +255,30 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
 
   const refreshSettings = useCallback(async () => {
     voiceSettingsService.clearCache();
-    await Promise.all([
-      fetchUserSettings(),
-      fetchAvailableVoices(),
-      getFavoriteVoices()
-    ]);
-  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices]);
+    setIsLoading(true);
+    try {
+      const [settingsResponse, profileResponse, voicesResponse] = await Promise.all([
+        voiceSettingsService.getUserSettings(),
+        apiService.get('/api/auth/mobile-profile'),
+        ttsService.getAvailableVoices(),
+        voiceSettingsService.getFavoriteVoices().then(favorites => {
+          setFavoriteVoices(favorites);
+          return favorites;
+        })
+      ]);
+      
+      setUserSettings(settingsResponse);
+      setProfileData(profileResponse);
+      setAvailableVoices(voicesResponse);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to refresh voice settings', err);
+      setError('Failed to load settings');
+    } finally {
+      setIsLoading(false);
+      setLoadingVoices(false);
+    }
+  }, []);
 
   const searchVoices = useCallback(async (params: {
     search?: string;
@@ -259,7 +306,8 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     fetchUserSettings();
     fetchAvailableVoices();
     getFavoriteVoices();
-  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices]);
+    fetchProfileData();
+  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices, fetchProfileData]);
 
   return {
     userSettings,
@@ -269,12 +317,14 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     loadingVoices,
     favoriteVoices,
     loadingFavorites,
+    profileData,
     updateVoiceSettings,
     toggleFavoriteVoice,
     refreshSettings,
     getFavoriteVoices,
     previewVoice,
     setPreferredLanguage,
+    fetchProfileData,
     searchVoices
   };
 }; 

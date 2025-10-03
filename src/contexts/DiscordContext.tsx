@@ -1,0 +1,465 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { discordService, DiscordServer, DiscordChannel, DiscordSettings, ConnectionStatus } from '../services/discordService';
+
+interface DiscordContextType {
+  isConnected: boolean;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  connectionStatus: ConnectionStatus | null;
+  discordSettings: DiscordSettings | null;
+  servers: DiscordServer[];
+  channels: DiscordChannel[];
+  currentServer: DiscordServer | null;
+  currentChannel: DiscordChannel | null;
+  error: string | null;
+  getDiscordAuthUrl: () => Promise<string>;
+  handleDiscordCallback: (code: string) => Promise<boolean>;
+  loadServers: () => Promise<void>;
+  loadChannels: (serverId: string) => Promise<void>;
+  loadSettings: () => Promise<void>;
+  selectServer: (server: DiscordServer) => void;
+  selectChannel: (channel: DiscordChannel) => void;
+  saveSettings: () => Promise<boolean>;
+  connect: () => Promise<boolean>;
+  disconnect: () => Promise<boolean>;
+  refreshConnectionStatus: () => Promise<void>;
+  streamSpeech: (text: string, audioData?: string) => Promise<boolean>;
+}
+
+const DiscordContext = createContext<DiscordContextType | undefined>(undefined);
+
+export const DiscordProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
+  const [discordSettings, setDiscordSettings] = useState<DiscordSettings | null>(null);
+  const [servers, setServers] = useState<DiscordServer[]>([]);
+  const [channels, setChannels] = useState<DiscordChannel[]>([]);
+  const [currentServer, setCurrentServer] = useState<DiscordServer | null>(null);
+  const [currentChannel, setCurrentChannel] = useState<DiscordChannel | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lastStatusRefreshTime, setLastStatusRefreshTime] = useState<number>(0);
+
+  // Load settings on mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  // Refresh connection status periodically
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refreshConnectionStatus();
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const getDiscordAuthUrl = async (): Promise<string> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const url = await discordService.getAuthUrl();
+      return url;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to get Discord auth URL';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDiscordCallback = async (code: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const success = await discordService.handleCallback(code);
+      if (success) {
+        setIsAuthenticated(true);
+        await loadSettings();
+      }
+      return success;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to authenticate with Discord';
+      setError(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadServers = async (): Promise<void> => {
+    // Double-check authentication status before loading servers
+    const authStatus = await discordService.getSettings();
+    const isUserAuthenticated = authStatus.connected === true;
+    
+    if (!isUserAuthenticated) {
+      console.log('Not loading servers - user not authenticated with Discord');
+      return;
+    }
+    
+    console.log('Loading servers - user is authenticated with Discord');
+    setIsLoading(true);
+    setError(null);
+    try {
+      const serverList = await discordService.getServers();
+      console.log(`Received ${serverList.length} servers from API`);
+      setServers(serverList);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load Discord servers';
+      console.error('Error loading Discord servers:', err);
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadChannels = async (serverId: string): Promise<void> => {
+    // Double-check authentication status before loading channels
+    const authStatus = await discordService.getSettings();
+    const isUserAuthenticated = authStatus.connected === true;
+    
+    if (!isUserAuthenticated) {
+      console.log('Not loading channels - user not authenticated with Discord');
+      return;
+    }
+    
+    console.log(`Loading channels for server ${serverId} - user is authenticated with Discord`);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const channelList = await discordService.getChannels(serverId);
+      console.log(`Received ${channelList.length} channels from API`);
+      setChannels(channelList);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load Discord channels';
+      console.error('Error loading Discord channels:', err);
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadSettings = async (): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Try to load settings
+      let settings: DiscordSettings;
+      try {
+        settings = await discordService.getSettings();
+        console.log('Discord settings loaded successfully:', settings);
+      } catch (err) {
+        // Check if it's a 401 error
+        if (err instanceof Error && err.message.includes('401')) {
+          console.log('User not authenticated with Discord, returning default settings');
+          // Return default settings for an unauthenticated user
+          settings = {
+            connected: false,
+            isConnected: false
+          };
+        } else {
+          // Rethrow other errors
+          throw err;
+        }
+      }
+      
+      setDiscordSettings(settings);
+      
+      // Explicitly set isAuthenticated based on the connected flag
+      // This is the key fix to ensure consistency
+      const isUserAuthenticated = settings.connected === true;
+      setIsAuthenticated(isUserAuthenticated);
+      console.log('Setting isAuthenticated to:', isUserAuthenticated);
+      
+      // If server and channel are selected, set them
+      if (settings.selectedServerId && settings.selectedServerName) {
+        setCurrentServer({
+          id: settings.selectedServerId,
+          name: settings.selectedServerName,
+          icon: null
+        });
+        
+        if (settings.selectedChannelId && settings.selectedChannelName) {
+          setCurrentChannel({
+            id: settings.selectedChannelId,
+            name: settings.selectedChannelName,
+            type: 2 // Voice channel type
+          });
+        }
+        
+        // Load channels for the selected server
+        if (isUserAuthenticated) {
+          await loadChannels(settings.selectedServerId);
+        }
+      }
+      
+      // Load servers if authenticated
+      if (isUserAuthenticated) {
+        console.log('User is authenticated, loading Discord servers');
+        await loadServers();
+        
+        // Refresh connection status
+        await refreshConnectionStatus();
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load Discord settings';
+      console.error('Error in loadSettings:', err);
+      setError(message);
+      // Set authenticated to false when there's an error
+      setIsAuthenticated(false);
+      setIsConnected(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const selectServer = (server: DiscordServer): void => {
+    setCurrentServer(server);
+    loadChannels(server.id);
+  };
+
+  const selectChannel = (channel: DiscordChannel): void => {
+    setCurrentChannel(channel);
+  };
+
+  const saveSettings = async (): Promise<boolean> => {
+    if (!currentServer || !currentChannel) {
+      setError('Server and channel must be selected');
+      return false;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      const success = await discordService.updateSettings({
+        selectedServerId: currentServer.id,
+        selectedServerName: currentServer.name,
+        selectedChannelId: currentChannel.id,
+        selectedChannelName: currentChannel.name
+      });
+      
+      if (success) {
+        // Update local state to reflect saved settings immediately
+        setDiscordSettings(prevSettings => ({
+          ...(prevSettings || {}),
+          connected: prevSettings?.connected || isAuthenticated, // Persist existing auth status
+          selectedServerId: currentServer.id,
+          selectedServerName: currentServer.name,
+          selectedChannelId: currentChannel.id,
+          selectedChannelName: currentChannel.name,
+          // isConnected should not be set here, refreshConnectionStatus will handle it
+        } as DiscordSettings));
+        // Refresh the actual connection status from the backend
+        await refreshConnectionStatus();
+      }
+      
+      return success;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save Discord settings';
+      console.error('Error saving Discord settings:', err);
+      setError(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const connect = async (): Promise<boolean> => {
+    // Prevent multiple connect attempts in rapid succession
+    if (isLoading) {
+      console.log('Connect operation already in progress, ignoring duplicate request');
+      return false;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log('Attempting to connect to Discord voice channel');
+      const success = await discordService.connect();
+      
+      if (success) {
+        console.log('Successfully connected to Discord voice channel');
+        // Optimistically set isConnected to true for faster UI feedback
+        setIsConnected(true);
+        // Refresh connection status to confirm and get full details
+        // Consider reducing or removing timeout if backend updates quickly
+        setTimeout(async () => {
+          await refreshConnectionStatus();
+        }, 500); // Reduced timeout
+        return true;
+      } else {
+        console.log('Failed to connect to Discord voice channel');
+        return false;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to connect to Discord';
+      console.error('Error connecting to Discord:', err);
+      setError(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const disconnect = async (): Promise<boolean> => {
+    // Prevent multiple disconnect attempts in rapid succession
+    if (isLoading) {
+      console.log('Disconnect operation already in progress, ignoring duplicate request');
+      return false;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      console.log('Attempting to disconnect from Discord voice channel');
+      const success = await discordService.disconnect();
+      
+      if (success) {
+        console.log('Successfully disconnected from Discord voice channel');
+        // Manual state update to ensure UI reflects disconnected state immediately
+        setIsConnected(false);
+        setConnectionStatus(null);
+        
+        // Wait a moment before refreshing connection status to allow the backend to update
+        setTimeout(async () => {
+          await refreshConnectionStatus();
+        }, 1500);
+        
+        return true;
+      } else {
+        console.log('Failed to disconnect from Discord voice channel');
+        return false;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to disconnect from Discord';
+      console.error('Error disconnecting from Discord:', err);
+      setError(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshConnectionStatus = async (): Promise<void> => {
+    // Exit early if not authenticated
+    if (!isAuthenticated) {
+      // Don't try to refresh status if not authenticated
+      return;
+    }
+    
+    // Check if we've refreshed very recently (throttle)
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastStatusRefreshTime;
+    if (timeSinceLastRefresh < 2000) { // 2 second cooldown
+      console.log(`Skipping connection status refresh (throttled: ${timeSinceLastRefresh}ms since last refresh)`);
+      return;
+    }
+    
+    setLastStatusRefreshTime(now);
+    
+    try {
+      console.log('Refreshing Discord connection status...');
+      const status = await discordService.getConnectionStatus();
+      
+      // Only update state if connection status actually changed
+      if (JSON.stringify(status) !== JSON.stringify(connectionStatus)) {
+        console.log('Connection status changed, updating state:', status);
+        setConnectionStatus(status);
+        setIsConnected(status.isConnected);
+      } else {
+        console.log('Connection status unchanged, skipping state update');
+      }
+    } catch (err) {
+      console.error('Failed to refresh Discord connection status:', err);
+      // Don't set error state here to avoid constant errors in UI during polling
+      
+      // If we get a 401, the user is no longer authenticated
+      if (err instanceof Error && err.message.includes('401')) {
+        setIsAuthenticated(false);
+        setIsConnected(false);
+        setConnectionStatus(null);
+      }
+    }
+  };
+
+  const streamSpeech = async (text: string, audioData?: string): Promise<boolean> => {
+    if (!isConnected) {
+      return false;
+    }
+    
+    try {
+      return await discordService.streamToDiscord(text, audioData);
+    } catch (err) {
+      console.error('Failed to stream speech to Discord:', err);
+      return false;
+    }
+  };
+
+  // Auto disconnect when app goes to background - moved after function declarations
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'background' && isConnected) {
+        console.log('App going to background, disconnecting from Discord');
+        try {
+          // Auto disconnect from Discord when app goes to background
+          await disconnect();
+        } catch (err) {
+          console.error('Failed to disconnect from Discord on background:', err);
+        }
+      } else if (nextAppState === 'active' && 
+                discordSettings?.selectedServerId &&
+                discordSettings?.selectedChannelId) {
+        // Optionally: Refresh connection status when app comes to foreground
+        await refreshConnectionStatus();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isConnected, discordSettings, disconnect, refreshConnectionStatus]);
+
+  const contextValue: DiscordContextType = {
+    isConnected,
+    isLoading,
+    isAuthenticated,
+    connectionStatus,
+    discordSettings,
+    servers,
+    channels,
+    currentServer,
+    currentChannel,
+    error,
+    getDiscordAuthUrl,
+    handleDiscordCallback,
+    loadServers,
+    loadChannels,
+    loadSettings,
+    selectServer,
+    selectChannel,
+    saveSettings,
+    connect,
+    disconnect,
+    refreshConnectionStatus,
+    streamSpeech
+  };
+
+  return (
+    <DiscordContext.Provider value={contextValue}>
+      {children}
+    </DiscordContext.Provider>
+  );
+};
+
+export const useDiscord = (): DiscordContextType => {
+  const context = useContext(DiscordContext);
+  if (context === undefined) {
+    throw new Error('useDiscord must be used within a DiscordProvider');
+  }
+  return context;
+}; 

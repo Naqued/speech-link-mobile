@@ -21,6 +21,61 @@
     "passwordResetSent": "Les instructions de réinitialisation du mot de passe ont été envoyées à votre email.",
     "signUpSuccess": "Compte créé avec succès! Veuillez vous connecter."
   },
+  "discord": {
+    "discordSettings": "Paramètres Discord",
+    "connection": "Connexion",
+    "configuration": "Configuration",
+    "server": "Serveur",
+    "voiceChannel": "Canal vocal",
+    "selectServer": "Sélectionner un serveur",
+    "selectChannel": "Sélectionner un canal",
+    "selectServerFirst": "Veuillez d'abord sélectionner un serveur",
+    "notConnectedHelp": "Connectez votre compte Discord pour diffuser votre voix sur les canaux vocaux Discord",
+    "linkAccount": "Lier le compte Discord",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "inviteBot": "Inviter le bot",
+    "about": "À propos",
+    "helpText": "L'intégration Discord vous permet de diffuser directement votre voix synthétisée vers les canaux vocaux Discord. Connectez votre compte, sélectionnez un serveur et un canal, et commencez à parler!",
+    "autoDisconnectNotice": "Discord se déconnectera automatiquement lorsqu'il n'est pas utilisé pour économiser les ressources.",
+    "authSuccess": "Authentification réussie",
+    "authSuccessMessage": "Votre compte Discord a été connecté avec succès",
+    "authFailed": "Échec de l'authentification",
+    "authFailedMessage": "Impossible de se connecter à Discord. Veuillez réessayer.",
+    "authError": "Échec de la connexion à Discord. Veuillez réessayer.",
+    "connectionStatus": "État de la connexion",
+    "connectionActive": "Connexion active",
+    "notConnected": "Le bot n'est pas connecté à un canal vocal",
+    "channelMembers": "Membres du canal",
+    "noMembers": "Aucun membre dans ce canal",
+    "connectToSeeMembers": "Connectez-vous à un canal vocal pour voir les membres",
+    "connectedTo": "Connecté à",
+    "connectedSince": "Connecté depuis",
+    "connectionDuration": "Durée de connexion",
+    "minutes": "minutes",
+    "selectServerAndChannel": "Veuillez sélectionner un serveur et un canal",
+    "settingsSaved": "Paramètres Discord enregistrés",
+    "failedToSaveSettings": "Échec de l'enregistrement des paramètres Discord",
+    "connecting": "Connexion en cours...",
+    "connectToChannel": "Se connecter au canal",
+    "joinChannel": "Rejoindre {{channel}}",
+    "disconnectChannel": "Déconnecter du canal",
+    "disconnecting": "Déconnexion en cours...",
+    "test": "Tester la connexion",
+    "testing": "Test en cours...",
+    "account": "Compte Discord",
+    "connected": "Connecté",
+    "disconnectedFromChannel": "Déconnecté du canal vocal Discord",
+    "inviteUrlError": "Erreur lors de la génération de l'URL d'invitation",
+    "disconnectFailed": "Échec de la déconnexion du canal vocal Discord",
+    "connectionError": "Une erreur s'est produite lors de la gestion de la connexion Discord",
+    "noServersFound": "Aucun serveur Discord trouvé",
+    "checkDiscordConnection": "Assurez-vous que votre compte Discord est correctement connecté",
+    "noChannelsFound": "Aucun canal vocal trouvé sur ce serveur",
+    "createVoiceChannel": "Assurez-vous que ce serveur dispose d'au moins un canal vocal",
+    "joinVoice": "Rejoindre le Canal Vocal",
+    "leaveVoice": "Quitter le Canal Vocal"
+  },
   "home": {
     "title": "Amplificateur Vocal",
     "tap_to_speak": "Appuyez pour parler",
@@ -96,7 +151,16 @@
       "age": "Âge",
       "category": "Catégorie",
       "useCase": "Cas d'utilisation",
-      "descriptives": "Style de voix",
+      "descriptives": {
+        "all": "Tous les Styles",
+        "calm": "Calme",
+        "energetic": "Énergique",
+        "professional": "Professionnel",
+        "friendly": "Amical",
+        "authoritative": "Autoritaire",
+        "cheerful": "Joyeux",
+        "serious": "Sérieux"
+      },
       "applyWithCount": "Appliquer {{count}} filtres",
       "apply": "Appliquer les filtres",
       "activeFilters": "Filtres actifs",
@@ -166,16 +230,6 @@
         "gaming": "Jeux Vidéo",
         "narration": "Narration",
         "advertisement": "Publicité"
-      },
-      "descriptives": {
-        "all": "Tous les Styles",
-        "calm": "Calme",
-        "energetic": "Énergique",
-        "professional": "Professionnel",
-        "friendly": "Amical",
-        "authoritative": "Autoritaire",
-        "cheerful": "Joyeux",
-        "serious": "Sérieux"
       }
     },
     "metadata": {
@@ -236,12 +290,15 @@
       "description": "Description : "
     },
     "actions": {
-      "preview": "Écouter",
+      "preview": "Aperçu",
       "stopPreview": "Arrêter",
       "select": "Sélectionner",
       "selected": "Sélectionnée",
       "stop": "Arrêter",
-      "processing": "Traitement..."
+      "processing": "En cours...",
+      "success": "Succès",
+      "voiceSelected": "{{name}} a été sélectionnée comme votre voix",
+      "errorSelectingVoice": "Échec de la sélection de la voix. Veuillez réessayer."
     },
     "characteristics": {
       "expressive": "Expressif et Dynamique",
@@ -258,15 +315,49 @@
       "deep": "Profond et Résonant",
       "authoritative": "Autoritaire et Clair",
       "trustworthy": "Digne de Confiance et Professionnel"
+    },
+    "preview": {
+      "text-1": "Bonjour, ravi de vous rencontrer ! J'utilise cette voix pour communiquer. Pourriez-vous me dire où se trouve le restaurant le plus proche ? Merci pour votre aide.",
+      "text-2": "Salut ! Je voudrais commander un café, s'il vous plaît. Taille moyenne avec un peu de sucre et du lait d'amande. Ces pâtisseries ont aussi l'air délicieuses. Laquelle recommanderiez-vous ?",
+      "text-3": "Bonjour ! C'est agréable de vous revoir. J'ai beaucoup apprécié notre conversation d'hier. Pourrions-nous continuer là où nous nous sommes arrêtés ? J'ai des réflexions intéressantes à partager.",
+      "text-4": "Bonjour ! Je m'appelle Alex. Je me sens un peu fatigué aujourd'hui. Ça vous dérangerait si nous prenions l'ascenseur au lieu des escaliers ? Je vous en suis reconnaissant."
     }
   },
   "languages": {
     "all": "Toutes les Langues",
     "en": "Anglais",
-    "fr": "Français"
+    "fr": "Français",
+    "ja": "Japonais",
+    "zh": "Chinois",
+    "de": "Allemand",
+    "hi": "Hindi",
+    "ko": "Coréen",
+    "pt": "Portugais",
+    "it": "Italien",
+    "es": "Espagnol",
+    "id": "Indonésien",
+    "nl": "Néerlandais",
+    "tr": "Turc",
+    "fil": "Filipino",
+    "pl": "Polonais",
+    "sv": "Suédois",
+    "bg": "Bulgare",
+    "ro": "Roumain",
+    "ar": "Arabe",
+    "cs": "Tchèque",
+    "el": "Grec",
+    "fi": "Finnois",
+    "hr": "Croate",
+    "ms": "Malais",
+    "sk": "Slovaque",
+    "da": "Danois",
+    "ta": "Tamoul",
+    "uk": "Ukrainien",
+    "ru": "Russe"
   },
   "aac": {
     "title": "Phrases Rapides",
+    "aacTitle": "Tableau AAC",
     "categories": {
       "basicNeeds": "Besoins Essentiels",
       "greetings": "Salutations",
@@ -274,7 +365,6 @@
       "questions": "Questions",
       "medical": "Médical",
       "activities": "Activités",
-      
       "cat_basic_needs_en": "Besoins Essentiels",
       "cat_basic_needs_fr": "Besoins Essentiels",
       "cat_social_interaction_en": "Interaction Sociale",
@@ -286,7 +376,6 @@
       "cat_all_en": "Toutes les Phrases",
       "cat_all_fr": "Toutes les Phrases",
       "all": "Toutes les Phrases"
-      
     },
     "phrases": {
       "add": "Ajouter une Phrase",
@@ -308,6 +397,7 @@
     "darkMode": "Mode Sombre",
     "audioSettings": "Paramètres Audio",
     "voiceSettings": "Paramètres Vocaux",
+    "autoSpeakEnabled": "Parole Automatique",
     "appearance": "Apparence",
     "light": "Clair",
     "dark": "Sombre",
@@ -324,7 +414,10 @@
     "version": "Version",
     "privacyPolicy": "Politique de Confidentialité",
     "termsOfService": "Conditions d'Utilisation",
-    "feedback": "Envoyer un Commentaire"
+    "feedback": "Envoyer un Commentaire",
+    "integrations": "Intégrations",
+    "discordSettings": "Paramètres Discord",
+    "audioRouting": "Routage Audio"
   },
   "audioOutput": {
     "title": "Sortie Audio",
@@ -353,6 +446,7 @@
     "name": "Nom",
     "email": "Email",
     "subscription": "Abonnement",
+    "subscriptionExpiry": "Expiration de l'Abonnement",
     "edit": "Modifier le Profil",
     "save": "Sauvegarder le Profil",
     "changePassword": "Changer le Mot de Passe",
@@ -399,7 +493,10 @@
     "create": "Créer",
     "search": "Rechercher",
     "loading": "Chargement...",
-    "error": "Erreur",
+    "error": {
+      "required": "Ce champ est obligatoire",
+      "maxLength": "Maximum {{max}} caractères autorisés"
+    },
     "success": "Succès",
     "retry": "Réessayer",
     "back": "Retour",
@@ -407,11 +504,7 @@
     "enable": "Activer",
     "disable": "Désactiver",
     "notSpecified": "Non spécifié",
-    "general": "Général",
-    "error": {
-      "required": "Ce champ est obligatoire",
-      "maxLength": "Maximum {{max}} caractères autorisés"
-    }
+    "general": "Général"
   },
   "language": {
     "select": "Sélectionner la Langue",
@@ -435,6 +528,7 @@
     "speak": "Parler",
     "allPhrases": "Toutes les Phrases",
     "phraseText": "Texte de la Phrase",
+    "noPhrases": "Aucune phrase dans cette catégorie",
     "enterPhraseText": "Entrez votre phrase ici",
     "category": "Catégorie",
     "selectedCategory": "Catégorie Sélectionnée",
@@ -530,4 +624,4 @@
     "aacBoardDesc": "Accès rapide aux phrases fréquemment utilisées",
     "legal": "Mentions Légales"
   }
-} 
+}

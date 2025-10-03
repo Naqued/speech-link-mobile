@@ -19,7 +19,7 @@ export interface UseTextToSpeechResult {
   error: string | null;
   generateSpeech: (request: TTSRequest) => Promise<Audio.Sound>;
   speak: (text: string, voiceId?: string, provider?: 'ELEVENLABS' | 'OPENAI', language?: string) => Promise<Audio.Sound>;
-  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => Promise<Audio.Sound>;
+  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string, language?: string) => Promise<Audio.Sound>;
   stopSpeaking: () => Promise<void>;
   isAudioRoutingEnabled: boolean;
   toggleAudioRouting: (enabled: boolean) => Promise<boolean>;
@@ -289,7 +289,8 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     voiceId: string,
     provider: 'ELEVENLABS' | 'OPENAI',
     publicOwnerId?: string,
-    voiceName?: string
+    voiceName?: string,
+    language?: string
   ): Promise<Audio.Sound> => {
     try {
       // Stop any current playback
@@ -298,8 +299,12 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       setIsLoading(true);
       setError(null);
       
-      // Get the preview text from translations
-      const previewText = i18n.t('preview.text', 'Hello, this is a preview of my voice.');
+      // Generate a random number between 1 and 4 to select one of the preview texts
+      const previewTextNumber = Math.floor(Math.random() * 4) + 1;
+      const previewText = i18n.t(`voice.preview.text-${previewTextNumber}`);
+      
+      // Get current language if none provided
+      const currentLanguage = language || i18n.language;
       
       // Check if audio routing is enabled
       if (isAudioRoutingEnabled) {
@@ -313,7 +318,8 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
           provider,
           text: previewText,
           publicOwnerId,
-          voiceName
+          voiceName,
+          lang: currentLanguage
         });
         
         if (!response.audioData) {
@@ -335,6 +341,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
         const dummySound = new Audio.Sound();
         setCurrentSound(null);
         setIsPlaying(true);
+        
+        // Only now clear the loading state after audio routing has begun
+        setIsLoading(false);
+        
         return dummySound;
       } else {
         // Normal preview flow with audio output service
@@ -349,7 +359,8 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
           provider,
           text: previewText,
           publicOwnerId,
-          voiceName
+          voiceName,
+          lang: currentLanguage
         });
         
         if (!response.audioData) {
@@ -364,39 +375,49 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
           encoding: FileSystem.EncodingType.Base64
         });
         
+        // IMPORTANT: Keep isLoading true here, we'll set it to false only when audio is actually playing
+        console.log('Before createAsync - keeping isLoading state:', isLoading);
+        
         // Load the sound file using expo-av
         const { sound } = await Audio.Sound.createAsync(
           { uri: filePath },
-          { shouldPlay: false }
+          { shouldPlay: true },
+          // Add onPlaybackStatusUpdate directly in the creation to catch initial loading too
+          (status) => {
+            if (status.isLoaded) {
+              // Only set isPlaying true and clear loading state once playback has actually started
+              if (status.isPlaying) {
+                console.log('Audio is now playing, clearing loading state');
+                setIsPlaying(true);
+                setIsLoading(false);
+              }
+              
+              if (status.didJustFinish) {
+                console.log('Voice preview playback completed');
+                setIsPlaying(false);
+                setCurrentSound(null);
+                sound.unloadAsync().catch(error => {
+                  console.error('Error unloading sound:', error);
+                });
+              }
+            }
+          }
         );
         
-        // Set up sound with expo-av
-        await sound.setVolumeAsync(1.0);
-        
-        // Set up playback status update listener
-        sound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            console.log('Voice preview playback completed');
-            setIsPlaying(false);
-            setCurrentSound(null);
-          }
-        });
-        
-        // Store the sound reference
+        // Store the sound reference but DON'T set isPlaying true yet
+        // We only want to set that when audio actually starts playing
         setCurrentSound(sound);
-        
-        // Play the sound
-        await sound.playAsync();
-        setIsPlaying(true);
         
         return sound;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to preview voice');
       console.error('Error in voice preview:', err);
-      throw err;
-    } finally {
+      
+      // Always clear loading state on error
       setIsLoading(false);
+      
+      throw err;
     }
   }, [stopSpeaking, isAudioRoutingEnabled]);
 

@@ -2,6 +2,7 @@ export interface UserProfile {
   user: UserInfo;
   subscription: SubscriptionInfo | null;
   usage: UsageInfo | null;
+  voiceSettings: VoiceSettingsInfo | null;
   topPhrases: TopPhrase[];
   favoriteVoices: FavoriteVoice[];
 }
@@ -37,6 +38,20 @@ export interface UsageInfo {
   };
   creditsTotal: number;
   creditsRemaining: number;
+}
+
+export interface VoiceSettingsInfo {
+  selectedVoice: {
+    id: string;
+    name: string | null;
+    provider: string;
+  } | null;
+  provider: string;
+  speed: number;
+  pitch: number;
+  enhancementEnabled: boolean;
+  sttProvider: string;
+  autoSpeakEnabled: boolean;
 }
 
 export interface TopPhrase {

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 // Contexts
 import { ThemeContext } from '../contexts/ThemeContext';
+import { DiscordProvider } from '../contexts/DiscordContext';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -20,6 +21,7 @@ import AudioOutputSettings from '../screens/Settings/AudioOutputSettings';
 import AboutScreen from '../screens/About/AboutScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicy/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/TermsOfService/TermsOfServiceScreen';
+import DiscordSettingsScreen from '../screens/Discord/DiscordSettingsScreen';
 
 // Types
 export type MainTabParamList = {
@@ -39,6 +41,7 @@ export type MainStackParamList = {
   About: undefined;
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
+  DiscordSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -119,6 +122,7 @@ const MainTabs = () => {
 
 const MainNavigator: React.FC = () => {
   return (
+    <DiscordProvider>
     <Stack.Navigator
       screenOptions={{
         headerShown: false
@@ -131,7 +135,9 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+        <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
     </Stack.Navigator>
+    </DiscordProvider>
   );
 };
 

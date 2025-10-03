@@ -10,7 +10,8 @@ import {
   TextInput,
   Alert,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ import * as Speech from 'expo-speech';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { useDiscord } from '../../contexts/DiscordContext';
 
 // Services
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
@@ -38,6 +40,7 @@ import {
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
 import { AudioOutputToggle } from '../../components/AudioOutputToggle';
+import DiscordIndicator from '../../components/UI/DiscordIndicator';
 
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
@@ -64,10 +67,20 @@ const AACBoardScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   const { speak, stopSpeaking, isPlaying: ttsIsPlaying } = useTextToSpeech();
   const { userSettings } = useVoiceSettings();
+  const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
   
+  // Log language for debugging
+  useEffect(() => {
+    console.log('=================== AAC LANGUAGE DEBUG ===================');
+    console.log('AACBoardScreen mounted/updated with language:', currentLanguage);
+    console.log('i18n.language:', i18n.language);
+    console.log('i18n supported languages:', i18n.languages);
+    console.log('=================== AAC LANGUAGE DEBUG ===================');
+  }, [currentLanguage, i18n.language]);
+
   // State
   const [categories, setCategories] = useState<CategoryUIModel[]>([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -82,11 +95,17 @@ const AACBoardScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentlyPlayingText, setCurrentlyPlayingText] = useState<string | null>(null);
   
+  // Track subscription limit status
+  const [subscriptionLimitReached, setSubscriptionLimitReached] = useState(false);
+  
   // Modal state
   const [sentenceFormVisible, setSentenceFormVisible] = useState(false);
   const [editingSentence, setEditingSentence] = useState<SentenceUIModel | undefined>(undefined);
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryUIModel | undefined>(undefined);
+
+  // Add state for Discord streaming
+  const [isStreamingToDiscord, setIsStreamingToDiscord] = useState(false);
 
   const styles = makeStyles(theme);
 
@@ -106,8 +125,13 @@ const AACBoardScreen: React.FC = () => {
         setCategoriesLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchCategories - using language:', currentLanguage);
+        
         // Fetch from API
         const apiCategories = await aacService.getCategories(currentLanguage);
+        
+        console.log('[AACBoard] fetchCategories - received categories:', apiCategories.length);
         
         if (apiCategories.length > 0) {
           // Map to UI model and sort by order
@@ -124,6 +148,7 @@ const AACBoardScreen: React.FC = () => {
           }
         } else {
           // Fallback to defaults if no categories found
+          console.log('[AACBoard] No categories found for language:', currentLanguage, '- using defaults');
           setCategories([ALL_CATEGORY, ...DEFAULT_CATEGORIES]);
         }
       } catch (err) {
@@ -147,8 +172,13 @@ const AACBoardScreen: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchAllSentences - using language:', currentLanguage);
+        
         // Fetch all sentences without categoryId filter
         const apiSentences = await aacService.getSentences(undefined, currentLanguage);
+        
+        console.log('[AACBoard] fetchAllSentences - received sentences:', apiSentences.length);
         
         // Map to UI model
         const uiSentences = apiSentences
@@ -187,8 +217,13 @@ const AACBoardScreen: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
+        // Debug log
+        console.log('[AACBoard] fetchSentences - using language:', currentLanguage, 'category:', selectedCategory);
+        
         // Fetch from API
         const apiSentences = await aacService.getSentences(selectedCategory, currentLanguage);
+        
+        console.log('[AACBoard] fetchSentences - received sentences for category:', apiSentences.length);
         
         // Map to UI model and sort by order
         const uiSentences = apiSentences
@@ -223,125 +258,104 @@ const AACBoardScreen: React.FC = () => {
 
   const speakPhrase = async (text: string, phraseId?: string) => {
     try {
-      console.log('============= TTS DEBUG START =============');
-      console.log('Starting speakPhrase with text:', text.substring(0, 20) + (text.length > 20 ? '...' : ''));
-      
-      // Stop any current speech
       if (isSpeaking) {
-        console.log('Stopping previous speech');
-        stopSpeaking();
+        handleStopSpeaking();
+        return;
       }
-
+      
+      // Don't speak empty text
+      if (!text.trim()) {
+        return;
+      }
+      
+      // Check if we've reached the subscription limit
+      if (subscriptionLimitReached) {
+        Alert.alert(
+          t('general.subscriptionRequired'),
+          t('aac.subscriptionLimitReachedMessage'),
+          [
+            {
+              text: t('general.upgrade'),
+              onPress: () => handleSubscriptionUpgrade(),
+            },
+            {
+              text: t('general.cancel'),
+              style: 'cancel',
+            },
+          ]
+        );
+        return;
+      }
+      
+      // Log for debugging
+      console.log('[AACBoard] Speaking phrase:', text);
+      
+      // Set state to indicate speaking has started
       setIsSpeaking(true);
       setIsLoadingAudio(true);
       setCurrentlyPlayingText(text);
       
-      // If it's a saved phrase with an ID, increment its usage
+      // Update recent phrases (add to the beginning, keep only last 5)
       if (phraseId) {
-        try {
-          console.log('Incrementing usage for phrase ID:', phraseId);
-          // Don't await to allow speaking to start immediately
-          aacService.incrementSentenceUsage(phraseId).catch(err => 
-            console.error('Failed to increment sentence usage:', err)
-          );
-        } catch (error) {
-          // Non-critical error, just log it
-          console.error('Failed to track phrase usage:', error);
+        const sentenceToAdd = allPhrases.find(p => p.id === phraseId);
+        if (sentenceToAdd) {
+          // Only add if not already in the list or not at the top
+          if (!recentPhrases.find(p => p.id === sentenceToAdd.id)) {
+            setRecentPhrases([sentenceToAdd, ...recentPhrases.slice(0, 4)]);
+          } else if (recentPhrases[0].id !== sentenceToAdd.id) {
+            // Move to top if already in list but not at top
+            setRecentPhrases([
+              sentenceToAdd,
+              ...recentPhrases.filter(p => p.id !== sentenceToAdd.id).slice(0, 4)
+            ]);
+          }
         }
       }
       
-      // Add phrase to recent phrases list (avoiding duplicates)
-      const newRecentPhrase: SentenceUIModel = {
-        id: phraseId || `recent-${Date.now()}`,
-        text,
-        categoryId: selectedCategory,
-        isFavorite: false
-      };
-      
-      setRecentPhrases(prev => {
-        const filtered = prev.filter(p => p.text !== text);
-        return [newRecentPhrase, ...filtered].slice(0, 5);
-      });
-      
-      // Try to use the backend TTS API first with a timeout to ensure responsiveness
-      console.log('Voice settings check:', {
-        hasSettings: !!userSettings,
-        hasVoiceSettings: !!userSettings?.voiceSettings,
-        provider: userSettings?.voiceSettings?.provider,
-        voiceId: userSettings?.voiceSettings?.voiceId
-      });
-      
-      // Always try to use the backend TTS API, even if provider/voiceId aren't defined
-      try {
-        console.log('Attempting to use backend TTS API');
-        
-        // Create a promise that resolves after the TTS API timeout threshold (4 seconds)
-        const timeoutPromise = new Promise((_, reject) => {
+      // Stream to Discord if connected
+      if (isConnected) {
+        setIsStreamingToDiscord(true);
+        try {
+          // Show streaming indicator
+          console.log('[AACBoard] Streaming to Discord:', text);
+          
+          // Start streaming to Discord - don't await this to avoid blocking the speech
+          // The direct streaming API will handle this independently
+          streamSpeech(text).catch(err => {
+            console.log('[AACBoard] Discord streaming error (not critical):', err);
+            // Non-critical error, no need to show to the user
+          });
+        } catch (discordError) {
+          // This should never happen since we're catching errors in the streamSpeech call
+          console.log('[AACBoard] Discord streaming catch block (should not occur):', discordError);
+          // Continue with normal speech even if Discord streaming fails
+        } finally {
+          // Short delay before hiding the streaming indicator
           setTimeout(() => {
-            console.log('TTS API timeout reached (4s)');
-            reject(new Error('TTS API timeout'));
-          }, 4000);
-        });
-        
-        console.log('Calling speak function with:', {
-          text: text.substring(0, 20) + (text.length > 20 ? '...' : ''),
-          language: currentLanguage,
-          voiceId: userSettings?.voiceSettings?.voiceId, // Might be undefined
-          provider: userSettings?.voiceSettings?.provider // Might be undefined
-        });
-        
-        // Try to use the backend TTS API with timeout
-        await Promise.race([
-          speak(
-            text,
-            userSettings?.voiceSettings?.voiceId, // Pass this even if undefined
-            userSettings?.voiceSettings?.provider as any, // Pass this even if undefined
-            currentLanguage // Add language parameter
-          ),
-          timeoutPromise
-        ]);
-        
-        // If we reach here, backend TTS was successful
-        console.log('Backend TTS API call successful');
-        setIsLoadingAudio(false);
-        // Keep isSpeaking true as the audio is now playing
-        console.log('============= TTS DEBUG END =============');
-        return;
-      } catch (ttsError) {
-        // Log the error and fall back to local Speech API
-        console.log('Backend TTS failed or timed out:', ttsError);
-        console.log('Falling back to local Speech API');
-        // Continue to fallback option below
+            setIsStreamingToDiscord(false);
+          }, 1000); // Short delay to show the indicator
+        }
       }
       
-      // Fallback to local Speech API
-      console.log('Using local Speech API fallback with language:', currentLanguage);
-      setIsLoadingAudio(false);
-      Speech.speak(text, {
-        language: currentLanguage,
-        pitch: 1.0,
-        rate: 0.9,
-        onDone: () => {
-          console.log('Local Speech API finished speaking');
-          setIsSpeaking(false);
-          setCurrentlyPlayingText(null);
-        },
-        onError: (error) => {
-          console.log('Local Speech API error:', error);
-          setIsSpeaking(false);
-          setCurrentlyPlayingText(null);
-        },
-      });
-      console.log('============= TTS DEBUG END =============');
-    } catch (error) {
-      console.error('Failed to speak phrase', error);
-      Alert.alert(t('general.error'), 'Failed to speak phrase');
+      // Use TTS service to speak
+      await speak(text);
       
-      // Ensure we're not stuck in speaking state
+      // Increment usage count for the sentence if it has an ID
+      if (phraseId) {
+        try {
+          await aacService.incrementSentenceUsage(phraseId);
+        } catch (err) {
+          console.error('Failed to increment sentence usage:', err);
+          // Non-critical error, don't show to user
+        }
+      }
+    } catch (err) {
+      console.error('Error speaking phrase:', err);
+      setError('Failed to speak phrase');
       setIsSpeaking(false);
-      setIsLoadingAudio(false);
       setCurrentlyPlayingText(null);
-      console.log('============= TTS DEBUG END WITH ERROR =============');
+    } finally {
+      setIsLoadingAudio(false);
     }
   };
 
@@ -353,15 +367,114 @@ const AACBoardScreen: React.FC = () => {
     setCurrentlyPlayingText(null);
   };
 
-  const speakCustomMessage = () => {
-    if (!customMessage.trim()) return;
-    
-    speakPhrase(customMessage);
-    setCustomMessage('');
+  const handleSubscriptionUpgrade = () => {
+    // Navigate to subscription page or open a web link
+    Linking.openURL('https://speechlink.example.com/subscribe');
+  };
+
+  const speakCustomMessage = async () => {
+    if (customMessage.trim()) {
+      try {
+        // Don't continue if we're already speaking
+        if (isSpeaking) {
+          handleStopSpeaking();
+          return;
+        }
+        
+        // Check subscription limit
+        if (subscriptionLimitReached) {
+          Alert.alert(
+            t('general.subscriptionRequired'),
+            t('aac.subscriptionLimitReachedMessage'),
+            [
+              {
+                text: t('general.upgrade'),
+                onPress: () => handleSubscriptionUpgrade(),
+              },
+              {
+                text: t('general.cancel'),
+                style: 'cancel',
+              },
+            ]
+          );
+          return;
+        }
+        
+        // Create a temporary SentenceUIModel for the custom message
+        const customSentence: SentenceUIModel = {
+          id: `custom-${Date.now()}`,
+          text: customMessage.trim(),
+          categoryId: 'custom', // Use a special category ID for custom messages
+          isFavorite: false
+        };
+        
+        // Update recent phrases (add to beginning, keep only last 5)
+        if (!recentPhrases.find(p => p.text === customMessage.trim())) {
+          setRecentPhrases([customSentence, ...recentPhrases.slice(0, 4)]);
+        }
+        
+        // Set state to indicate speaking has started
+        setIsSpeaking(true);
+        setIsLoadingAudio(true);
+        setCurrentlyPlayingText(customMessage.trim());
+        
+        // Stream to Discord if connected
+        if (isConnected) {
+          setIsStreamingToDiscord(true);
+          try {
+            console.log('[AACBoard] Streaming custom message to Discord:', customMessage);
+            streamSpeech(customMessage).catch(err => {
+              console.log('[AACBoard] Discord streaming error (not critical):', err);
+            });
+          } catch (discordError) {
+            console.log('[AACBoard] Discord streaming catch block (should not occur):', discordError);
+          } finally {
+            setTimeout(() => {
+              setIsStreamingToDiscord(false);
+            }, 1000);
+          }
+        }
+        
+        // Speak the message directly
+        await speak(customMessage);
+        
+        // Clear the input
+        setCustomMessage('');
+      } catch (err) {
+        console.error('Error speaking custom message:', err);
+        setError('Failed to speak custom message');
+        setIsSpeaking(false);
+        setCurrentlyPlayingText(null);
+      } finally {
+        setIsLoadingAudio(false);
+      }
+    }
   };
 
   const handleAddPhrase = () => {
-    setEditingSentence(undefined);
+    // Create a new sentence with pre-filled text if customMessage is set
+    if (customMessage.trim()) {
+      const newSentence: SentenceUIModel = {
+        id: '', // Empty ID indicates it's a new sentence
+        text: customMessage.trim(),
+        categoryId: categories.find(c => c.id !== 'all')?.id || '', // Default to first real category
+        isFavorite: false
+      };
+      setEditingSentence(newSentence);
+    } else {
+      setEditingSentence(undefined);
+    }
+    setSentenceFormVisible(true);
+  };
+  
+  const handleAddPhraseWithText = (prefillText: string) => {
+    const newSentence: SentenceUIModel = {
+      id: '', // Empty ID indicates it's a new sentence
+      text: prefillText,
+      categoryId: categories.find(c => c.id !== 'all')?.id || '', // Default to first real category
+      isFavorite: false
+    };
+    setEditingSentence(newSentence);
     setSentenceFormVisible(true);
   };
   
@@ -419,7 +532,7 @@ const AACBoardScreen: React.FC = () => {
       const categoryPhrases = [...(prev[sentence.categoryId] || [])];
       
       // Check if this is an update or a new sentence
-      const existingIndex = categoryPhrases.findIndex(p => p.id === sentence.id);
+      const existingIndex = sentence.id ? categoryPhrases.findIndex(p => p.id === sentence.id) : -1;
       
       if (existingIndex >= 0) {
         // Update existing sentence
@@ -446,6 +559,9 @@ const AACBoardScreen: React.FC = () => {
         return temp;
       });
     }
+    
+    // Clear the custom message after saving
+    setCustomMessage('');
   };
 
   const handleAddCategory = () => {
@@ -582,7 +698,7 @@ const AACBoardScreen: React.FC = () => {
           selectedCategory === item.id && styles.selectedCategoryText,
         ]}
       >
-        {item.isGlobal ? t(`aac.categories.${item.id}`) : item.name}
+        {item.name}
       </Text>
     </TouchableOpacity>
   );
@@ -617,6 +733,36 @@ const AACBoardScreen: React.FC = () => {
   );
   
   const handlePhraseActions = (sentence: SentenceUIModel) => {
+    // Check if this is a custom message (ID starts with "custom-")
+    const isCustomMessage = sentence.id.startsWith('custom-');
+    
+    if (isCustomMessage) {
+      // For custom messages, offer speak and save options
+      Alert.alert(
+        sentence.text,
+        t('aacBoard.customMessage'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel'
+          },
+          {
+            text: t('aacBoard.speak'),
+            onPress: () => speakPhrase(sentence.text, sentence.id)
+          },
+          {
+            text: t('general.save'),
+            onPress: () => {
+              // Use handleAddPhraseWithText to open the add form with pre-filled text
+              handleAddPhraseWithText(sentence.text);
+            }
+          }
+        ]
+      );
+      return;
+    }
+    
+    // For regular phrases, show all options
     Alert.alert(
       sentence.text,
       t('aacBoard.selectAction'),
@@ -675,7 +821,7 @@ const AACBoardScreen: React.FC = () => {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="chatbubble-outline" size={40} color={theme.text} />
-        <Text style={styles.emptyText}>No phrases in this category</Text>
+        <Text style={styles.emptyText}>{t('aacBoard.noPhrases')}</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleAddPhrase}>
           <Ionicons name="add-outline" size={20} color="#FFFFFF" />
           <Text style={styles.addButtonText}>{t('aac.phrases.add')}</Text>
@@ -686,6 +832,68 @@ const AACBoardScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{t('aac.aacTitle')}</Text>
+        <View style={styles.headerRightContainer}>
+          {isAuthenticated && (
+            <DiscordIndicator 
+              size="medium" 
+              showLabel={isConnected}
+              isStreaming={isStreamingToDiscord} 
+            />
+          )}
+        </View>
+      </View>
+      {subscriptionLimitReached && (
+        <TouchableOpacity 
+          style={styles.limitBanner} 
+          onPress={() => {
+            // Open the profile page to upgrade
+            // For development, link to local profile, for production, link to website
+            const upgradeUrl = __DEV__ 
+              ? '/profile?upgrade=true' 
+              : 'https://speech-aac.link/en/profile?upgrade=true';
+            
+            // You'd need to implement navigation to the profile page here
+            // For example, using Linking.openURL for the website version:
+            // Linking.openURL(upgradeUrl);
+            Alert.alert(
+              t('subscription.limitTitle', 'Subscription Limit Reached'),
+              t('subscription.limitMessage', 'You have reached your monthly TTS usage limit. Upgrade your plan for unlimited access.'),
+              [
+                {
+                  text: t('general.later', 'Later'),
+                  style: 'cancel'
+                },
+                {
+                  text: t('subscription.upgrade', 'Upgrade'),
+                  onPress: () => {
+                    // Implementation depends on your navigation setup
+                    // This is a placeholder - replace with actual navigation
+                    const url = 'https://speech-aac.link/en/profile?upgrade=true';
+                    Linking.openURL(url).catch(err => {
+                      console.error('Failed to open upgrade URL:', err);
+                      Alert.alert(t('general.error'), t('general.couldNotOpenBrowser'));
+                    });
+                  }
+                }
+              ]
+            );
+          }}
+        >
+          <View style={styles.limitBannerContent}>
+            <Ionicons name="warning-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.limitBannerText}>
+              {t('subscription.limitReached', 'Subscription limit reached. Upgrade for more.')}
+            </Text>
+            <View style={styles.limitBannerButton}>
+              <Text style={styles.limitBannerButtonText}>
+                {t('subscription.upgrade', 'Upgrade')}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>{t('aac.title') || 'AAC Board'}</Text>
         <View style={styles.headerActions}>
@@ -739,10 +947,16 @@ const AACBoardScreen: React.FC = () => {
             {recentPhrases.map((phrase) => (
               <TouchableOpacity
                 key={phrase.id}
-                style={styles.recentButton}
+                style={[
+                  styles.recentButton,
+                  phrase.id.startsWith('custom-') && styles.customRecentButton
+                ]}
                 onPress={() => speakPhrase(phrase.text, phrase.id)}
                 onLongPress={() => handlePhraseActions(phrase)}
               >
+                {phrase.id.startsWith('custom-') && (
+                  <Ionicons name="chatbox-outline" size={12} color={theme.primary} style={styles.customIcon} />
+                )}
                 <Text style={styles.recentText} numberOfLines={1}>
                   {phrase.text}
                 </Text>
@@ -785,12 +999,17 @@ const AACBoardScreen: React.FC = () => {
             editable={!isSpeaking}
           />
           {customMessage.length > 0 && !isSpeaking && (
-            <TouchableOpacity style={styles.clearButton} onPress={() => setCustomMessage('')}>
-              <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
-            </TouchableOpacity>
+            <View style={styles.inputActions}>
+              <TouchableOpacity style={styles.inputActionButton} onPress={() => handleAddPhraseWithText(customMessage.trim())}>
+                <Ionicons name="bookmark-outline" size={20} color={theme.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.inputActionButton} onPress={() => setCustomMessage('')}>
+                <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
+              </TouchableOpacity>
+            </View>
           )}
           {isSpeaking && (
-            <TouchableOpacity style={styles.clearButton} onPress={handleStopSpeaking}>
+            <TouchableOpacity style={styles.inputActionButton} onPress={handleStopSpeaking}>
               <Ionicons name="stop-circle" size={20} color={theme.primary} />
             </TouchableOpacity>
           )}
@@ -816,7 +1035,7 @@ const AACBoardScreen: React.FC = () => {
         visible={sentenceFormVisible}
         onClose={() => setSentenceFormVisible(false)}
         onSave={handleSaveSentence}
-        categories={categories}
+        categories={categories.filter(cat => cat.id !== 'all')}
         editSentence={editingSentence}
         currentLanguage={currentLanguage}
       />
@@ -838,6 +1057,52 @@ const makeStyles = (theme: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  limitBanner: {
+    backgroundColor: theme.error || '#EF4444',
+    padding: 8,
+    width: '100%',
+  },
+  limitBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  limitBannerText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  limitBannerButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  limitBannerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -846,11 +1111,6 @@ const makeStyles = (theme: any) => StyleSheet.create({
     height: 60,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.text,
   },
   headerActions: {
     flexDirection: 'row',
@@ -925,6 +1185,15 @@ const makeStyles = (theme: any) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border,
   },
+  customRecentButton: {
+    borderColor: theme.primary,
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  customIcon: {
+    marginRight: 5,
+  },
   recentText: {
     color: theme.text,
     fontSize: 14,
@@ -992,7 +1261,11 @@ const makeStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     maxHeight: 80,
   },
-  clearButton: {
+  inputActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputActionButton: {
     padding: 5,
   },
   speakButton: {
@@ -1087,6 +1360,9 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   stopButton: {
     padding: 2,
+  },
+  helpButton: {
+    padding: 8,
   },
 });
 
