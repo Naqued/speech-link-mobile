@@ -894,7 +894,7 @@ const AACBoardScreen: React.FC = () => {
         </TouchableOpacity>
       )}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>{t('aac.title')}</Text>
+        <Text style={styles.headerTitle}>{t('aac.title') || 'AAC Board'}</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
             <Ionicons name="folder-outline" size={24} color={theme.primary} />
@@ -969,7 +969,7 @@ const AACBoardScreen: React.FC = () => {
             (categories.find(c => c.id === selectedCategory)?.isGlobal 
               ? t(`aac.categories.${selectedCategory}`) 
               : categories.find(c => c.id === selectedCategory)?.name || '')
-          ) : t('aac.title')}
+          ) : t('aac.title') || 'AAC Board'}
         </Text>
         <FlatList
           data={selectedCategory === 'all' ? allPhrases : (phrases[selectedCategory] || [])}

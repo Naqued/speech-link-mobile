@@ -31,7 +31,15 @@
       "permissions": [
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS"
-      ]
+      ],
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "buildToolsVersion": "35.0.0",
+      "manifest": {
+        "application": {
+          "android:supports16KbPages": true
+        }
+      }
     },
     "ios": {
       "bundleIdentifier": "com.naqued.speechlinkmobile",
