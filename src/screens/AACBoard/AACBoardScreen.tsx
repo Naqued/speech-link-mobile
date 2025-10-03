@@ -13,11 +13,13 @@ import {
   Linking,
   Dimensions,
   Animated,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Modal
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import * as Speech from 'expo-speech';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
@@ -49,6 +51,230 @@ import DiscordIndicator from '../../components/UI/DiscordIndicator';
 // Debug utilities (development only)
 import { quickHindiTest } from '../../utils/debugHindiAPI';
 
+// Typing Modal Component - moved outside to prevent re-renders
+const TypingModal: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  customMessage: string;
+  onChangeText: (text: string) => void;
+  isSpeaking: boolean;
+  isLoadingAudio: boolean;
+  onSpeak: () => Promise<void>;
+  onSave: () => void;
+  onClear: () => void;
+  onStop: () => void;
+  theme: any;
+  t: any;
+}> = React.memo(({
+  visible,
+  onClose,
+  customMessage,
+  onChangeText,
+  isSpeaking,
+  isLoadingAudio,
+  onSpeak,
+  onSave,
+  onClear,
+  onStop,
+  theme,
+  t
+}) => {
+  const styles = makeTypingModalStyles(theme);
+  
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Ionicons name="close" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>{t('aacBoard.customMessage')}</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardContainer}
+        >
+          <View style={styles.content}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder={isSpeaking ? t('general.loading') : t('home.typeMessage')}
+                placeholderTextColor={theme.text + '80'}
+                value={customMessage}
+                onChangeText={onChangeText}
+                multiline
+                maxLength={200}
+                editable={!isSpeaking}
+                autoFocus
+                textAlignVertical="top"
+              />
+              <Text style={styles.characterCount}>
+                {customMessage.length}/200
+              </Text>
+            </View>
+            
+            <View style={styles.actions}>
+              {customMessage.length > 0 && !isSpeaking && (
+                <>
+                  <TouchableOpacity style={styles.actionButton} onPress={onSave}>
+                    <Ionicons name="bookmark-outline" size={24} color={theme.primary} />
+                    <Text style={styles.actionText}>{t('general.save')}</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.actionButton} onPress={onClear}>
+                    <Ionicons name="trash-outline" size={24} color={theme.text + '80'} />
+                    <Text style={styles.actionText}>{t('home.clearText')}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              
+              {isSpeaking && (
+                <TouchableOpacity style={styles.actionButton} onPress={onStop}>
+                  <Ionicons name="stop-circle" size={24} color={theme.error || '#EF4444'} />
+                  <Text style={styles.actionText}>{t('general.stop')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            <TouchableOpacity
+              style={[
+                styles.speakButton,
+                (!customMessage.trim() || isSpeaking) && styles.speakButtonDisabled,
+              ]}
+              onPress={async () => {
+                await onSpeak();
+                if (!isSpeaking) {
+                  onClose();
+                }
+              }}
+              disabled={!customMessage.trim() || isSpeaking}
+            >
+              {isLoadingAudio && isSpeaking ? (
+                <ActivityIndicator size="large" color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="volume-high" size={32} color="#FFFFFF" />
+                  <Text style={styles.speakButtonText}>
+                    {t('aacBoard.speak')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </Modal>
+  );
+});
+
+// Typing Modal Styles
+const makeTypingModalStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.text,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  keyboardContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  inputContainer: {
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 15,
+    padding: 20,
+    flex: 1,
+    maxHeight: 300,
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  input: {
+    flex: 1,
+    color: theme.text,
+    fontSize: 18,
+    lineHeight: 24,
+    textAlignVertical: 'top',
+  },
+  characterCount: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    color: theme.text + '80',
+    fontSize: 14,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 20,
+  },
+  actionButton: {
+    alignItems: 'center',
+    padding: 15,
+  },
+  actionText: {
+    color: theme.text,
+    fontSize: 14,
+    marginTop: 5,
+    fontWeight: '500',
+  },
+  speakButton: {
+    backgroundColor: theme.primary,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    shadowColor: theme.shadowColor,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  speakButtonDisabled: {
+    backgroundColor: theme.primary + '60',
+  },
+  speakButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+});
+
 // Default categories with icons (used as fallback)
 const DEFAULT_CATEGORIES: CategoryUIModel[] = [
   { id: 'basicNeeds', name: 'Basic Needs', icon: 'water-outline', color: '#4F46E5', order: 0, isGlobal: true },
@@ -72,9 +298,10 @@ const ALL_CATEGORY: CategoryUIModel = {
 const AACBoardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useContext(ThemeContext);
-  const { speak, stopSpeaking, isPlaying: ttsIsPlaying } = useTextToSpeech();
+  const { speak, stopSpeaking, isPlaying: ttsIsPlaying, selectedAudioDevice, forceAudioDevice } = useTextToSpeech();
   const { userSettings } = useVoiceSettings();
   const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
+  const navigation = useNavigation();
   
   // Safe area insets for proper layout handling
   const insets = useSafeAreaInsets();
@@ -131,6 +358,7 @@ const AACBoardScreen: React.FC = () => {
   const [editingSentence, setEditingSentence] = useState<SentenceUIModel | undefined>(undefined);
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryUIModel | undefined>(undefined);
+  const [typingModalVisible, setTypingModalVisible] = useState(false);
 
   // Add state for Discord streaming
   const [isStreamingToDiscord, setIsStreamingToDiscord] = useState(false);
@@ -968,6 +1196,32 @@ const AACBoardScreen: React.FC = () => {
             title={t('aac.title')}
             rightComponent={
               <View style={styles.headerActions}>
+                <TouchableOpacity 
+                  style={styles.headerButton} 
+                  onPress={async () => {
+                    try {
+                      await forceAudioDevice();
+                      Alert.alert(
+                        t('audioOutput.success') || 'Success',
+                        t('audioOutput.deviceForced') || `Audio forced to ${selectedAudioDevice}`
+                      );
+                    } catch (error) {
+                      Alert.alert(
+                        t('general.error') || 'Error',
+                        t('audioOutput.forceFailed') || 'Failed to force audio device'
+                      );
+                    }
+                  }}
+                  onLongPress={() => {
+                    navigation.navigate('AudioOutputSettings' as never);
+                  }}
+                >
+                  <Ionicons 
+                    name={selectedAudioDevice === 'speaker' ? 'volume-high' : selectedAudioDevice === 'bluetooth' ? 'bluetooth' : 'headset'} 
+                    size={24} 
+                    color={theme.primary} 
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
                   <Ionicons name="folder-outline" size={24} color={theme.primary} />
                 </TouchableOpacity>
@@ -1077,8 +1331,9 @@ const AACBoardScreen: React.FC = () => {
                         </View>
                       ) : (
                         <ScrollView 
-                          showsVerticalScrollIndicator={false}
+                          showsVerticalScrollIndicator={true}
                           contentContainerStyle={styles.categoriesListLandscape}
+                          nestedScrollEnabled={true}
                         >
                           {categories.map((item) => (
                             <View key={item.id}>
@@ -1108,7 +1363,6 @@ const AACBoardScreen: React.FC = () => {
                               inputRange: [0, 1],
                               outputRange: [0, 100], // Appropriate height for landscape header + content
                             }),
-                            overflow: 'hidden',
                           },
                         ]}
                       >
@@ -1126,8 +1380,9 @@ const AACBoardScreen: React.FC = () => {
                         </TouchableOpacity>
                         <ScrollView
                           horizontal
-                          showsHorizontalScrollIndicator={false}
+                          showsHorizontalScrollIndicator={true}
                           contentContainerStyle={styles.recentScrollViewLandscape}
+                          nestedScrollEnabled={true}
                         >
                           {recentPhrases.slice(0, 3).map((phrase) => (
                             <TouchableOpacity
@@ -1171,6 +1426,8 @@ const AACBoardScreen: React.FC = () => {
                         numColumns={3}
                         contentContainerStyle={styles.phrasesList}
                         ListEmptyComponent={renderEmptyPhrases}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
                       />
                     </View>
                   </View>
@@ -1277,6 +1534,8 @@ const AACBoardScreen: React.FC = () => {
                       numColumns={2}
                       contentContainerStyle={styles.phrasesList}
                       ListEmptyComponent={renderEmptyPhrases}
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
                     />
                   </View>
                 </View>
@@ -1285,33 +1544,51 @@ const AACBoardScreen: React.FC = () => {
             
             {/* Custom Message Container - positioned at bottom */}
             <View style={styles.customMessageContainer}>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder={isSpeaking ? t('general.loading') : t('aacBoard.customMessage')}
-                  placeholderTextColor={theme.text + '80'}
-                  value={customMessage}
-                  onChangeText={setCustomMessage}
-                  multiline
-                  maxLength={100}
-                  editable={!isSpeaking}
-                />
+              <TouchableOpacity 
+                style={styles.inputContainer}
+                onPress={() => setTypingModalVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.input,
+                  { color: customMessage ? theme.text : theme.text + '80' }
+                ]}>
+                  {customMessage || (isSpeaking ? t('general.loading') : t('home.typeMessage'))}
+                </Text>
                 {customMessage.length > 0 && !isSpeaking && (
                   <View style={styles.inputActions}>
-                    <TouchableOpacity style={styles.inputActionButton} onPress={() => handleAddPhraseWithText(customMessage.trim())}>
+                    <TouchableOpacity 
+                      style={styles.inputActionButton} 
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleAddPhraseWithText(customMessage.trim());
+                      }}
+                    >
                       <Ionicons name="bookmark-outline" size={20} color={theme.primary} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.inputActionButton} onPress={() => setCustomMessage('')}>
+                    <TouchableOpacity 
+                      style={styles.inputActionButton} 
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setCustomMessage('');
+                      }}
+                    >
                       <Ionicons name="close-circle" size={20} color={theme.text + '80'} />
                     </TouchableOpacity>
                   </View>
                 )}
                 {isSpeaking && (
-                  <TouchableOpacity style={styles.inputActionButton} onPress={handleStopSpeaking}>
+                  <TouchableOpacity 
+                    style={styles.inputActionButton} 
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleStopSpeaking();
+                    }}
+                  >
                     <Ionicons name="stop-circle" size={20} color={theme.primary} />
                   </TouchableOpacity>
                 )}
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.speakButton,
@@ -1349,6 +1626,22 @@ const AACBoardScreen: React.FC = () => {
           />
         </View>
       </KeyboardAvoidingView>
+      
+      {/* Typing Modal */}
+      <TypingModal
+        visible={typingModalVisible}
+        onClose={() => setTypingModalVisible(false)}
+        customMessage={customMessage}
+        onChangeText={setCustomMessage}
+        isSpeaking={isSpeaking}
+        isLoadingAudio={isLoadingAudio}
+        onSpeak={speakCustomMessage}
+        onSave={() => handleAddPhraseWithText(customMessage.trim())}
+        onClear={() => setCustomMessage('')}
+        onStop={handleStopSpeaking}
+        theme={theme}
+        t={t}
+      />
     </SafeAreaView>
   );
 };
@@ -1482,7 +1775,7 @@ const makeStyles = (theme: any) => StyleSheet.create({
     marginTop: 15,
   },
   phrasesList: {
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   phraseButton: {
     flex: 1,
@@ -1513,7 +1806,8 @@ const makeStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderTopWidth: 1,
     borderTopColor: theme.border,
     backgroundColor: theme.card,
@@ -1700,6 +1994,7 @@ const makeStyles = (theme: any) => StyleSheet.create({
   recentContainerLandscape: {
     marginTop: 15,
     paddingHorizontal: 20,
+    overflow: 'hidden',
   },
   sectionTitleSmall: {
     fontSize: 14,

@@ -4,18 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Switch,
   TouchableOpacity,
   Alert,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
-import { useTextToSpeech } from '../../hooks/useTextToSpeech';
-import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { Audio } from 'expo-av';
 
 const AudioOutputSettings: React.FC = () => {
@@ -23,15 +21,27 @@ const AudioOutputSettings: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   const styles = makeStyles(theme);
 
-  const { isAudioRoutingEnabled, toggleAudioRouting } = useTextToSpeech();
-  const { userSettings, updateVoiceSettings } = useVoiceSettings();
+  // Audio routing removed - not functional on Android due to OS restrictions
 
   const [availableDevices, setAvailableDevices] = useState<string[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>('speaker');
 
   useEffect(() => {
     loadAudioDevices();
+    loadSavedDevicePreference();
   }, []);
+
+  const loadSavedDevicePreference = async () => {
+    try {
+      const savedDevice = await AsyncStorage.getItem('selectedAudioDevice');
+      if (savedDevice) {
+        setSelectedDevice(savedDevice);
+        console.log('[Audio] Loaded saved device preference:', savedDevice);
+      }
+    } catch (error) {
+      console.error('[Audio] Failed to load device preference:', error);
+    }
+  };
 
   const loadAudioDevices = async () => {
     try {
@@ -46,42 +56,6 @@ const AudioOutputSettings: React.FC = () => {
     }
   };
 
-  const handleToggleAudioRouting = async (value: boolean) => {
-    if (value) {
-      // Show confirmation dialog when enabling
-      Alert.alert(
-        t('audioOutput.confirmEnableTitle') || 'Enable Audio Routing',
-        t('audioOutput.confirmEnableMessage') || 'This will route audio output to the selected device. Some apps may hear your TTS voice.',
-        [
-          {
-            text: t('general.cancel') || 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: t('general.enable') || 'Enable',
-            onPress: async () => {
-              const success = await toggleAudioRouting(true);
-              if (!success) {
-                Alert.alert(
-                  t('general.error') || 'Error',
-                  t('audioOutput.enableFailed') || 'Failed to enable audio routing'
-                );
-              }
-            },
-          },
-        ]
-      );
-    } else {
-      // No confirmation needed when disabling
-      const success = await toggleAudioRouting(false);
-      if (!success) {
-        Alert.alert(
-          t('general.error') || 'Error',
-          t('audioOutput.disableFailed') || 'Failed to disable audio routing'
-        );
-      }
-    }
-  };
 
   const handleSelectDevice = async (device: string) => {
     try {
@@ -97,44 +71,38 @@ const AudioOutputSettings: React.FC = () => {
       if (Platform.OS === 'android') {
         switch (device) {
           case 'speaker':
-            audioMode.androidAudioMode = 'speakerphone';
+            audioMode.shouldDuckAndroid = false;
             break;
           case 'earpiece':
-            audioMode.androidAudioMode = 'in_call';
+            audioMode.shouldDuckAndroid = true;
             break;
           case 'bluetooth':
-            audioMode.androidAudioMode = 'bluetooth';
+            audioMode.shouldDuckAndroid = false;
             break;
           case 'wired':
-            audioMode.androidAudioMode = 'wired';
+            audioMode.shouldDuckAndroid = false;
             break;
         }
       } else if (Platform.OS === 'ios') {
         switch (device) {
           case 'speaker':
             audioMode.allowsRecordingIOS = false;
-            audioMode.interruptionModeIOS = Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX;
             break;
           case 'earpiece':
             audioMode.allowsRecordingIOS = false;
-            audioMode.interruptionModeIOS = Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX;
             break;
           case 'bluetooth':
             audioMode.allowsRecordingIOS = true;
-            audioMode.interruptionModeIOS = Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS;
             break;
         }
       }
 
       await Audio.setAudioModeAsync(audioMode);
 
-      // Save preference
-      if (userSettings?.voiceSettings) {
-        await updateVoiceSettings({
-          ...userSettings.voiceSettings,
-          audioOutputDevice: device,
-        });
-      }
+      // Save preference locally only (device-specific, not synced to backend)
+      await AsyncStorage.setItem('selectedAudioDevice', device);
+      
+      console.log('[Audio] Device preference saved locally:', device);
 
       Alert.alert(
         t('audioOutput.success') || 'Success',
@@ -222,47 +190,6 @@ const AudioOutputSettings: React.FC = () => {
       <ScreenHeader title={t('audioOutput.title') || 'Audio Output'} showBackButton />
 
       <ScrollView style={styles.scrollView}>
-        {/* Audio Routing Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            {t('audioOutput.audioRouting') || 'Audio Routing'}
-          </Text>
-          <Text style={styles.sectionDescription}>
-            {t('audioOutput.audioRoutingDesc') ||
-              'Route synthesized speech to virtual audio input (microphone) so other apps can hear it'}
-          </Text>
-          <View style={styles.routingToggle}>
-            <View style={styles.routingInfo}>
-              <Ionicons name="mic-outline" size={24} color={theme.primary} />
-              <View style={styles.routingTextContainer}>
-                <Text style={styles.routingTitle}>
-                  {t('audioOutput.routeToMicrophone') || 'Route to Microphone'}
-                </Text>
-                <Text style={styles.routingDescription}>
-                  {t('audioOutput.routeToMicrophoneDesc') ||
-                    'Enable to use with Discord, Zoom, etc.'}
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={isAudioRoutingEnabled}
-              onValueChange={handleToggleAudioRouting}
-              trackColor={{ false: theme.border, true: theme.primary + '80' }}
-              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
-              ios_backgroundColor={theme.border}
-            />
-          </View>
-          {Platform.OS === 'android' && (
-            <View style={styles.warningContainer}>
-              <Ionicons name="information-circle-outline" size={20} color={theme.warning} />
-              <Text style={styles.warningText}>
-                {t('audioOutput.androidNote') ||
-                  'Android only: Requires microphone permissions and may not work on all devices'}
-              </Text>
-            </View>
-          )}
-        </View>
-
         {/* Audio Output Device Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -287,7 +214,7 @@ const AudioOutputSettings: React.FC = () => {
               </Text>
               <Text style={styles.helpText}>
                 {t('audioOutput.helpText') ||
-                  'Audio routing allows you to use your synthesized voice in video calls, voice chats, and other apps that use your microphone. When enabled, the audio is sent to a virtual microphone input that other apps can access.'}
+                  'Select your preferred audio output device. This determines where you\'ll hear the synthesized speech. For communication during calls, use the Discord integration feature which provides better quality.'}
               </Text>
             </View>
           </View>
@@ -321,50 +248,6 @@ const makeStyles = (theme: any) =>
       color: theme.text + '80',
       marginBottom: 16,
       lineHeight: 20,
-    },
-    routingToggle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: theme.card,
-      padding: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    routingInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-      marginRight: 12,
-    },
-    routingTextContainer: {
-      flex: 1,
-      marginLeft: 12,
-    },
-    routingTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.text,
-      marginBottom: 4,
-    },
-    routingDescription: {
-      fontSize: 13,
-      color: theme.text + '60',
-    },
-    warningContainer: {
-      flexDirection: 'row',
-      backgroundColor: theme.warning + '15',
-      padding: 12,
-      borderRadius: 8,
-      marginTop: 12,
-      gap: 8,
-    },
-    warningText: {
-      flex: 1,
-      fontSize: 13,
-      color: theme.warning,
-      lineHeight: 18,
     },
     devicesContainer: {
       gap: 12,

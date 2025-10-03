@@ -23,10 +23,6 @@
   },
   "audioOutput": {
     "title": "Sortie Audio",
-    "audioRouting": "Routage Audio",
-    "audioRoutingDesc": "Acheminer la parole synthétisée vers une entrée audio virtuelle pour que d'autres applications puissent l'entendre",
-    "routeToMicrophone": "Acheminer vers le Microphone",
-    "routeToMicrophoneDesc": "Activer pour utiliser avec Discord, Zoom, etc.",
     "outputDevice": "Périphérique de Sortie",
     "outputDeviceDesc": "Sélectionnez où vous voulez entendre la parole synthétisée",
     "speaker": "Haut-parleur",
@@ -39,16 +35,13 @@
     "wiredDesc": "Acheminer l'audio vers des écouteurs filaires",
     "airplay": "AirPlay",
     "airplayDesc": "Acheminer l'audio vers un appareil AirPlay",
-    "confirmEnableTitle": "Activer le Routage Audio",
-    "confirmEnableMessage": "Cela acheminera la sortie audio vers le périphérique sélectionné. Certaines applications peuvent entendre votre voix TTS.",
-    "enableFailed": "Échec de l'activation du routage audio",
-    "disableFailed": "Échec de la désactivation du routage audio",
     "success": "Succès",
     "deviceChanged": "Périphérique de sortie audio modifié",
     "selectFailed": "Échec de la sélection du périphérique audio",
-    "androidNote": "Android uniquement : Nécessite des permissions de microphone et peut ne pas fonctionner sur tous les appareils",
     "helpTitle": "Comment ça marche ?",
-    "helpText": "Le routage audio vous permet d'utiliser votre voix synthétisée dans les appels vidéo, les chats vocaux et d'autres applications qui utilisent votre microphone. Lorsqu'il est activé, l'audio est envoyé vers une entrée de microphone virtuelle accessible par d'autres applications."
+    "helpText": "Sélectionnez votre périphérique de sortie audio préféré. Cela détermine où vous entendrez la parole synthétisée. Pour la communication pendant les appels, utilisez la fonctionnalité d'intégration Discord qui offre une meilleure qualité.",
+    "deviceForced": "Audio forcé sur le périphérique",
+    "forceFailed": "Échec du forçage du périphérique audio"
   },
   "dictionary": {
     "title": "Dictionnaire",
@@ -454,6 +447,7 @@
     "terms": "Conditions d'Utilisation",
     "logout": "Déconnexion",
     "darkMode": "Mode Sombre",
+    "audio": "Audio",
     "audioSettings": "Paramètres Audio",
     "voiceSettings": "Paramètres Vocaux",
     "autoSpeakEnabled": "Parole Automatique",

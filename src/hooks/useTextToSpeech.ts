@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { ttsService, TTSRequest } from '../services/ttsService';
@@ -8,8 +9,59 @@ import { authService } from '../services/authService';
 import { API_CONFIG } from '../config/api';
 import { audioRoutingService } from '../services/AudioRoutingService';
 import { requestAudioPermissions } from '../utils/permissions';
-import { voiceSettingsService } from '../services/voiceSettingsService';
 import i18next from 'i18next';
+
+// Helper function to configure audio output device
+const configureAudioOutput = async (device: string) => {
+  try {
+    console.log('[Audio] Configuring output device:', device);
+    
+    let audioMode: any = {
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+      shouldDuckAndroid: true,
+    };
+
+    if (Platform.OS === 'android') {
+      switch (device) {
+        case 'speaker':
+          // Force speaker output - use simple audio mode properties
+          audioMode.shouldDuckAndroid = false;
+          break;
+        case 'earpiece':
+          // Earpiece mode
+          audioMode.shouldDuckAndroid = true;
+          break;
+        case 'bluetooth':
+          // Bluetooth mode
+          audioMode.shouldDuckAndroid = false;
+          break;
+        case 'wired':
+          // Wired headset mode
+          audioMode.shouldDuckAndroid = false;
+          break;
+      }
+    } else if (Platform.OS === 'ios') {
+      switch (device) {
+        case 'speaker':
+          audioMode.allowsRecordingIOS = false;
+          break;
+        case 'earpiece':
+          audioMode.allowsRecordingIOS = false;
+          break;
+        case 'bluetooth':
+          audioMode.allowsRecordingIOS = true;
+          break;
+      }
+    }
+
+    await Audio.setAudioModeAsync(audioMode);
+    console.log('[Audio] Successfully configured audio output to:', device);
+  } catch (error) {
+    console.error('[Audio] Failed to configure audio output:', error);
+    throw error;
+  }
+};
 
 export interface UseTextToSpeechResult {
   isLoading: boolean;
@@ -22,6 +74,9 @@ export interface UseTextToSpeechResult {
   stopSpeaking: () => void;
   isAudioRoutingEnabled: boolean;
   toggleAudioRouting: (enabled: boolean) => Promise<boolean>;
+  selectedAudioDevice: string;
+  setAudioDevice: (device: string) => Promise<void>;
+  forceAudioDevice: () => Promise<void>;
 }
 
 export const useTextToSpeech = (): UseTextToSpeechResult => {
@@ -31,16 +86,21 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
   const [error, setError] = useState<string | null>(null);
   const [isAudioRoutingEnabled, setIsAudioRoutingEnabled] = useState<boolean>(false);
 
+  // Track the selected audio device
+  const [selectedAudioDevice, setSelectedAudioDevice] = useState<string>('speaker');
+
   // Initialize audio on mount
   useEffect(() => {
     (async () => {
       try {
-        // Initialize Audio
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: true,
-          shouldDuckAndroid: true,
-        });
+        // Load saved audio device preference
+        const savedDevice = await AsyncStorage.getItem('selectedAudioDevice');
+        if (savedDevice) {
+          setSelectedAudioDevice(savedDevice);
+        }
+        
+        // Initialize Audio with default settings
+        await configureAudioOutput(savedDevice || 'speaker');
       } catch (error) {
         console.error('Failed to initialize audio:', error);
       }
@@ -51,19 +111,20 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
   useEffect(() => {
     const loadAudioRoutingPreference = async () => {
       try {
-        // First try to get from voice settings
-        const userSettings = await voiceSettingsService.getUserSettings();
-        const routingEnabled = userSettings?.voiceSettings?.audioRoutingEnabled || false;
+        // Load from local storage (device-specific preference)
+        const savedRouting = await AsyncStorage.getItem('audioRoutingEnabled');
+        const routingEnabled = savedRouting ? JSON.parse(savedRouting) : false;
         
         // Initialize the audio routing service with this value
         await audioRoutingService.setAudioRoutingEnabled(routingEnabled);
         
         // Set local state
         setIsAudioRoutingEnabled(routingEnabled);
+        console.log('[Audio] Loaded audio routing preference from local storage:', routingEnabled);
       } catch (error) {
-        console.error('Failed to load audio routing preference from voice settings:', error);
-        // Fallback to direct check from service
-        setIsAudioRoutingEnabled(audioRoutingService.isRoutingEnabled());
+        console.error('Failed to load audio routing preference:', error);
+        // Fallback to default
+        setIsAudioRoutingEnabled(false);
       }
     };
     
@@ -99,6 +160,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     try {
       // Stop any current playback
       await stopSpeaking();
+      
+      // Force audio output device before playing
+      await configureAudioOutput(selectedAudioDevice);
+      console.log('[Audio] Forced audio device configuration before playback');
       
       setIsLoading(true);
       setError(null);
@@ -194,7 +259,7 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [stopSpeaking, isAudioRoutingEnabled]);
+  }, [stopSpeaking, isAudioRoutingEnabled, selectedAudioDevice]);
 
   const speak = useCallback(async (
     text: string, 
@@ -254,19 +319,9 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       const success = await audioRoutingService.setAudioRoutingEnabled(enabled);
       
       if (success) {
-        // Also update voice settings
-        try {
-          const userSettings = await voiceSettingsService.getUserSettings();
-          if (userSettings?.voiceSettings) {
-            await voiceSettingsService.updateVoiceSettings({
-              ...userSettings.voiceSettings,
-              audioRoutingEnabled: enabled
-            });
-          }
-        } catch (settingsError) {
-          console.error('Failed to update audio routing in voice settings:', settingsError);
-          // Continue even if settings update fails
-        }
+        // Save preference locally only (device-specific, not synced to backend)
+        await AsyncStorage.setItem('audioRoutingEnabled', JSON.stringify(enabled));
+        console.log('[Audio] Audio routing preference saved locally:', enabled);
         
         // Update local state
         setIsAudioRoutingEnabled(enabled);
@@ -290,6 +345,10 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     try {
       // Stop any current playback
       await stopSpeaking();
+      
+      // Force audio output device before playing
+      await configureAudioOutput(selectedAudioDevice);
+      console.log('[Audio] Forced audio device configuration before preview playback');
       
       setIsLoading(true);
       setError(null);
@@ -412,7 +471,34 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       
       throw err;
     }
-  }, [stopSpeaking, isAudioRoutingEnabled]);
+  }, [stopSpeaking, isAudioRoutingEnabled, selectedAudioDevice]);
+
+  // Function to set and save audio device
+  const setAudioDevice = useCallback(async (device: string) => {
+    try {
+      console.log('[Audio] Setting audio device to:', device);
+      await configureAudioOutput(device);
+      setSelectedAudioDevice(device);
+      await AsyncStorage.setItem('selectedAudioDevice', device);
+      
+      // Note: We don't save to voice settings as audioOutputDevice is not part of the schema
+      // It's saved locally in AsyncStorage only
+    } catch (error) {
+      console.error('Failed to set audio device:', error);
+      throw error;
+    }
+  }, []);
+
+  // Function to force the current audio device configuration
+  const forceAudioDevice = useCallback(async () => {
+    try {
+      console.log('[Audio] Forcing audio device configuration:', selectedAudioDevice);
+      await configureAudioOutput(selectedAudioDevice);
+    } catch (error) {
+      console.error('Failed to force audio device:', error);
+      throw error;
+    }
+  }, [selectedAudioDevice]);
 
   return {
     isLoading,
@@ -424,6 +510,9 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     previewVoice,
     stopSpeaking,
     isAudioRoutingEnabled,
-    toggleAudioRouting
+    toggleAudioRouting,
+    selectedAudioDevice,
+    setAudioDevice,
+    forceAudioDevice
   };
 }; 
