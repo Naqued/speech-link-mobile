@@ -1,7 +1,22 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../config/api';
+import { 
+  login, 
+  register, 
+  refreshTokens, 
+  requestPasswordReset, 
+  resetPassword, 
+  logout as apiLogout 
+} from '../api/auth';
+import { 
+  LoginCredentials, 
+  RegisterCredentials, 
+  AuthResponse, 
+  PasswordResetConfirm 
+} from '../types/auth';
 
-const TOKEN_STORAGE_KEY = '@speechlink_auth_token';
+const ACCESS_TOKEN_KEY = 'auth_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 
 export interface AuthToken {
   access_token: string;
@@ -24,6 +39,7 @@ class AuthService {
   private token: AuthToken | null = null;
   private tokenRefreshInProgress: boolean = false;
   private authFailedCallbacks: AuthEventCallback[] = [];
+  private refreshTokenPromise: Promise<boolean> | null = null;
 
   private constructor() {}
 
@@ -42,6 +58,123 @@ class AuthService {
   // Trigger auth failed callbacks
   private triggerAuthFailedCallbacks(): void {
     this.authFailedCallbacks.forEach(callback => callback());
+  }
+
+  /**
+   * Login with email and password
+   */
+  public async loginWithCredentials(credentials: LoginCredentials): Promise<AuthResponse> {
+    try {
+      // Call the login API
+      const response = await login(credentials);
+      
+      // Format and save the token
+      const tokenObj: AuthToken = {
+        access_token: response.accessToken || response.access_token || '',
+        token_type: 'bearer',
+        user: response.user,
+        userId: response.user?.id
+      };
+      
+      await this.saveToken(tokenObj);
+      return response;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Register a new user
+   */
+  public async registerUser(credentials: RegisterCredentials): Promise<AuthResponse> {
+    try {
+      const response = await register(credentials);
+      return response;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Request password reset
+   */
+  public async requestPasswordReset(email: string): Promise<{success: boolean}> {
+    try {
+      return await requestPasswordReset(email);
+    } catch (error) {
+      console.error('Password reset request failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reset password
+   */
+  public async resetPassword(resetData: PasswordResetConfirm): Promise<{success: boolean}> {
+    try {
+      return await resetPassword(resetData);
+    } catch (error) {
+      console.error('Password reset failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Logout the user
+   */
+  public async logout(): Promise<void> {
+    try {
+      // Call the logout API
+      await apiLogout();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Continue with local cleanup even if API call fails
+    }
+    
+    // Clear stored tokens
+    await this.clearToken();
+  }
+
+  /**
+   * Refresh the access token
+   */
+  public async refreshAccessToken(): Promise<boolean> {
+    // Prevent multiple concurrent refresh attempts
+    if (this.refreshTokenPromise) {
+      return this.refreshTokenPromise;
+    }
+
+    this.refreshTokenPromise = (async () => {
+      try {
+        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await refreshTokens(refreshToken);
+        
+        // Update the stored token
+        const tokenObj: AuthToken = {
+          access_token: response.accessToken,
+          token_type: 'bearer'
+        };
+        
+        await this.saveToken(tokenObj);
+        return true;
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        // If refresh fails, log the user out
+        await this.clearToken();
+        this.triggerAuthFailedCallbacks();
+        return false;
+      } finally {
+        this.refreshTokenPromise = null;
+      }
+    })();
+
+    return this.refreshTokenPromise;
   }
 
   public async getDevelopmentToken(): Promise<AuthToken> {
@@ -112,9 +245,9 @@ class AuthService {
     }
 
     try {
-      const storedToken = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+      const storedToken = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
       if (storedToken) {
-        this.token = JSON.parse(storedToken);
+        this.token = { access_token: storedToken, token_type: 'bearer' };
         return this.token;
       }
     } catch (error) {
@@ -138,7 +271,7 @@ class AuthService {
         hasExpiresIn: !!token.expires_in,
       });
       
-      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(token));
+      await AsyncStorage.setItem(ACCESS_TOKEN_KEY, token.access_token);
     } catch (error) {
       console.error('Error saving token:', error);
     }
@@ -146,7 +279,7 @@ class AuthService {
 
   public async clearToken(): Promise<void> {
     try {
-      await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
+      await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
       this.token = null;
     } catch (error) {
       console.error('Error clearing token:', error);

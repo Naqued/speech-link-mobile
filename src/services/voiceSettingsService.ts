@@ -15,6 +15,7 @@ export interface VoiceSettings {
   sttProvider?: 'AUTO' | 'DEEPGRAM' | 'WHISPER' | 'SPEECHMATIC' | 'ELEVENLABS';
   enhancementEnabled?: boolean;
   autoSpeakEnabled?: boolean;
+  audioRoutingEnabled?: boolean;
 }
 
 export interface FavoriteVoice {
@@ -182,7 +183,8 @@ class VoiceSettingsService {
         provider: 'ELEVENLABS',
         voiceId: '',
         enhancementEnabled: false,
-        autoSpeakEnabled: false
+        autoSpeakEnabled: false,
+        audioRoutingEnabled: false
       },
       favorites: {
         voices: [],

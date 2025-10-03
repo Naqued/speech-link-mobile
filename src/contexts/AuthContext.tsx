@@ -51,19 +51,37 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const signIn = async (token: string) => {
     try {
+      if (!token) {
+        console.error('Attempted to sign in with null/undefined token');
+        setAuthError('Invalid authentication token');
+        return;
+      }
+      
       // Instead of just saving the token string, create a proper token object
       const tokenObj = {
         access_token: token,
         token_type: 'bearer'
       };
       
+      console.log('Signing in with token:', { 
+        tokenLength: token.length,
+        tokenStart: token.substring(0, 10) + '...'
+      });
+      
+      // Save the token using our auth service
       await authService.saveToken(tokenObj);
+      
+      // Update the state with the token
       setUserToken(token);
       setAuthError(null);
+      
       // Reset auth failure flag when user logs in
       apiService.resetAuthFailureHandled();
+      
+      console.log('Successfully signed in and saved token');
     } catch (e) {
       console.error('Failed to save auth token', e);
+      setAuthError('Failed to save authentication credentials');
     }
   };
 

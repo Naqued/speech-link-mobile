@@ -1,8 +1,8 @@
 import { apiService } from './apiService';
-import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { authService } from './authService';
 import { API_CONFIG } from '../config/api';
+import { Audio } from 'expo-av';
 
 export interface TTSRequest {
   text: string;
@@ -319,15 +319,15 @@ class TTSService {
         encoding: FileSystem.EncodingType.Base64
       });
 
-      console.log('File written successfully, creating Sound object with Expo AV...');
+      console.log('File written successfully, creating Sound object with expo-av...');
 
-      // Create and return Expo AV Sound object
+      // Create and load the sound using expo-av
       const { sound } = await Audio.Sound.createAsync(
         { uri: fileUri },
         { shouldPlay: false }
       );
       
-      console.log('Expo AV Sound object created successfully');
+      console.log('expo-av Sound object created successfully');
       return sound;
     } catch (error) {
       console.error('Error in ttsService.generateSpeech:', error);

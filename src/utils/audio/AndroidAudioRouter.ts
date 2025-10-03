@@ -1,5 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { NativeModuleChecker } from './NativeModuleChecker';
 
 // Define interface for our native module
 interface AudioRouterModule {
@@ -7,16 +8,45 @@ interface AudioRouterModule {
   stopAudioRouting(): Promise<void>;
 }
 
-// Native module must be implemented in Java/Kotlin
-const { AudioRouterModule } = NativeModules;
+// Enhanced error handling for native module
+const getAudioRouterModule = () => {
+  const { AudioRouterModule } = NativeModules;
+  
+  // Check if module is available using our utility
+  const isAvailable = NativeModuleChecker.isAudioRouterModuleAvailable();
+  
+  if (!isAvailable) {
+    console.warn('AudioRouterModule is not available. Using mock implementation instead.');
+    // Provide a mock implementation for development
+    return {
+      routeAudioToMicrophone: async (filePath: string): Promise<boolean> => {
+        console.log('[MOCK] routeAudioToMicrophone called with:', filePath);
+        return true;
+      },
+      stopAudioRouting: async (): Promise<void> => {
+        console.log('[MOCK] stopAudioRouting called');
+      }
+    };
+  }
+  
+  return AudioRouterModule;
+};
 
 export class AndroidAudioRouter {
   private isRouting = false;
+  private AudioRouterModule: AudioRouterModule | null = null;
+
+  // Static method to check module availability
+  static isModuleAvailable(): boolean {
+    return NativeModuleChecker.isAudioRouterModuleAvailable();
+  }
 
   constructor() {
     // Verify the module exists
-    if (!AudioRouterModule) {
-      console.error('AudioRouterModule is not available');
+    this.AudioRouterModule = getAudioRouterModule();
+    
+    if (this.AudioRouterModule) {
+      console.log('AudioRouter initialized successfully');
     }
   }
 
@@ -24,6 +54,11 @@ export class AndroidAudioRouter {
     try {
       if (Platform.OS !== 'android') {
         throw new Error('This module only works on Android');
+      }
+
+      if (!this.AudioRouterModule) {
+        console.error('Cannot route audio: AudioRouterModule is not available');
+        return false;
       }
 
       // Convert ArrayBuffer to base64 string
@@ -35,8 +70,10 @@ export class AndroidAudioRouter {
         encoding: FileSystem.EncodingType.Base64,
       });
 
+      console.log('Calling routeAudioToMicrophone with file path:', filePath);
+      
       // Call native module to route audio
-      const result = await AudioRouterModule.routeAudioToMicrophone(filePath);
+      const result = await this.AudioRouterModule.routeAudioToMicrophone(filePath);
       this.isRouting = result;
       return result;
     } catch (error) {
@@ -46,9 +83,13 @@ export class AndroidAudioRouter {
   }
 
   async stopAudioRouting(): Promise<void> {
-    if (this.isRouting && AudioRouterModule) {
-      await AudioRouterModule.stopAudioRouting();
-      this.isRouting = false;
+    if (this.isRouting && this.AudioRouterModule) {
+      try {
+        await this.AudioRouterModule.stopAudioRouting();
+        this.isRouting = false;
+      } catch (error) {
+        console.error('Error stopping audio routing:', error);
+      }
     }
   }
 

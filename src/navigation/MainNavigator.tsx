@@ -17,6 +17,9 @@ import SettingsScreen from '../screens/Settings/SettingsScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import VoiceSettingsScreen from '../screens/VoiceSettings/VoiceSettingsScreen';
 import AudioOutputSettings from '../screens/Settings/AudioOutputSettings';
+import AboutScreen from '../screens/About/AboutScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicy/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/TermsOfService/TermsOfServiceScreen';
 
 // Types
 export type MainTabParamList = {
@@ -29,10 +32,13 @@ export type MainTabParamList = {
 };
 
 export type MainStackParamList = {
-  Main: undefined;
+  MainTabs: undefined;
   Profile: undefined;
   VoiceSettings: undefined;
   AudioOutputSettings: undefined;
+  About: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -111,17 +117,22 @@ const MainTabs = () => {
   );
 };
 
-export const MainNavigator = () => {
+const MainNavigator: React.FC = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: false
       }}
     >
-      <Stack.Screen name="Main" component={MainTabs} />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="VoiceSettings" component={VoiceSettingsScreen} />
       <Stack.Screen name="AudioOutputSettings" component={AudioOutputSettings} />
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
-}; 
+};
+
+export default MainNavigator; 

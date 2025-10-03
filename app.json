@@ -23,11 +23,15 @@
       }
     },
     "newArchEnabled": true,
-    "scheme": "speechlinkmobile",
+    "scheme": "com.naqued.speechlinkmobile",
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "permissions": ["INTERNET"],
+      "permissions": [
+        "INTERNET",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ],
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
       "buildToolsVersion": "35.0.0",
@@ -43,6 +47,23 @@
     },
     "cli": {
       "appVersionSource": "remote"
+    },
+    "plugins": [
+      "./app.plugin.js"
+    ],
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-audio-recorder-player",
+          "react-native-fs",
+          "react-native-sound",
+          "@expo/metro-runtime",
+          "i18next",
+          "socket.io-client",
+          "@naqued/speech-link-mobile"
+        ],
+        "listUnknownPackages": false
+      }
     }
   }
 }

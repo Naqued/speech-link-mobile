@@ -20,9 +20,11 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 import { VoiceSettings } from '../../services/voiceSettingsService';
 import { Audio } from 'expo-av';
 import { apiService } from '../../services/apiService';
+import { useTranslation } from 'react-i18next';
 
 const VoiceSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
   const { 
     userSettings, 
     availableVoices, 
@@ -34,13 +36,30 @@ const VoiceSettingsScreen: React.FC = () => {
     refreshSettings
   } = useVoiceSettings();
   
-  const { speak, isLoading: isSpeaking, previewVoice } = useTextToSpeech();
+  const { 
+    speak, 
+    isLoading: isSpeaking, 
+    previewVoice,
+    isAudioRoutingEnabled,
+    toggleAudioRouting 
+  } = useTextToSpeech();
   
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  // Clean up audio resources on unmount
+  useEffect(() => {
+    return () => {
+      if (previewSound) {
+        previewSound.unloadAsync().catch(err => {
+          console.error('Error unloading sound on cleanup:', err);
+        });
+      }
+    };
+  }, [previewSound]);
 
   // Filter voices based on current filters
   const filteredVoices = availableVoices.filter(voice => {
@@ -109,13 +128,15 @@ const VoiceSettingsScreen: React.FC = () => {
 
       // Use the previewVoice function from useTextToSpeech hook
       // Pass the publicOwnerId and voiceName for shared voices
-      await previewVoice(
+      const sound = await previewVoice(
         voice.id, 
         voice.provider, 
         voice.public_owner_id || voice.publicOwnerId, 
         voice.name
       );
-      
+
+      // Store the sound for cleanup later
+      setPreviewSound(sound);
       setIsPreviewLoading(false);
     } catch (error) {
       console.error('Error previewing voice:', error);
@@ -148,6 +169,37 @@ const VoiceSettingsScreen: React.FC = () => {
       });
     } catch (err) {
       Alert.alert('Error', 'Failed to update enhancement setting');
+    }
+  };
+
+  const handleToggleAudioRouting = async (value: boolean) => {
+    if (value) {
+      // Show confirmation dialog when enabling
+      Alert.alert(
+        t('voice_settings.audio_routing.confirmation_title'),
+        t('voice_settings.audio_routing.confirmation_message'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('general.enable'),
+            onPress: async () => {
+              const success = await toggleAudioRouting(true);
+              if (!success) {
+                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed', 'Failed to enable audio routing'));
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // No confirmation needed when disabling
+      const success = await toggleAudioRouting(false);
+      if (!success) {
+        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed', 'Failed to disable audio routing'));
+      }
     }
   };
 
@@ -252,6 +304,34 @@ const VoiceSettingsScreen: React.FC = () => {
               thumbColor={userSettings?.voiceSettings?.enhancementEnabled ? theme.primary : '#f4f3f4'}
             />
           </View>
+          
+          {/* Audio routing feature hidden until native implementation is complete
+          <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+            <View style={styles.settingLabelContainer}>
+              <Text style={[styles.settingLabel, { color: theme.text }]}>
+                Route Audio to Microphone
+              </Text>
+              <Text style={[styles.settingDescription, { color: theme.text + '80' }]}>
+                Send synthesized speech to the microphone for use in other apps
+              </Text>
+            </View>
+            <Switch
+              value={isAudioRoutingEnabled}
+              onValueChange={handleToggleAudioRouting}
+              disabled={isLoading}
+              trackColor={{ false: '#767577', true: theme.primary + '50' }}
+              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
+            />
+          </View>
+          
+          {isAudioRoutingEnabled && (
+            <View style={styles.warningContainer}>
+              <Text style={[styles.warningText, { color: '#FF9500' }]}>
+                This feature routes audio to your microphone, allowing other apps to receive your synthesized voice.
+              </Text>
+            </View>
+          )}
+          */}
         </View>
         
         <View style={styles.section}>
@@ -333,6 +413,23 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
+  },
+  settingLabelContainer: {
+    flex: 1,
+  },
+  settingDescription: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  warningContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
   },
   filterButton: {
     flexDirection: 'row',

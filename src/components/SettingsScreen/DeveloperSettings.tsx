@@ -1,12 +1,15 @@
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Linking } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Linking, ScrollView } from 'react-native';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { resetService } from '../../services/resetService';
 import { AuthContext } from '../../contexts/AuthContext';
+import { NativeModuleChecker } from '../../utils/audio/NativeModuleChecker';
 
 const DeveloperSettings = () => {
   const { theme } = useContext(ThemeContext);
   const { signOut } = useContext(AuthContext);
+  const [nativeModules, setNativeModules] = useState<string[]>([]);
+  const [showModules, setShowModules] = useState(false);
 
   const handleResetApp = () => {
     Alert.alert(
@@ -100,6 +103,21 @@ const DeveloperSettings = () => {
     );
   };
 
+  const checkNativeModules = () => {
+    const modules = NativeModuleChecker.listAvailableModules();
+    setNativeModules(modules);
+    setShowModules(true);
+    
+    // Also check for AudioRouterModule specifically
+    const isAudioRouterAvailable = NativeModuleChecker.isAudioRouterModuleAvailable();
+    Alert.alert(
+      'AudioRouterModule Check',
+      isAudioRouterAvailable 
+        ? 'AudioRouterModule is available! ✅' 
+        : 'AudioRouterModule is NOT available! ❌\n\nCheck the list of available modules below.'
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.sectionTitle, { color: theme.text }]}>Developer Settings</Text>
@@ -116,6 +134,32 @@ const DeveloperSettings = () => {
       <Text style={[styles.warningText, { color: theme.error }]}>
         Warning: Resetting the app will clear all cached data and preferences.
       </Text>
+      
+      <View style={[styles.section, { marginTop: 24 }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Native Module Checker</Text>
+        
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: theme.primary }]}
+          onPress={checkNativeModules}
+        >
+          <Text style={styles.buttonText}>Check Native Modules</Text>
+        </TouchableOpacity>
+        
+        {showModules && (
+          <View style={[styles.modulesContainer, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modulesTitle, { color: theme.text }]}>
+              Available Native Modules ({nativeModules.length}):
+            </Text>
+            <ScrollView style={styles.modulesList}>
+              {nativeModules.map((moduleName, index) => (
+                <Text key={index} style={[styles.moduleItem, { color: moduleName === 'AudioRouterModule' ? theme.success : theme.text }]}>
+                  {moduleName} {moduleName === 'AudioRouterModule' ? '✓' : ''}
+                </Text>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -155,6 +199,41 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 8,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  actionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  modulesContainer: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    maxHeight: 250,
+  },
+  modulesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  modulesList: {
+    maxHeight: 200,
+  },
+  moduleItem: {
+    fontSize: 12,
+    paddingVertical: 4,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   }
 });
 

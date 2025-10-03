@@ -20,6 +20,8 @@ import { useTranslation } from 'react-i18next';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
+import * as Crypto from 'expo-crypto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
@@ -39,9 +41,32 @@ type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'
 
 WebBrowser.maybeCompleteAuthSession();
 
-const redirectUri = makeRedirectUri({
-  native: 'com.naqued.speechlinkmobile://'
-});
+// Constants for PKCE
+const CODE_VERIFIER_KEY = 'google_auth_code_verifier';
+
+// Function to generate a random code verifier
+const generateCodeVerifier = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  let result = '';
+  for (let i = 0; i < 128; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+// Function to generate a code challenge from the verifier
+const generateCodeChallenge = async (verifier: string) => {
+  const digest = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    verifier
+  );
+  
+  // Convert hash to base64-url format
+  return Buffer.from(digest).toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+};
 
 const LoginScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -62,11 +87,31 @@ const LoginScreen: React.FC = () => {
     }
   }, [authError]);
 
+  // Generate and store a code verifier on component mount
+  useEffect(() => {
+    const setupCodeVerifier = async () => {
+      const codeVerifier = generateCodeVerifier();
+      await AsyncStorage.setItem(CODE_VERIFIER_KEY, codeVerifier);
+      console.log('Generated and stored code verifier', { length: codeVerifier.length });
+    };
+    
+    setupCodeVerifier();
+  }, []);
+
+  // Get the stored code verifier for Google auth
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com",
-    clientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com",
-    iosClientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com"
+    androidClientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
+    clientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
+    iosClientId: "220772687588-kf2slt096r3gtcjmtkk1c7htou9fnnnr.apps.googleusercontent.com",
+    redirectUri: makeRedirectUri({
+      scheme: "com.naqued.speechlinkmobile"
+    }),
+    responseType: "code",
+    usePKCE: true,
+    scopes: ['openid', 'email', 'profile']
   });
+
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -77,12 +122,71 @@ const LoginScreen: React.FC = () => {
     try {
       setIsLoading(true);
       setLoginError(null);
-      // For demonstration, we're using a mock token
-      // In a real app, you'd make an API call here
-      await signIn('mock-token');
+      
+      // Use our authService to login with credentials
+      const response = await authService.loginWithCredentials({
+        email,
+        password
+      });
+      
+      console.log('Login response received:', {
+        hasAccessToken: !!response.accessToken,
+        hasToken: !!response.token,
+        hasUser: !!response.user
+      });
+      
+      // Check if we have a token in either location
+      const token = response.accessToken || response.token;
+      
+      if (!token) {
+        setLoginError('Login successful but no authentication token received');
+        console.error('No token in login response:', response);
+        return;
+      }
+      
+      // Update auth context with the received token
+      await signIn(token);
     } catch (error) {
-      setLoginError('Login failed');
-      console.error(error);
+      console.error('Login error:', error);
+      
+      // Extract the specific error message
+      let errorMessage = 'Login failed';
+      
+      if (error instanceof Error) {
+        // Try to extract the most useful part of the error message
+        const message = error.message;
+        
+        if (message.includes('Password:')) {
+          // Extract just the password requirements if available
+          const passwordError = message.split('Password:')[1]?.trim();
+          if (passwordError) {
+            errorMessage = `Password error: ${passwordError}`;
+          } else {
+            errorMessage = 'Invalid password';
+          }
+        } else if (message.includes('Email:')) {
+          // Extract just the email error if available
+          const emailError = message.split('Email:')[1]?.split(';')[0]?.trim();
+          if (emailError) {
+            errorMessage = `Email error: ${emailError}`;
+          } else {
+            errorMessage = 'Invalid email address';
+          }
+        } else if (message.includes('INVALID_CREDENTIALS')) {
+          errorMessage = 'Invalid email or password';
+        } else if (message.includes('USER_NOT_FOUND')) {
+          errorMessage = 'No account found with this email address';
+        } else if (message.includes('USER_DISABLED')) {
+          errorMessage = 'This account has been disabled';
+        } else if (message.includes('TOO_MANY_REQUESTS') || message.includes('RATE_LIMITED')) {
+          errorMessage = 'Too many attempts. Please try again later';
+        } else {
+          // Use the full error message if it's not too long
+          errorMessage = message.length > 100 ? message.substring(0, 100) + '...' : message;
+        }
+      }
+      
+      setLoginError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -92,16 +196,59 @@ const LoginScreen: React.FC = () => {
     try {
       setIsLoading(true);
       setLoginError(null);
+      
+      // Prompt user for Google authentication
       const result = await promptAsync();
       
-      if (result?.type === 'success') {
-        const { authentication } = result;
-        const response = await loginWithGoogle(authentication?.accessToken || '');
-        await signIn(response.token);
+      // Log the entire result object
+      console.log('Google Auth Result:', JSON.stringify(result, null, 2));
+      
+      // Check if authentication was successful
+      if (result.type !== 'success') {
+        console.log('Auth failed with type:', result.type);
+        throw new Error('Google sign-in was cancelled or failed');
       }
+      
+      // Check if we have the authorization code
+      if (!result.params?.code) {
+        console.log('No authorization code received:', result);
+        throw new Error('No authorization code received from Google');
+      }
+      
+      console.log('Authorization code received:', result.params.code);
+      
+      // Get the stored code verifier
+      const codeVerifier = await AsyncStorage.getItem(CODE_VERIFIER_KEY);
+      
+      if (!codeVerifier) {
+        console.log('Code verifier not found in storage');
+        throw new Error('Authentication failed: Code verifier is missing');
+      }
+      
+      console.log('Retrieved code verifier from storage', { length: codeVerifier.length });
+      
+      // Send the authorization code and code verifier to our backend
+      const response = await loginWithGoogle(result.params.code, codeVerifier);
+      console.log('Backend response:', JSON.stringify(response, null, 2));
+      
+      // Clear the used code verifier
+      await AsyncStorage.removeItem(CODE_VERIFIER_KEY);
+      
+      // Update the auth context with the received token
+      await signIn(response.token);
+      
     } catch (error) {
       console.error('Google Sign-In error:', error);
-      setLoginError('Google Sign-In failed');
+      setLoginError(`Google Sign-In failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Show alert with more details in development
+      if (__DEV__) {
+        Alert.alert(
+          'Google Sign-In Error',
+          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          [{ text: 'OK' }]
+        );
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   ScrollView,
   Switch,
   Alert,
-  Platform
+  Platform,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
+
+// Hooks
+import { useVoiceSettings } from '../../hooks/useVoiceSettings';
+import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 
 // Components
 import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
@@ -33,6 +38,17 @@ const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { signOut } = useContext(AuthContext);
+  
+  const { 
+    userSettings, 
+    isLoading, 
+    updateVoiceSettings,
+  } = useVoiceSettings();
+
+  const { 
+    isAudioRoutingEnabled,
+    toggleAudioRouting 
+  } = useTextToSpeech();
   
   const isDarkMode = theme.background === themes.dark.background;
 
@@ -63,6 +79,58 @@ const SettingsScreen: React.FC = () => {
         },
       ]
     );
+  };
+
+  const handleToggleAutoSpeakSetting = async (value: boolean) => {
+    if (!userSettings?.voiceSettings) return;
+    
+    try {
+      await updateVoiceSettings({
+        ...userSettings.voiceSettings,
+        autoSpeakEnabled: value
+      });
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update auto-speak setting');
+    }
+  };
+
+  const handleToggleAudioRouting = async (value: boolean) => {
+    if (value) {
+      // Show confirmation dialog when enabling
+      Alert.alert(
+        t('voice_settings.audio_routing.confirmation_title'),
+        t('voice_settings.audio_routing.confirmation_message'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('general.enable'),
+            onPress: async () => {
+              const success = await toggleAudioRouting(true);
+              if (!success) {
+                Alert.alert(t('general.error'), t('voice_settings.audio_routing.enable_failed'));
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // No confirmation needed when disabling
+      const success = await toggleAudioRouting(false);
+      if (!success) {
+        Alert.alert(t('general.error'), t('voice_settings.audio_routing.disable_failed'));
+      }
+    }
+  };
+
+  const handleSubscriptionPress = () => {
+    const url = `https://speech-aac.link/${i18n.language}/profile`;
+    Linking.openURL(url).catch((err) => {
+      console.error('Error opening subscription URL:', err);
+      Alert.alert(t('general.error'), 'Failed to open subscription page');
+    });
   };
 
   const renderSettingItem = (
@@ -132,7 +200,20 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.audio')}</Text>
+          <Text style={styles.sectionTitle}>{t('voice.settings.title')}</Text>
+          {renderSettingItem(
+            'refresh-circle-outline',
+            t('settings.autoSpeakEnabled', 'Auto-Speak'),
+            <Switch
+              value={userSettings?.voiceSettings?.autoSpeakEnabled ?? false}
+              onValueChange={handleToggleAutoSpeakSetting}
+              disabled={isLoading}
+              trackColor={{ false: theme.border, true: theme.primary + '80' }}
+              thumbColor={userSettings?.voiceSettings?.autoSpeakEnabled ? theme.primary : '#f4f3f4'}
+            />,
+            undefined,
+            false
+          )}
           {renderSettingItem(
             'volume-high-outline',
             t('settings.audioOutput'),
@@ -162,18 +243,31 @@ const SettingsScreen: React.FC = () => {
           {renderSettingItem(
             'card-outline',
             t('profile.subscription'),
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumBadgeText}>Premium</Text>
-            </View>,
-            () => navigation.navigate('Profile' as never)
+            undefined,
+            handleSubscriptionPress
           )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
-          {renderSettingItem('information-circle-outline', t('settings.about'))}
-          {renderSettingItem('shield-checkmark-outline', t('settings.privacy'))}
-          {renderSettingItem('document-text-outline', t('settings.terms'))}
+          {renderSettingItem(
+            'information-circle-outline',
+            t('settings.about'),
+            undefined,
+            () => navigation.navigate('About' as never)
+          )}
+          {renderSettingItem(
+            'shield-checkmark-outline',
+            t('settings.privacy'),
+            undefined,
+            () => Linking.openURL(`${process.env.APP_DOMAIN || 'https://speech-aac.link'}/${i18n.language}/privacy-policy`)
+          )}
+          {renderSettingItem(
+            'document-text-outline',
+            t('settings.terms'),
+            undefined,
+            () => Linking.openURL(`${process.env.APP_DOMAIN || 'https://speech-aac.link'}/${i18n.language}/terms-of-service`)
+          )}
         </View>
         
         <View style={styles.section}>
@@ -284,6 +378,16 @@ const makeStyles = (theme: any) => StyleSheet.create({
   languageText: {
     fontSize: 16,
     color: theme.text,
+  },
+  warningContainer: {
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: theme.error + '20',
+    borderRadius: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: theme.error,
   },
   premiumBadge: {
     backgroundColor: theme.primary,
