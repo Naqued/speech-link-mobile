@@ -19,12 +19,15 @@ import AboutScreen from '../screens/About/AboutScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicy/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/TermsOfService/TermsOfServiceScreen';
 import DiscordSettingsScreen from '../screens/Discord/DiscordSettingsScreen';
+import DictionaryScreen from '../screens/Dictionary/DictionaryScreen';
+import AudioOutputSettings from '../screens/Settings/AudioOutputSettings';
 
 // Types
 export type MainTabParamList = {
   Home: undefined;
   AACBoard: undefined;
   VoiceCollection: undefined;
+  Dictionary: undefined;
   History: undefined;
   Settings: undefined;
 };
@@ -36,6 +39,7 @@ export type MainStackParamList = {
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
   DiscordSettings: undefined;
+  AudioOutputSettings: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -57,6 +61,8 @@ const MainTabs = () => {
             iconName = focused ? 'grid' : 'grid-outline';
           } else if (route.name === 'VoiceCollection') {
             iconName = focused ? 'mic' : 'mic-outline';
+          } else if (route.name === 'Dictionary') {
+            iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'History') {
             iconName = focused ? 'time' : 'time-outline';
           } else if (route.name === 'Settings') {
@@ -93,6 +99,11 @@ const MainTabs = () => {
         component={VoiceCollectionScreen} 
         options={{ title: t('voice.collection.title') || 'Voice Collection', headerShown: false }} 
       />
+      <Tab.Screen 
+        name="Dictionary" 
+        component={DictionaryScreen} 
+        options={{ title: t('dictionary.title') || 'Dictionary', headerShown: false }} 
+      />
       {/* <Tab.Screen 
         name="History" 
         component={HistoryScreen} 
@@ -120,7 +131,8 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
-        <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
+      <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
+      <Stack.Screen name="AudioOutputSettings" component={AudioOutputSettings} />
     </Stack.Navigator>
     </DiscordProvider>
   );

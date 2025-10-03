@@ -474,6 +474,16 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.audio')}</Text>
+          {renderSettingItem(
+            'volume-high-outline',
+            t('audioOutput.title') || 'Audio Output',
+            undefined,
+            () => navigation.navigate('AudioOutputSettings' as never)
+          )}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
           {renderSettingItem(
             'person-outline',
