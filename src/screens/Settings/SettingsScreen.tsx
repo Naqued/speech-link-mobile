@@ -528,8 +528,16 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.logoutButtonText}>{t('settings.logout')}</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity 
+          style={styles.bugReportButton} 
+          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Bug Report - Speech Link')}
+        >
+          <Ionicons name="bug-outline" size={20} color={theme.text} />
+          <Text style={styles.bugReportButtonText}>{t('settings.reportBug') || 'Report a Bug'}</Text>
+        </TouchableOpacity>
+
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.4</Text>
+          <Text style={styles.versionText}>Version 1.5</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -649,6 +657,24 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  bugReportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.card,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  bugReportButtonText: {
+    color: theme.text,
+    fontSize: 16,
+    fontWeight: '600',
     marginLeft: 8,
   },
   versionContainer: {

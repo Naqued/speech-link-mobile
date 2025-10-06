@@ -19,7 +19,8 @@
     "name": "Nom",
     "resetPasswordInstructions": "Entrez votre adresse email et nous vous enverrons des instructions pour réinitialiser votre mot de passe.",
     "passwordResetSent": "Les instructions de réinitialisation du mot de passe ont été envoyées à votre email.",
-    "signUpSuccess": "Compte créé avec succès! Veuillez vous connecter."
+    "signUpSuccess": "Compte créé avec succès! Veuillez vous connecter.",
+    "orContinueWith": "Ou continuer avec"
   },
   "audioOutput": {
     "title": "Sortie Audio",
@@ -41,10 +42,14 @@
     "helpTitle": "Comment ça marche ?",
     "helpText": "Sélectionnez votre périphérique de sortie audio préféré. Cela détermine où vous entendrez la parole synthétisée. Pour la communication pendant les appels, utilisez la fonctionnalité d'intégration Discord qui offre une meilleure qualité.",
     "deviceForced": "Audio forcé sur le périphérique",
-    "forceFailed": "Échec du forçage du périphérique audio"
+    "forceFailed": "Échec du forçage du périphérique audio",
+    "nativeControlEnabled": "Contrôle Audio Complet Actif",
+    "nativeControlDesc": "Le contrôle audio natif Android est actif. Le mode haut-parleur utilise MediaPlayer natif pour contourner complètement Expo AV, garantissant que l'audio est toujours diffusé via le haut-parleur de votre téléphone même lorsque Bluetooth est connecté.",
+    "bluetoothWarning": "Contrôle Audio Limité",
+    "bluetoothWarningText": "Remarque : Le contrôle audio natif n'est pas disponible. Lorsque des appareils Bluetooth sont connectés, Android peut automatiquement acheminer l'audio vers eux. Pour utiliser le haut-parleur du téléphone, veuillez déconnecter ou éteindre les appareils Bluetooth."
   },
-  "dictionary": {
-    "title": "Dictionnaire",
+  "pronunciation": {
+    "title": "Prononciation",
     "word": "Mot",
     "pronunciation": "Prononciation",
     "addEntry": "Ajouter une entrée",
@@ -69,7 +74,7 @@
     "entryAdded": "Entrée ajoutée avec succès",
     "entryUpdated": "Entrée mise à jour avec succès",
     "entryDeleted": "Entrée supprimée avec succès",
-    "loadError": "Impossible de charger les entrées du dictionnaire",
+    "loadError": "Impossible de charger les entrées de prononciation",
     "previewError": "Impossible de prévisualiser la prononciation",
     "confirmDelete": "Supprimer l'entrée",
     "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette entrée ?"
@@ -446,6 +451,7 @@
     "privacy": "Politique de Confidentialité",
     "terms": "Conditions d'Utilisation",
     "logout": "Déconnexion",
+    "reportBug": "Signaler un bug",
     "darkMode": "Mode Sombre",
     "audio": "Audio",
     "audioSettings": "Paramètres Audio",
@@ -556,7 +562,8 @@
     "disable": "Désactiver",
     "notSpecified": "Non spécifié",
     "general": "Général",
-    "couldNotOpenBrowser": "Impossible d'ouvrir le navigateur"
+    "couldNotOpenBrowser": "Impossible d'ouvrir le navigateur",
+    "stop": "Arrêter"
   },
   "language": {
     "select": "Sélectionner la Langue",

@@ -102,7 +102,7 @@ const MainTabs = () => {
       <Tab.Screen 
         name="Dictionary" 
         component={DictionaryScreen} 
-        options={{ title: t('dictionary.title') || 'Dictionary', headerShown: false }} 
+        options={{ title: t('pronunciation.title') || 'Pronunciation', headerShown: false }} 
       />
       {/* <Tab.Screen 
         name="History" 

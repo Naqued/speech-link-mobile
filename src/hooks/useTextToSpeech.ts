@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, NativeEventEmitter, NativeModules } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
@@ -153,6 +153,23 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     };
     
     loadAudioRoutingPreference();
+  }, []);
+
+  // Listen for native audio playback completion events
+  useEffect(() => {
+    if (Platform.OS === 'android' && nativeAudioOutput.isAvailable()) {
+      const eventEmitter = new NativeEventEmitter(NativeModules.AudioOutput);
+      
+      const subscription = eventEmitter.addListener('onAudioPlaybackComplete', () => {
+        console.log('[Audio] Native playback completed - received event from native module');
+        setIsPlaying(false);
+        setIsLoading(false);
+      });
+      
+      return () => {
+        subscription.remove();
+      };
+    }
   }, []);
 
   const stopSpeaking = useCallback(async () => {

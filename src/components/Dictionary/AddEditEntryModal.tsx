@@ -117,8 +117,8 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {isEditing
-                  ? t('dictionary.editEntry') || 'Edit Entry'
-                  : t('dictionary.addEntry') || 'Add Entry'}
+                  ? t('pronunciation.editEntry') || 'Edit Entry'
+                  : t('pronunciation.addEntry') || 'Add Entry'}
               </Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color={theme.text} />
@@ -129,7 +129,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
             <View style={styles.languageInfo}>
               <Ionicons name="globe-outline" size={16} color={theme.primary} />
               <Text style={styles.languageInfoText}>
-                {t('dictionary.languageInfo') || 'Entry will be added to'}{' '}
+                {t('pronunciation.languageInfo') || 'Entry will be added to'}{' '}
                 <Text style={styles.languageInfoHighlight}>
                   {t(`languages.${language}`) || language.toUpperCase()}
                 </Text>
@@ -139,13 +139,13 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
             {/* Word Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
-                {t('dictionary.word') || 'Word'} *
+                {t('pronunciation.word') || 'Word'} *
               </Text>
               <TextInput
                 style={styles.input}
                 value={word}
                 onChangeText={setWord}
-                placeholder={t('dictionary.wordPlaceholder') || 'Enter the word...'}
+                placeholder={t('pronunciation.wordPlaceholder') || 'Enter the word...'}
                 placeholderTextColor={theme.text + '60'}
                 maxLength={100}
                 autoCapitalize="none"
@@ -158,7 +158,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
             <View style={styles.inputGroup}>
               <View style={styles.pronunciationHeader}>
                 <Text style={styles.inputLabel}>
-                  {t('dictionary.pronunciation') || 'Pronunciation'} *
+                  {t('pronunciation.pronunciation') || 'Pronunciation'} *
                 </Text>
                 {pronunciation.trim().length > 0 && (
                   <TouchableOpacity
@@ -172,7 +172,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
                       <>
                         <Ionicons name="play" size={16} color="#FFFFFF" />
                         <Text style={styles.previewButtonText}>
-                          {t('dictionary.preview') || 'Preview'}
+                          {t('pronunciation.preview') || 'Preview'}
                         </Text>
                       </>
                     )}
@@ -183,7 +183,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
                 style={[styles.input, styles.pronunciationInput]}
                 value={pronunciation}
                 onChangeText={setPronunciation}
-                placeholder={t('dictionary.pronunciationPlaceholder') || 'How it should sound...'}
+                placeholder={t('pronunciation.pronunciationPlaceholder') || 'How it should sound...'}
                 placeholderTextColor={theme.text + '60'}
                 maxLength={200}
                 multiline
@@ -199,7 +199,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
             <View style={styles.helpContainer}>
               <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
               <Text style={styles.helpText}>
-                {t('dictionary.helpText') ||
+                {t('pronunciation.helpText') ||
                   'Enter a phonetic spelling or creative text that makes the voice say the word correctly. For example: "Kurko" → "Kurkuü"'}
               </Text>
             </View>
@@ -212,7 +212,7 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
                 disabled={isSaving}
               >
                 <Text style={styles.cancelButtonText}>
-                  {t('dictionary.cancel') || 'Cancel'}
+                  {t('pronunciation.cancel') || 'Cancel'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -229,8 +229,8 @@ const AddEditEntryModal: React.FC<AddEditEntryModalProps> = ({
                 ) : (
                   <Text style={styles.saveButtonText}>
                     {isEditing
-                      ? t('dictionary.update') || 'Update'
-                      : t('dictionary.add') || 'Add'}
+                      ? t('pronunciation.update') || 'Update'
+                      : t('pronunciation.add') || 'Add'}
                   </Text>
                 )}
               </TouchableOpacity>

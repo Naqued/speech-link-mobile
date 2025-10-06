@@ -19,8 +19,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
 // Context
@@ -298,13 +299,33 @@ const ALL_CATEGORY: CategoryUIModel = {
 const AACBoardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useContext(ThemeContext);
-  const { speak, stopSpeaking, isPlaying: ttsIsPlaying, selectedAudioDevice, forceAudioDevice } = useTextToSpeech();
+  const { speak, stopSpeaking, isPlaying: ttsIsPlaying, selectedAudioDevice: hookAudioDevice, forceAudioDevice } = useTextToSpeech();
   const { userSettings } = useVoiceSettings();
   const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   const navigation = useNavigation();
   
+  // Local state for audio device (updated on focus)
+  const [currentAudioDevice, setCurrentAudioDevice] = useState<string>(hookAudioDevice);
+  
   // Safe area insets for proper layout handling
   const insets = useSafeAreaInsets();
+  
+  // Update audio device display when screen gains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadAudioDevice = async () => {
+        try {
+          const savedDevice = await AsyncStorage.getItem('selectedAudioDevice');
+          if (savedDevice) {
+            setCurrentAudioDevice(savedDevice);
+          }
+        } catch (error) {
+          console.error('Failed to load audio device:', error);
+        }
+      };
+      loadAudioDevice();
+    }, [])
+  );
   
   // Current language from i18n
   const currentLanguage = i18n.language || 'en';
@@ -1203,7 +1224,7 @@ const AACBoardScreen: React.FC = () => {
                       await forceAudioDevice();
                       Alert.alert(
                         t('audioOutput.success') || 'Success',
-                        t('audioOutput.deviceForced') || `Audio forced to ${selectedAudioDevice}`
+                        t('audioOutput.deviceForced') || `Audio forced to ${currentAudioDevice}`
                       );
                     } catch (error) {
                       Alert.alert(
@@ -1217,7 +1238,7 @@ const AACBoardScreen: React.FC = () => {
                   }}
                 >
                   <Ionicons 
-                    name={selectedAudioDevice === 'speaker' ? 'volume-high' : selectedAudioDevice === 'bluetooth' ? 'bluetooth' : 'headset'} 
+                    name={currentAudioDevice === 'speaker' ? 'volume-high' : currentAudioDevice === 'bluetooth' ? 'bluetooth' : 'headset'} 
                     size={24} 
                     color={theme.primary} 
                   />

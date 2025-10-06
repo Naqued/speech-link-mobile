@@ -20,7 +20,7 @@ const PROD_WS_URL = 'wss://speech-aac.link/audio-stream';
 
 // API version
 
-const API_VERSION = '1.4';
+const API_VERSION = '1.5';
 
 // Force production mode for testing (set to true for testing, false for normal operation)
 // This will be overridden by AsyncStorage value if available

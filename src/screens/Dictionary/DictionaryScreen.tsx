@@ -58,10 +58,10 @@ const DictionaryScreen: React.FC = () => {
       setEntries(fetchedEntries);
       setFilteredEntries(fetchedEntries);
     } catch (error) {
-      console.error('Failed to load dictionary entries:', error);
+      console.error('Failed to load pronunciation entries:', error);
       Alert.alert(
-        t('dictionary.error') || 'Error',
-        t('dictionary.loadError') || 'Failed to load dictionary entries'
+        t('pronunciation.error') || 'Error',
+        t('pronunciation.loadError') || 'Failed to load pronunciation entries'
       );
     } finally {
       setLoading(false);
@@ -78,12 +78,12 @@ const DictionaryScreen: React.FC = () => {
       setShowAddModal(false);
       loadEntries();
       Alert.alert(
-        t('dictionary.success') || 'Success',
-        t('dictionary.entryAdded') || 'Entry added successfully'
+        t('pronunciation.success') || 'Success',
+        t('pronunciation.entryAdded') || 'Entry added successfully'
       );
     } catch (error) {
       Alert.alert(
-        t('dictionary.error') || 'Error',
+        t('pronunciation.error') || 'Error',
         error instanceof Error ? error.message : 'Failed to add entry'
       );
     }
@@ -101,12 +101,12 @@ const DictionaryScreen: React.FC = () => {
       setEditingEntry(undefined);
       loadEntries();
       Alert.alert(
-        t('dictionary.success') || 'Success',
-        t('dictionary.entryUpdated') || 'Entry updated successfully'
+        t('pronunciation.success') || 'Success',
+        t('pronunciation.entryUpdated') || 'Entry updated successfully'
       );
     } catch (error) {
       Alert.alert(
-        t('dictionary.error') || 'Error',
+        t('pronunciation.error') || 'Error',
         error instanceof Error ? error.message : 'Failed to update entry'
       );
     }
@@ -114,27 +114,27 @@ const DictionaryScreen: React.FC = () => {
 
   const handleDeleteEntry = (entry: dictionaryAPI.DictionaryEntry) => {
     Alert.alert(
-      t('dictionary.confirmDelete') || 'Delete Entry',
-      t('dictionary.confirmDeleteMessage') || `Delete "${entry.word}"?`,
+      t('pronunciation.confirmDelete') || 'Delete Entry',
+      t('pronunciation.confirmDeleteMessage') || `Delete "${entry.word}"?`,
       [
         {
-          text: t('dictionary.cancel') || 'Cancel',
+          text: t('pronunciation.cancel') || 'Cancel',
           style: 'cancel',
         },
         {
-          text: t('dictionary.delete') || 'Delete',
+          text: t('pronunciation.delete') || 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await dictionaryAPI.deleteDictionaryEntry(entry.id);
               loadEntries();
               Alert.alert(
-                t('dictionary.success') || 'Success',
-                t('dictionary.entryDeleted') || 'Entry deleted successfully'
+                t('pronunciation.success') || 'Success',
+                t('pronunciation.entryDeleted') || 'Entry deleted successfully'
               );
             } catch (error) {
               Alert.alert(
-                t('dictionary.error') || 'Error',
+                t('pronunciation.error') || 'Error',
                 error instanceof Error ? error.message : 'Failed to delete entry'
               );
             }
@@ -151,8 +151,8 @@ const DictionaryScreen: React.FC = () => {
     } catch (error) {
       console.error('[DictionaryScreen] Preview error:', error);
       Alert.alert(
-        t('dictionary.error') || 'Error',
-        t('dictionary.previewError') || 'Failed to preview pronunciation'
+        t('pronunciation.error') || 'Error',
+        t('pronunciation.previewError') || 'Failed to preview pronunciation'
       );
     }
   };
@@ -195,12 +195,12 @@ const DictionaryScreen: React.FC = () => {
     <View style={styles.emptyContainer}>
       <Ionicons name="book-outline" size={64} color={theme.text + '40'} />
       <Text style={styles.emptyTitle}>
-        {searchQuery ? t('dictionary.noResults') || 'No results found' : t('dictionary.emptyTitle') || 'No entries yet'}
+        {searchQuery ? t('pronunciation.noResults') || 'No results found' : t('pronunciation.emptyTitle') || 'No entries yet'}
       </Text>
       <Text style={styles.emptySubtitle}>
         {searchQuery
-          ? t('dictionary.tryDifferentSearch') || 'Try a different search'
-          : t('dictionary.emptySubtitle') || 'Add words and pronunciations to improve voice accuracy'}
+          ? t('pronunciation.tryDifferentSearch') || 'Try a different search'
+          : t('pronunciation.emptySubtitle') || 'Add words and pronunciations to improve voice accuracy'}
       </Text>
       {!searchQuery && (
         <TouchableOpacity
@@ -211,7 +211,7 @@ const DictionaryScreen: React.FC = () => {
           }}
         >
           <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.emptyButtonText}>{t('dictionary.addFirst') || 'Add Your First Entry'}</Text>
+          <Text style={styles.emptyButtonText}>{t('pronunciation.addFirst') || 'Add Your First Entry'}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -221,7 +221,7 @@ const DictionaryScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <ScreenHeader 
-        title={t('dictionary.title') || 'Dictionary'}
+        title={t('pronunciation.title') || 'Pronunciation'}
         rightComponent={
           <TouchableOpacity
             style={styles.addButton}
@@ -241,7 +241,7 @@ const DictionaryScreen: React.FC = () => {
           <Ionicons name="search" size={20} color={theme.text + '60'} />
           <TextInput
             style={styles.searchInput}
-            placeholder={t('dictionary.searchPlaceholder') || 'Search words or pronunciations...'}
+            placeholder={t('pronunciation.searchPlaceholder') || 'Search words or pronunciations...'}
             placeholderTextColor={theme.text + '60'}
             value={searchQuery}
             onChangeText={setSearchQuery}

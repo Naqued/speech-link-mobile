@@ -205,23 +205,6 @@ const AudioOutputSettings: React.FC = () => {
       <ScreenHeader title={t('audioOutput.title') || 'Audio Output'} showBackButton />
 
       <ScrollView style={styles.scrollView}>
-        {/* Native Support Status */}
-        {hasNativeSupport && (
-          <View style={styles.section}>
-            <View style={[styles.helpContainer, { borderLeftColor: theme.success || '#4CAF50', backgroundColor: (theme.success || '#4CAF50') + '10' }]}>
-              <Ionicons name="checkmark-circle" size={24} color={theme.success || '#4CAF50'} />
-              <View style={styles.helpTextContainer}>
-                <Text style={[styles.helpTitle, { color: theme.success || '#4CAF50' }]}>
-                  {t('audioOutput.nativeControlEnabled') || 'Full Audio Control Active'}
-                </Text>
-                <Text style={styles.helpText}>
-                  {t('audioOutput.nativeControlDesc') ||
-                    'Native Android audio control is active. Speaker mode uses native MediaPlayer to completely bypass Expo AV, ensuring audio always plays through your phone speaker even when Bluetooth is connected.'}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
 
         {/* Audio Output Device Section */}
         <View style={styles.section}>
