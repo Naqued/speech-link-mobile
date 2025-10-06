@@ -15,21 +15,30 @@ import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 import { Audio } from 'expo-av';
+import nativeAudioOutput from '../../services/nativeAudioOutputService';
 
 const AudioOutputSettings: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const styles = makeStyles(theme);
 
-  // Audio routing removed - not functional on Android due to OS restrictions
+  // Audio routing - now with native Android support!
 
   const [availableDevices, setAvailableDevices] = useState<string[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>('speaker');
+  const [hasNativeSupport, setHasNativeSupport] = useState<boolean>(false);
 
   useEffect(() => {
     loadAudioDevices();
     loadSavedDevicePreference();
+    checkNativeSupport();
   }, []);
+
+  const checkNativeSupport = () => {
+    const hasNative = nativeAudioOutput.isAvailable();
+    setHasNativeSupport(hasNative);
+    console.log('[AudioOutput] Native audio routing available:', hasNative);
+  };
 
   const loadSavedDevicePreference = async () => {
     try {
@@ -72,28 +81,12 @@ const AudioOutputSettings: React.FC = () => {
       };
 
       if (Platform.OS === 'android') {
-        switch (device) {
-          case 'speaker':
-            // Force speaker output - CRITICAL: playThroughEarpieceAndroid must be false
-            // Use DUCK_OTHERS to successfully acquire audio focus even with Bluetooth connected
-            audioMode.shouldDuckAndroid = false;
-            audioMode.playThroughEarpieceAndroid = false;
-            console.log('[Audio] Android: Configured for SPEAKER with DUCK_OTHERS mode');
-            break;
-          case 'earpiece':
-            // Earpiece mode - plays through phone earpiece
-            audioMode.shouldDuckAndroid = true;
-            audioMode.playThroughEarpieceAndroid = true;
-            console.log('[Audio] Android: Configured for EARPIECE');
-            break;
-          case 'bluetooth':
-          case 'wired':
-            // Let OS handle Bluetooth/wired routing naturally
-            audioMode.shouldDuckAndroid = false;
-            audioMode.playThroughEarpieceAndroid = false;
-            console.log('[Audio] Android: Configured for BLUETOOTH/WIRED');
-            break;
-        }
+        // SIMPLE APPROACH: Let native module handle routing
+        // Just configure Expo AV for normal media playback
+        audioMode.shouldDuckAndroid = false;
+        audioMode.playThroughEarpieceAndroid = false; // NEVER use earpiece for media!
+        console.log('[Audio] Android: Configured for NORMAL media playback');
+        console.log('[Audio] Native module will control routing to:', device);
       } else if (Platform.OS === 'ios') {
         switch (device) {
           case 'speaker':
@@ -212,6 +205,24 @@ const AudioOutputSettings: React.FC = () => {
       <ScreenHeader title={t('audioOutput.title') || 'Audio Output'} showBackButton />
 
       <ScrollView style={styles.scrollView}>
+        {/* Native Support Status */}
+        {hasNativeSupport && (
+          <View style={styles.section}>
+            <View style={[styles.helpContainer, { borderLeftColor: theme.success || '#4CAF50', backgroundColor: (theme.success || '#4CAF50') + '10' }]}>
+              <Ionicons name="checkmark-circle" size={24} color={theme.success || '#4CAF50'} />
+              <View style={styles.helpTextContainer}>
+                <Text style={[styles.helpTitle, { color: theme.success || '#4CAF50' }]}>
+                  {t('audioOutput.nativeControlEnabled') || 'Full Audio Control Active'}
+                </Text>
+                <Text style={styles.helpText}>
+                  {t('audioOutput.nativeControlDesc') ||
+                    'Native Android audio control is active. Speaker mode uses native MediaPlayer to completely bypass Expo AV, ensuring audio always plays through your phone speaker even when Bluetooth is connected.'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Audio Output Device Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -242,21 +253,23 @@ const AudioOutputSettings: React.FC = () => {
           </View>
         </View>
 
-        {/* Bluetooth Warning Section */}
-        <View style={styles.section}>
-          <View style={[styles.helpContainer, { borderLeftColor: theme.warning || '#FFA500' }]}>
-            <Ionicons name="warning-outline" size={24} color={theme.warning || '#FFA500'} />
-            <View style={styles.helpTextContainer}>
-              <Text style={[styles.helpTitle, { color: theme.warning || '#FFA500' }]}>
-                {t('audioOutput.bluetoothWarning') || 'Bluetooth Priority'}
-              </Text>
-              <Text style={styles.helpText}>
-                {t('audioOutput.bluetoothWarningText') ||
-                  'Note: When Bluetooth devices are connected, Android may automatically route audio to them regardless of your speaker selection. To use phone speaker, please disconnect or turn off Bluetooth devices.'}
-              </Text>
+        {/* Bluetooth Warning Section - Only show if native support is NOT available */}
+        {!hasNativeSupport && (
+          <View style={styles.section}>
+            <View style={[styles.helpContainer, { borderLeftColor: theme.warning || '#FFA500' }]}>
+              <Ionicons name="warning-outline" size={24} color={theme.warning || '#FFA500'} />
+              <View style={styles.helpTextContainer}>
+                <Text style={[styles.helpTitle, { color: theme.warning || '#FFA500' }]}>
+                  {t('audioOutput.bluetoothWarning') || 'Limited Audio Control'}
+                </Text>
+                <Text style={styles.helpText}>
+                  {t('audioOutput.bluetoothWarningText') ||
+                    'Note: Native audio control is not available. When Bluetooth devices are connected, Android may automatically route audio to them. To use phone speaker, please disconnect or turn off Bluetooth devices.'}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
