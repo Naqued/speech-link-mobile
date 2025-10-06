@@ -16,47 +16,68 @@ const configureAudioOutput = async (device: string) => {
   try {
     console.log('[Audio] Configuring output device:', device);
     
+    // Base configuration that applies to all modes
+    // IMPORTANT: Use DUCK_OTHERS (2) instead of DO_NOT_MIX (1) to avoid AudioFocusNotAcquiredException
     let audioMode: any = {
       playsInSilentModeIOS: true,
       staysActiveInBackground: true,
-      shouldDuckAndroid: true,
+      interruptionModeIOS: 2, // DUCK_OTHERS - lower volume of other apps
+      interruptionModeAndroid: 2, // DUCK_OTHERS - prevents AudioFocusNotAcquiredException
     };
 
     if (Platform.OS === 'android') {
       switch (device) {
         case 'speaker':
-          // Force speaker output - use simple audio mode properties
+          // Force speaker output - CRITICAL: playThroughEarpieceAndroid must be false
+          // Use DUCK_OTHERS to successfully acquire audio focus even with Bluetooth connected
           audioMode.shouldDuckAndroid = false;
+          audioMode.playThroughEarpieceAndroid = false;
+          // Additional attempt: Set allowsRecordingIOS to false even on Android
+          // Some Expo AV versions check this for Bluetooth routing
+          audioMode.allowsRecordingIOS = false;
+          console.log('[Audio] Android: Configured for SPEAKER with DUCK_OTHERS mode (attempting BT override)');
           break;
         case 'earpiece':
-          // Earpiece mode
+          // Earpiece mode - plays through phone earpiece (like during a call)
           audioMode.shouldDuckAndroid = true;
+          audioMode.playThroughEarpieceAndroid = true;
+          console.log('[Audio] Android: Configured for EARPIECE');
           break;
         case 'bluetooth':
-          // Bluetooth mode
-          audioMode.shouldDuckAndroid = false;
-          break;
         case 'wired':
-          // Wired headset mode
+          // Let OS handle Bluetooth/wired routing naturally
           audioMode.shouldDuckAndroid = false;
+          audioMode.playThroughEarpieceAndroid = false;
+          console.log('[Audio] Android: Configured for BLUETOOTH/WIRED (OS handles routing)');
           break;
       }
     } else if (Platform.OS === 'ios') {
       switch (device) {
         case 'speaker':
+          // On iOS, use playback category without mixing
+          // This attempts to route to speaker, but Bluetooth may still take priority
           audioMode.allowsRecordingIOS = false;
+          audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+          console.log('[Audio] iOS: Configured for SPEAKER');
           break;
         case 'earpiece':
+          // Earpiece is typically used for phone calls
           audioMode.allowsRecordingIOS = false;
+          audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+          console.log('[Audio] iOS: Configured for EARPIECE');
           break;
         case 'bluetooth':
+        case 'airplay':
+          // Allow recording enables Bluetooth audio routing
           audioMode.allowsRecordingIOS = true;
+          audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+          console.log('[Audio] iOS: Configured for BLUETOOTH/AIRPLAY');
           break;
       }
     }
 
     await Audio.setAudioModeAsync(audioMode);
-    console.log('[Audio] Successfully configured audio output to:', device);
+    console.log('[Audio] Successfully configured audio output to:', device, 'with mode:', JSON.stringify(audioMode));
   } catch (error) {
     console.error('[Audio] Failed to configure audio output:', error);
     throw error;
@@ -244,8 +265,45 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
           }
         });
         
-        // Start playback
-        await sound.playAsync();
+        // CRITICAL: Re-apply audio configuration RIGHT before playback as a reinforcement
+        // This ensures the audio mode is active at the exact moment of playback
+        await configureAudioOutput(selectedAudioDevice);
+        console.log('[Audio] Audio mode re-applied immediately before playback');
+        
+        // Start playback with error handling for audio focus issues
+        try {
+          await sound.playAsync();
+          console.log('[Audio] Sound playback started successfully');
+        } catch (playbackError: any) {
+          // Check if it's an audio focus error
+          if (playbackError.message?.includes('AudioFocusNotAcquiredException')) {
+            console.error('[Audio] Audio focus not acquired. Trying with MIX_WITH_OTHERS mode...');
+            
+            // Fallback: Try with more permissive audio mode (MIX_WITH_OTHERS)
+            try {
+              const fallbackMode: any = {
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: true,
+                interruptionModeIOS: 0, // MIX_WITH_OTHERS
+                interruptionModeAndroid: 0, // MIX_WITH_OTHERS
+                shouldDuckAndroid: false,
+                playThroughEarpieceAndroid: false,
+              };
+              await Audio.setAudioModeAsync(fallbackMode);
+              console.log('[Audio] Fallback mode applied (MIX_WITH_OTHERS)');
+              
+              // Retry playback
+              await sound.playAsync();
+              console.log('[Audio] Sound playback started with fallback mode');
+            } catch (fallbackError) {
+              console.error('[Audio] Fallback playback also failed:', fallbackError);
+              throw new Error('Unable to play audio. Another app may be using the audio output. Please pause other media apps and try again.');
+            }
+          } else {
+            // Re-throw if it's a different error
+            throw playbackError;
+          }
+        }
         
         return sound;
       }

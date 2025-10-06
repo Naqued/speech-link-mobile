@@ -62,42 +62,64 @@ const AudioOutputSettings: React.FC = () => {
       setSelectedDevice(device);
       
       // Configure Expo AV audio mode based on selected device
+      // Base configuration that applies to all modes
+      // IMPORTANT: Use DUCK_OTHERS (2) instead of DO_NOT_MIX (1) to avoid AudioFocusNotAcquiredException
       let audioMode: any = {
         playsInSilentModeIOS: true,
         staysActiveInBackground: true,
-        shouldDuckAndroid: true,
+        interruptionModeIOS: 2, // DUCK_OTHERS - lower volume of other apps
+        interruptionModeAndroid: 2, // DUCK_OTHERS - prevents AudioFocusNotAcquiredException
       };
 
       if (Platform.OS === 'android') {
         switch (device) {
           case 'speaker':
+            // Force speaker output - CRITICAL: playThroughEarpieceAndroid must be false
+            // Use DUCK_OTHERS to successfully acquire audio focus even with Bluetooth connected
             audioMode.shouldDuckAndroid = false;
+            audioMode.playThroughEarpieceAndroid = false;
+            console.log('[Audio] Android: Configured for SPEAKER with DUCK_OTHERS mode');
             break;
           case 'earpiece':
+            // Earpiece mode - plays through phone earpiece
             audioMode.shouldDuckAndroid = true;
+            audioMode.playThroughEarpieceAndroid = true;
+            console.log('[Audio] Android: Configured for EARPIECE');
             break;
           case 'bluetooth':
-            audioMode.shouldDuckAndroid = false;
-            break;
           case 'wired':
+            // Let OS handle Bluetooth/wired routing naturally
             audioMode.shouldDuckAndroid = false;
+            audioMode.playThroughEarpieceAndroid = false;
+            console.log('[Audio] Android: Configured for BLUETOOTH/WIRED');
             break;
         }
       } else if (Platform.OS === 'ios') {
         switch (device) {
           case 'speaker':
+            // On iOS, use playback category without mixing
             audioMode.allowsRecordingIOS = false;
+            audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+            console.log('[Audio] iOS: Configured for SPEAKER');
             break;
           case 'earpiece':
+            // Earpiece mode
             audioMode.allowsRecordingIOS = false;
+            audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+            console.log('[Audio] iOS: Configured for EARPIECE');
             break;
           case 'bluetooth':
+          case 'airplay':
+            // Allow recording enables Bluetooth audio routing
             audioMode.allowsRecordingIOS = true;
+            audioMode.interruptionModeIOS = 2; // DUCK_OTHERS
+            console.log('[Audio] iOS: Configured for BLUETOOTH/AIRPLAY');
             break;
         }
       }
 
       await Audio.setAudioModeAsync(audioMode);
+      console.log('[Audio] Audio mode set:', JSON.stringify(audioMode));
 
       // Save preference locally only (device-specific, not synced to backend)
       await AsyncStorage.setItem('selectedAudioDevice', device);
@@ -215,6 +237,22 @@ const AudioOutputSettings: React.FC = () => {
               <Text style={styles.helpText}>
                 {t('audioOutput.helpText') ||
                   'Select your preferred audio output device. This determines where you\'ll hear the synthesized speech. For communication during calls, use the Discord integration feature which provides better quality.'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Bluetooth Warning Section */}
+        <View style={styles.section}>
+          <View style={[styles.helpContainer, { borderLeftColor: theme.warning || '#FFA500' }]}>
+            <Ionicons name="warning-outline" size={24} color={theme.warning || '#FFA500'} />
+            <View style={styles.helpTextContainer}>
+              <Text style={[styles.helpTitle, { color: theme.warning || '#FFA500' }]}>
+                {t('audioOutput.bluetoothWarning') || 'Bluetooth Priority'}
+              </Text>
+              <Text style={styles.helpText}>
+                {t('audioOutput.bluetoothWarningText') ||
+                  'Note: When Bluetooth devices are connected, Android may automatically route audio to them regardless of your speaker selection. To use phone speaker, please disconnect or turn off Bluetooth devices.'}
               </Text>
             </View>
           </View>
