@@ -649,5 +649,12 @@
     "aacBoard": "Tableau AAC",
     "aacBoardDesc": "Accès rapide aux phrases fréquemment utilisées",
     "legal": "Mentions Légales"
+  },
+  "rating": {
+    "title": "Vous appréciez Speech Link ?",
+    "message": "Votre évaluation nous aide à atteindre plus de personnes qui pourraient bénéficier de cette application.",
+    "subMessage": "En tant que développeurs indépendants, chaque avis fait une réelle différence pour aider les autres à découvrir Speech Link.",
+    "rateButton": "Évaluer sur le Store",
+    "dismissButton": "Plus Tard"
   }
 }

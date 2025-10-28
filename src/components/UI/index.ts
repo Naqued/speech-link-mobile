@@ -5,4 +5,5 @@ export { default as Toast } from './Toast';
 export { ToastProvider } from './ToastProvider';
 export { ScreenHeader } from './ScreenHeader';
 export { PremiumBadge } from './PremiumBadge';
-export { UpgradePrompt } from './UpgradePrompt'; 
+export { UpgradePrompt } from './UpgradePrompt';
+export { default as RatingPromptModal } from './RatingPromptModal'; 

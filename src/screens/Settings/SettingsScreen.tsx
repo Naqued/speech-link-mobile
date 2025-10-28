@@ -26,6 +26,9 @@ import { AuthContext } from '../../contexts/AuthContext';
 // Components
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 
+// Components
+import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
+
 // Hooks
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
@@ -90,6 +93,8 @@ const SettingsScreen: React.FC = () => {
   const isDarkMode = theme.background === themes.dark.background;
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDevSettings, setShowDevSettings] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
 
   // Fetch profile data if needed
   useEffect(() => {
@@ -530,15 +535,35 @@ const SettingsScreen: React.FC = () => {
 
         <TouchableOpacity 
           style={styles.bugReportButton} 
-          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Bug Report - Speech Link')}
+          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Contact - Speech Link')}
         >
           <Ionicons name="bug-outline" size={20} color={theme.text} />
           <Text style={styles.bugReportButtonText}>{t('settings.reportBug') || 'Report a Bug'}</Text>
         </TouchableOpacity>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Version 1.5</Text>
+          <TouchableOpacity 
+            onPress={() => {
+              setTapCount(prev => {
+                const newCount = prev + 1;
+                if (newCount >= 7) {
+                  setShowDevSettings(true);
+                  return 0;
+                }
+                return newCount;
+              });
+            }}
+          >
+            <Text style={styles.versionText}>Version 1.5</Text>
+          </TouchableOpacity>
         </View>
+
+        {showDevSettings && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Developer Settings</Text>
+            <DeveloperSettings />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

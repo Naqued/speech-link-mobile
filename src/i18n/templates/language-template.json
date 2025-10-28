@@ -585,5 +585,12 @@
     "aacBoard": "",
     "aacBoardDesc": "",
     "legal": ""
+  },
+  "rating": {
+    "title": "",
+    "message": "",
+    "subMessage": "",
+    "rateButton": "",
+    "dismissButton": ""
   }
 } 

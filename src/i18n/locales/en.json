@@ -651,5 +651,12 @@
     "aacBoard": "AAC Board",
     "aacBoardDesc": "Quick access to commonly used phrases",
     "legal": "Legal"
+  },
+  "rating": {
+    "title": "Enjoying Speech Link?",
+    "message": "Your rating helps us reach more people who could benefit from this app.",
+    "subMessage": "As independent developers, every review makes a real difference in helping others discover Speech Link.",
+    "rateButton": "Rate on Store",
+    "dismissButton": "Maybe Later"
   }
 }

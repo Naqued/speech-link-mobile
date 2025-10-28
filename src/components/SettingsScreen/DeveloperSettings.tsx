@@ -1,15 +1,19 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Linking, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { resetService } from '../../services/resetService';
 import { AuthContext } from '../../contexts/AuthContext';
 import { NativeModuleChecker } from '../../utils/audio/NativeModuleChecker';
+import appRatingService from '../../services/appRatingService';
+import { RatingPromptModal } from '../UI';
 
 const DeveloperSettings = () => {
   const { theme } = useContext(ThemeContext);
   const { signOut } = useContext(AuthContext);
   const [nativeModules, setNativeModules] = useState<string[]>([]);
   const [showModules, setShowModules] = useState(false);
+  const [showTestRatingModal, setShowTestRatingModal] = useState(false);
 
   const handleResetApp = () => {
     Alert.alert(
@@ -118,6 +122,78 @@ const DeveloperSettings = () => {
     );
   };
 
+  const handleTestRatingPrompt = () => {
+    console.log('[DeveloperSettings] Test Rating Prompt button pressed');
+    setShowTestRatingModal(true);
+  };
+
+  const handleTestRatingDismiss = async () => {
+    console.log('[DeveloperSettings] Test modal dismissed');
+    setShowTestRatingModal(false);
+  };
+
+  const handleTestRatingRate = async () => {
+    console.log('[DeveloperSettings] Test modal - rate button pressed');
+    try {
+      await appRatingService.openAppStore();
+      setShowTestRatingModal(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open app store.');
+      console.error('[DeveloperSettings] Error opening app store:', error);
+    }
+  };
+
+  const handleCheckRatingStats = async () => {
+    try {
+      const stats = await appRatingService.getRatingStats();
+      Alert.alert(
+        'Rating Stats',
+        `📊 Current Status:\n` +
+        `App Opens: ${stats.appOpens}\n` +
+        `Days Since Install: ${stats.daysSinceInstall}\n` +
+        `Dismiss Count: ${stats.dismissCount}/2\n` +
+        `Days Since Last Dismissal: ${stats.daysSinceLastDismissal}\n` +
+        `Status: ${stats.ratingPrompted || 'not prompted yet'}\n` +
+        `Will Show Again: ${stats.willShowAgain ? '✅ Yes' : '❌ No'}\n\n` +
+        `📅 Next Attempt Needs:\n` +
+        (stats.dismissCount === 0 
+          ? `• 7 app opens\n• 3 days since install` 
+          : stats.dismissCount === 1
+          ? `• 15 app opens\n• 90 days since dismissal`
+          : `• Maximum attempts reached`)
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to get rating stats');
+      console.error('[DeveloperSettings] Error getting rating stats:', error);
+    }
+  };
+
+  const handleResetRatingData = () => {
+    Alert.alert(
+      'Reset Rating Data',
+      'This will reset all rating prompt data. The rating prompt will show again after meeting the conditions.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await appRatingService.resetRatingData();
+              Alert.alert('Success', 'Rating data has been reset');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reset rating data');
+              console.error('[DeveloperSettings] Error resetting rating data:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.sectionTitle, { color: theme.text }]}>Developer Settings</Text>
@@ -135,6 +211,39 @@ const DeveloperSettings = () => {
         Warning: Resetting the app will clear all cached data and preferences.
       </Text>
       
+      <View style={[styles.section, { marginTop: 24 }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Rating Prompt Testing</Text>
+        
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: theme.primary, marginBottom: 8 }]}
+          onPress={handleTestRatingPrompt}
+        >
+          <Text style={styles.buttonText}>Show Rating Modal</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: theme.primary, marginBottom: 8 }]}
+          onPress={handleCheckRatingStats}
+        >
+          <Text style={styles.buttonText}>Check Rating Stats</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: theme.error }]}
+          onPress={handleResetRatingData}
+        >
+          <Text style={styles.buttonText}>Reset Rating Data</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Test Rating Prompt Modal */}
+      <RatingPromptModal
+        visible={showTestRatingModal}
+        onRate={handleTestRatingRate}
+        onDismiss={handleTestRatingDismiss}
+        theme={theme}
+      />
+
       <View style={[styles.section, { marginTop: 24 }]}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Native Module Checker</Text>
         

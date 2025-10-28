@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,12 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import { ThemeContext } from '../contexts/ThemeContext';
 import { DiscordProvider } from '../contexts/DiscordContext';
+
+// Services
+import appRatingService from '../services/appRatingService';
+
+// UI Components
+import { RatingPromptModal } from '../components/UI';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -119,21 +125,95 @@ const MainTabs = () => {
 };
 
 const MainNavigator: React.FC = () => {
+  const { theme } = useContext(ThemeContext);
+  const [showRatingPrompt, setShowRatingPrompt] = useState(false);
+
+  // Log when rating prompt state changes
+  useEffect(() => {
+    console.log('[MainNavigator] Rating prompt visibility changed:', showRatingPrompt);
+  }, [showRatingPrompt]);
+
+  useEffect(() => {
+    // Track app opens and check if rating prompt should be shown
+    const checkRatingPrompt = async () => {
+      try {
+        // Increment app opens count
+        await appRatingService.incrementAppOpens();
+
+        // Check if we should show the rating prompt
+        const shouldShow = await appRatingService.shouldShowRatingPrompt();
+        
+        if (shouldShow) {
+          // Show the prompt after a delay to let user interact with the app first
+          const delay = appRatingService.getDisplayDelay();
+          console.log(`[MainNavigator] Rating prompt will show in ${delay / 1000} seconds`);
+          setTimeout(() => {
+            console.log('[MainNavigator] Showing rating prompt now');
+            setShowRatingPrompt(true);
+          }, delay);
+        }
+      } catch (error) {
+        console.error('[MainNavigator] Error checking rating prompt:', error);
+      }
+    };
+
+    checkRatingPrompt();
+  }, []);
+
+  // Add a function to force show the rating prompt
+  const forceShowRatingPrompt = () => {
+    setShowRatingPrompt(true);
+  };
+
+  // Make forceShowRatingPrompt available globally for testing
+  useEffect(() => {
+    (global as any).forceShowRatingPrompt = forceShowRatingPrompt;
+  }, []);
+
+  const handleRate = async () => {
+    try {
+      await appRatingService.openAppStore();
+      setShowRatingPrompt(false);
+    } catch (error) {
+      console.error('[MainNavigator] Error opening app store:', error);
+      // Still close the modal even if there was an error
+      setShowRatingPrompt(false);
+    }
+  };
+
+  const handleDismiss = async () => {
+    try {
+      await appRatingService.markRatingDismissed();
+      setShowRatingPrompt(false);
+    } catch (error) {
+      console.error('[MainNavigator] Error dismissing rating prompt:', error);
+      setShowRatingPrompt(false);
+    }
+  };
+
   return (
     <DiscordProvider>
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false
-      }}
-    >
-      <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="About" component={AboutScreen} />
-      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
-      <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
-      <Stack.Screen name="AudioOutputSettings" component={AudioOutputSettings} />
-    </Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false
+        }}
+      >
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="About" component={AboutScreen} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+        <Stack.Screen name="DiscordSettings" component={DiscordSettingsScreen} />
+        <Stack.Screen name="AudioOutputSettings" component={AudioOutputSettings} />
+      </Stack.Navigator>
+
+      {/* Rating Prompt Modal */}
+      <RatingPromptModal
+        visible={showRatingPrompt}
+        onRate={handleRate}
+        onDismiss={handleDismiss}
+        theme={theme}
+      />
     </DiscordProvider>
   );
 };
