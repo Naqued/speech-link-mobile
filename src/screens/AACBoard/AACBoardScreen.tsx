@@ -39,6 +39,7 @@ import {
   SampleSentence,
   CategoryUIModel,
   SentenceUIModel,
+  AACPreferences,
   mapToUICategoryModel,
   mapToUISentenceModel,
   deduplicateSentences
@@ -47,6 +48,7 @@ import {
 // Components
 import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
+import SentenceReorderMode from './components/SentenceReorderMode';
 import DiscordIndicator from '../../components/UI/DiscordIndicator';
 
 // Debug utilities (development only)
@@ -384,6 +386,13 @@ const AACBoardScreen: React.FC = () => {
   // Add state for Discord streaming
   const [isStreamingToDiscord, setIsStreamingToDiscord] = useState(false);
 
+  // Reorder mode state
+  const [reorderModeVisible, setReorderModeVisible] = useState(false);
+  const [reorderCategoryId, setReorderCategoryId] = useState<string>('');
+
+  // AAC Preferences state
+  const [aacPreferences, setAacPreferences] = useState<AACPreferences | null>(null);
+
   const styles = makeStyles(theme);
 
   // Collapsible section toggle function for recent phrases only
@@ -406,6 +415,22 @@ const AACBoardScreen: React.FC = () => {
       setCurrentlyPlayingText(null);
     }
   }, [ttsIsPlaying, isLoadingAudio, isSpeaking]);
+
+  // Fetch AAC preferences - refetch on screen focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchPreferences = async () => {
+        try {
+          const prefs = await aacService.getPreferences();
+          setAacPreferences(prefs);
+        } catch (error) {
+          console.error('[AACBoard] Error fetching AAC preferences:', error);
+        }
+      };
+
+      fetchPreferences();
+    }, [])
+  );
 
   // Fetch categories from API
   useEffect(() => {
@@ -504,10 +529,16 @@ const AACBoardScreen: React.FC = () => {
         console.log('[AACBoard] fetchAllSentences - received sentences:', apiSentences.length);
         
         // Deduplicate sentences to avoid showing both default and user's custom versions
-        const deduplicatedSentences = deduplicateSentences(apiSentences);
+        let deduplicatedSentences = deduplicateSentences(apiSentences);
         
         console.log('[AACBoard] fetchAllSentences - after deduplication:', deduplicatedSentences.length, 
           'removed:', apiSentences.length - deduplicatedSentences.length, 'duplicates');
+        
+        // Filter out default sentences if user preference is set
+        if (aacPreferences?.hideDefaultSentences) {
+          deduplicatedSentences = deduplicatedSentences.filter(s => !s.isGlobal);
+          console.log('[AACBoard] fetchAllSentences - after filtering defaults:', deduplicatedSentences.length);
+        }
         
         // Check if we received Hindi-specific data
         if (currentLanguage === 'hi') {
@@ -564,7 +595,7 @@ const AACBoardScreen: React.FC = () => {
     };
     
     fetchAllSentences();
-  }, [selectedCategory, currentLanguage, categories]);
+  }, [selectedCategory, currentLanguage, categories, aacPreferences]);
 
   // Fetch sentences for specific category
   useEffect(() => {
@@ -584,10 +615,16 @@ const AACBoardScreen: React.FC = () => {
         console.log('[AACBoard] fetchSentences - received sentences for category:', apiSentences.length);
         
         // Deduplicate sentences to avoid showing both default and user's custom versions
-        const deduplicatedSentences = deduplicateSentences(apiSentences);
+        let deduplicatedSentences = deduplicateSentences(apiSentences);
         
         console.log('[AACBoard] fetchSentences - after deduplication for category', selectedCategory + ':', 
           deduplicatedSentences.length, 'removed:', apiSentences.length - deduplicatedSentences.length, 'duplicates');
+        
+        // Filter out default sentences if user preference is set
+        if (aacPreferences?.hideDefaultSentences) {
+          deduplicatedSentences = deduplicatedSentences.filter(s => !s.isGlobal);
+          console.log('[AACBoard] fetchSentences - after filtering defaults:', deduplicatedSentences.length);
+        }
         
         // Map to UI model and sort by order
         const uiSentences = deduplicatedSentences
@@ -618,7 +655,7 @@ const AACBoardScreen: React.FC = () => {
     };
     
     fetchSentences();
-  }, [selectedCategory, currentLanguage]);
+  }, [selectedCategory, currentLanguage, aacPreferences]);
 
   const speakPhrase = async (text: string, phraseId?: string) => {
     try {
@@ -928,6 +965,40 @@ const AACBoardScreen: React.FC = () => {
     setCustomMessage('');
   };
 
+  const handleOpenReorderMode = (categoryId: string) => {
+    setReorderCategoryId(categoryId);
+    setReorderModeVisible(true);
+  };
+
+  const handleSaveReorder = async (reorderedSentences: SentenceUIModel[]) => {
+    try {
+      // Prepare the reorder request
+      const items = reorderedSentences.map((sentence, index) => ({
+        id: sentence.id,
+        order: index,
+      }));
+
+      // Call the API to save the new order
+      await aacService.reorderSentences({
+        categoryId: reorderCategoryId,
+        items,
+      });
+
+      // Update local state
+      setPhrases(prev => ({
+        ...prev,
+        [reorderCategoryId]: reorderedSentences,
+      }));
+
+      // Close the modal
+      setReorderModeVisible(false);
+      setReorderCategoryId('');
+    } catch (error) {
+      console.error('Error saving sentence order:', error);
+      throw error; // Re-throw to let the modal handle the error display
+    }
+  };
+
   const handleAddCategory = () => {
     setEditingCategory(undefined);
     setCategoryFormVisible(true);
@@ -1068,41 +1139,83 @@ const AACBoardScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const renderPhraseItem = ({ item }: { item: SentenceUIModel }) => (
-    <TouchableOpacity
-      style={[
-        orientation === 'landscape' ? styles.phraseButtonLandscape : styles.phraseButton,
-        currentlyPlayingText === item.text && (orientation === 'landscape' ? styles.playingPhraseButtonLandscape : styles.playingPhraseButton)
-      ]}
-      onPress={() => speakPhrase(item.text, item.id)}
-      onLongPress={() => handlePhraseActions(item)}
-    >
-      <Text 
+  const renderPhraseItem = ({ item }: { item: SentenceUIModel }) => {
+    // Get category for this sentence to fallback to category color/icon
+    const category = categories.find(c => c.id === item.categoryId);
+    
+    // Only use custom icon if explicitly set, don't fallback to category icon
+    const displayIcon = item.icon;
+    const displayIconType = item.iconType || 'ionicon';
+    
+    // Get the base color (custom or category)
+    const baseColor = item.color || category?.color || theme.primary;
+    
+    // Make the color much lighter (more pale) for better text readability
+    // Convert hex to RGB, then add opacity to make it very light
+    const lightenColor = (hexColor: string) => {
+      // Remove # if present
+      const hex = hexColor.replace('#', '');
+      // Convert to RGB
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      // Return with very low opacity to make it pale
+      return `rgba(${r}, ${g}, ${b}, 0.15)`;
+    };
+    
+    const displayColor = lightenColor(baseColor);
+    const accentColor = baseColor; // Use full color for icon
+
+    return (
+      <TouchableOpacity
         style={[
-          orientation === 'landscape' ? styles.phraseTextLandscape : styles.phraseText
-        ]} 
-        numberOfLines={orientation === 'landscape' ? 2 : 3}
-        adjustsFontSizeToFit
-        minimumFontScale={0.8}
+          orientation === 'landscape' ? styles.phraseButtonLandscape : styles.phraseButton,
+          { 
+            backgroundColor: displayColor,
+            borderLeftWidth: 3,
+            borderLeftColor: accentColor,
+          },
+          currentlyPlayingText === item.text && (orientation === 'landscape' ? styles.playingPhraseButtonLandscape : styles.playingPhraseButton)
+        ]}
+        onPress={() => speakPhrase(item.text, item.id)}
+        onLongPress={() => handlePhraseActions(item)}
       >
-        {item.text}
-      </Text>
-      {currentlyPlayingText === item.text && (
-        <View style={styles.playingIndicatorContainer}>
-          {isLoadingAudio ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <TouchableOpacity
-              style={styles.stopButton}
-              onPress={handleStopSpeaking}
-            >
-              <Ionicons name="stop" size={12} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+        {displayIcon && (
+          <View style={styles.phraseIconContainer}>
+            {displayIconType === 'emoji' ? (
+              <Text style={styles.phraseEmoji}>{displayIcon}</Text>
+            ) : (
+              <Ionicons name={displayIcon as any} size={20} color={accentColor} />
+            )}
+          </View>
+        )}
+        <Text 
+          style={[
+            orientation === 'landscape' ? styles.phraseTextLandscape : styles.phraseText
+          ]} 
+          numberOfLines={orientation === 'landscape' ? 2 : 3}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {item.text}
+        </Text>
+        {currentlyPlayingText === item.text && (
+          <View style={styles.playingIndicatorContainer}>
+            {isLoadingAudio ? (
+              <ActivityIndicator size="small" color={accentColor} />
+            ) : (
+              <TouchableOpacity
+                style={styles.stopButton}
+                onPress={handleStopSpeaking}
+              >
+                <Ionicons name="stop" size={12} color={accentColor} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
   
   const handlePhraseActions = (sentence: SentenceUIModel) => {
     // Check if this is a custom message (ID starts with "custom-")
@@ -1214,7 +1327,7 @@ const AACBoardScreen: React.FC = () => {
       >
         <View style={styles.contentContainer}>
           <ScreenHeader
-            title={t('aac.title')}
+            title={""}
             rightComponent={
               <View style={styles.headerActions}>
                 <TouchableOpacity 
@@ -1249,6 +1362,15 @@ const AACBoardScreen: React.FC = () => {
                 <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
                   <Ionicons name="add-outline" size={24} color={theme.primary} />
                 </TouchableOpacity>
+                {/* Reorder button - only show when viewing a specific category */}
+                {selectedCategory && selectedCategory !== 'all' && (
+                  <TouchableOpacity 
+                    style={styles.headerButton} 
+                    onPress={() => handleOpenReorderMode(selectedCategory)}
+                  >
+                    <Ionicons name="swap-vertical-outline" size={24} color={theme.primary} />
+                  </TouchableOpacity>
+                )}
                 {__DEV__ && currentLanguage === 'hi' && (
                   <TouchableOpacity 
                     style={styles.headerButton} 
@@ -1645,6 +1767,20 @@ const AACBoardScreen: React.FC = () => {
             editCategory={editingCategory}
             currentLanguage={currentLanguage}
           />
+
+          {/* Sentence Reorder Mode Modal */}
+          <SentenceReorderMode
+            visible={reorderModeVisible}
+            onClose={() => {
+              setReorderModeVisible(false);
+              setReorderCategoryId('');
+            }}
+            categoryId={reorderCategoryId}
+            categoryName={categories.find(c => c.id === reorderCategoryId)?.name || ''}
+            categoryColor={categories.find(c => c.id === reorderCategoryId)?.color || theme.primary}
+            sentences={phrases[reorderCategoryId] || []}
+            onSave={handleSaveReorder}
+          />
         </View>
       </KeyboardAvoidingView>
       
@@ -1822,6 +1958,14 @@ const makeStyles = (theme: any) => StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  phraseIconContainer: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+  },
+  phraseEmoji: {
+    fontSize: 20,
   },
   customMessageContainer: {
     flexDirection: 'row',

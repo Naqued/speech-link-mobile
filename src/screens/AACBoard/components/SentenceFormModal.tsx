@@ -29,6 +29,10 @@ import {
   mapToBackendSentenceModel
 } from '../../../models/AAC';
 
+// Components
+import { IconPicker, IconSelection } from '../../../components/AAC/IconPicker';
+import { ColorPicker } from '../../../components/AAC/ColorPicker';
+
 interface SentenceFormModalProps {
   visible: boolean;
   onClose: () => void;
@@ -51,6 +55,10 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   
   const [text, setText] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [color, setColor] = useState<string | null>(null);
+  const [iconSelection, setIconSelection] = useState<IconSelection | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{ text?: string; categoryId?: string }>({});
   
@@ -60,14 +68,27 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       if (editSentence) {
         setText(editSentence.text);
         setCategoryId(editSentence.categoryId);
+        setColor(editSentence.color || null);
+        if (editSentence.icon && editSentence.iconType) {
+          setIconSelection({
+            icon: editSentence.icon,
+            iconType: editSentence.iconType as 'ionicon' | 'emoji',
+          });
+        } else {
+          setIconSelection(null);
+        }
       } else {
         // For new sentences, pre-select first category if available
         setText('');
         // Find the first category that's not "all"
         const firstRealCategory = categories.find(c => c.id !== 'all');
         setCategoryId(firstRealCategory ? firstRealCategory.id : '');
+        setColor(null);
+        setIconSelection(null);
       }
       setErrors({});
+      setShowColorPicker(false);
+      setShowIconPicker(false);
     }
   }, [visible, editSentence, categories]);
   
@@ -101,7 +122,10 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         id: editSentence?.id || `temp-${Date.now()}`,
         text: text.trim(),
         categoryId,
-        isFavorite: editSentence?.isFavorite || false
+        isFavorite: editSentence?.isFavorite || false,
+        color: color || undefined,
+        icon: iconSelection?.icon || undefined,
+        iconType: iconSelection?.iconType || undefined,
       };
       
       // Map to backend model
@@ -122,7 +146,10 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         id: savedSentence.id,
         text: savedSentence.text,
         categoryId: savedSentence.categoryId,
-        isFavorite: savedSentence.isFavorite
+        isFavorite: savedSentence.isFavorite,
+        color: savedSentence.color,
+        icon: savedSentence.icon,
+        iconType: savedSentence.iconType,
       };
       
       onSave(result);
@@ -221,6 +248,81 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                           : categoryName}
                       </Text>
                     </View>
+                  </View>
+                )}
+              </View>
+
+              {/* Color Customization */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('aacBoard.color') || 'Color'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowColorPicker(!showColorPicker)}
+                >
+                  <View
+                    style={[
+                      styles.colorPreview,
+                      { backgroundColor: color || getCategoryById(categoryId)?.color || '#8B5CF6' },
+                    ]}
+                  />
+                  <Text style={styles.customizationButtonText}>
+                    {color ? 'Custom color' : 'Using category color'}
+                  </Text>
+                  <Ionicons
+                    name={showColorPicker ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showColorPicker && (
+                  <View style={styles.pickerContainer}>
+                    <ColorPicker
+                      value={color}
+                      onSelect={setColor}
+                      categoryColor={getCategoryById(categoryId)?.color || '#8B5CF6'}
+                      theme={theme}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Icon Customization */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('aacBoard.icon') || 'Icon (Optional)'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowIconPicker(!showIconPicker)}
+                >
+                  {iconSelection ? (
+                    iconSelection.iconType === 'emoji' ? (
+                      <Text style={styles.iconPreviewEmoji}>{iconSelection.icon}</Text>
+                    ) : (
+                      <Ionicons name={iconSelection.icon as any} size={24} color={theme.text} />
+                    )
+                  ) : (
+                    <Ionicons
+                      name={(getCategoryById(categoryId)?.icon || 'chatbubble-outline') as any}
+                      size={24}
+                      color={theme.text + '60'}
+                    />
+                  )}
+                  <Text style={styles.customizationButtonText}>
+                    {iconSelection ? 'Custom icon' : 'Using category icon'}
+                  </Text>
+                  <Ionicons
+                    name={showIconPicker ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showIconPicker && (
+                  <View style={styles.pickerContainer}>
+                    <IconPicker
+                      value={iconSelection}
+                      onSelect={(icon, iconType) => setIconSelection({ icon, iconType })}
+                      categoryIcon={getCategoryById(categoryId)?.icon}
+                      theme={theme}
+                    />
                   </View>
                 )}
               </View>
@@ -432,6 +534,46 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   phraseFormGroup: {
     marginTop: 20,
+  },
+  customizationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  customizationButtonText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    color: theme.text,
+  },
+  colorPreview: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  iconPreviewEmoji: {
+    fontSize: 28,
+  },
+  pickerContainer: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: theme.background,
+    borderWidth: 1,
+    borderColor: theme.border,
+    maxHeight: 400,
+    overflow: 'hidden',
   },
 });
 

@@ -142,6 +142,12 @@
     "voices": "குரல்கள்",
     "settings": "அமைப்புகள்"
   },
+  "settings": {
+    "title": "அமைப்புகள்",
+    "logout": "வெளியேறு",
+    "reportBug": "பிழையை தெரிவிக்கவும்",
+    "requestFeature": "அம்சத்தைக் கோரவும்"
+  },
   "voiceCollection": {
     "title": "குரல் சேகரிப்பு",
     "searchVoices": "குரல்களைத் தேடு",

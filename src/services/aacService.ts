@@ -9,7 +9,8 @@ import {
   SampleSentence,
   CategoryReorderRequest,
   SentenceReorderRequest,
-  TTSPreviewRequest
+  TTSPreviewRequest,
+  AACPreferences
 } from '../models/AAC';
 
 // Language mapping for backend compatibility
@@ -385,6 +386,35 @@ export const aacService = {
       return response as unknown as Blob;
     } catch (error) {
       console.error('Error previewing TTS:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get AAC preferences for the current user
+   * @returns Promise with user preferences
+   */
+  getPreferences: async (): Promise<AACPreferences> => {
+    try {
+      const response = await apiService.get<{ preferences: AACPreferences }>('/api/aac-preferences');
+      return response?.preferences;
+    } catch (error) {
+      console.error('Error fetching AAC preferences:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update AAC preferences for the current user
+   * @param preferences Updated preferences data
+   * @returns Promise with updated preferences
+   */
+  updatePreferences: async (preferences: Partial<AACPreferences>): Promise<AACPreferences> => {
+    try {
+      const response = await apiService.put<{ preferences: AACPreferences }>('/api/aac-preferences', preferences);
+      return response?.preferences;
+    } catch (error) {
+      console.error('Error updating AAC preferences:', error);
       throw error;
     }
   }

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Speech Link",
     "slug": "speech-link-mobile",
-    "version": "1.5",
+    "version": "1.6",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -34,10 +34,11 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "versionCode": 28,
+      "versionCode": 32,
       "permissions": [
         "INTERNET",
-        "MODIFY_AUDIO_SETTINGS"
+        "MODIFY_AUDIO_SETTINGS",
+        "RECORD_AUDIO"
       ],
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
@@ -47,6 +48,7 @@
       "edgeToEdgeEnabled": true,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
+      "minSdkVersion": 24,
       "buildToolsVersion": "35.0.0",
       "manifest": {
         "application": {
@@ -69,6 +71,7 @@
           "android": {
             "useNewNdkIntegration": true,
             "useLegacyPackaging": false,
+            "minSdkVersion": 24,
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0",

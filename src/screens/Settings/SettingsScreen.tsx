@@ -68,6 +68,8 @@ const LANGUAGE_OPTIONS = [
 
 // Add apiService import at the top
 import { apiService } from '../../services/apiService';
+import { aacService } from '../../services/aacService';
+import { AACPreferences } from '../../models/AAC';
 
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -95,6 +97,10 @@ const SettingsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showDevSettings, setShowDevSettings] = useState(false);
   const [tapCount, setTapCount] = useState(0);
+  
+  // AAC Preferences state
+  const [aacPreferences, setAacPreferences] = useState<AACPreferences | null>(null);
+  const [loadingAACPrefs, setLoadingAACPrefs] = useState(false);
 
   // Fetch profile data if needed
   useEffect(() => {
@@ -102,6 +108,23 @@ const SettingsScreen: React.FC = () => {
       fetchProfileData();
     }
   }, [profileData, fetchProfileData]);
+
+  // Fetch AAC preferences
+  useEffect(() => {
+    const fetchAACPreferences = async () => {
+      try {
+        setLoadingAACPrefs(true);
+        const prefs = await aacService.getPreferences();
+        setAacPreferences(prefs);
+      } catch (error) {
+        console.error('Error fetching AAC preferences:', error);
+      } finally {
+        setLoadingAACPrefs(false);
+      }
+    };
+
+    fetchAACPreferences();
+  }, []);
 
   // Find the currently selected voice
   // Handle both voiceId (from TypeScript interface) and selectedVoice (from API response)
@@ -262,6 +285,21 @@ const SettingsScreen: React.FC = () => {
       if (!success) {
         Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.disable_failed'));
       }
+    }
+  };
+
+  const handleToggleHideDefaultSentences = async (value: boolean) => {
+    try {
+      setLoadingAACPrefs(true);
+      const updatedPrefs = await aacService.updatePreferences({ 
+        hideDefaultSentences: value 
+      });
+      setAacPreferences(updatedPrefs);
+    } catch (error) {
+      console.error('Error updating AAC preferences:', error);
+      Alert.alert(t('general.error.title'), 'Failed to update AAC preference');
+    } finally {
+      setLoadingAACPrefs(false);
     }
   };
 
@@ -489,6 +527,27 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>AAC Settings</Text>
+          {renderSettingItem(
+            'eye-off-outline',
+            'Hide Default Sentences',
+            <Switch
+              value={aacPreferences?.hideDefaultSentences || false}
+              onValueChange={handleToggleHideDefaultSentences}
+              trackColor={{ false: theme.border, true: theme.primary + '80' }}
+              thumbColor={aacPreferences?.hideDefaultSentences ? theme.primary : '#f4f3f4'}
+              ios_backgroundColor={theme.border}
+              disabled={loadingAACPrefs}
+            />,
+            undefined,
+            false
+          )}
+          <Text style={styles.settingDescription}>
+            When enabled, default sentences provided by the app will be hidden from your AAC board. Only your custom sentences will be displayed.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
           {renderSettingItem(
             'person-outline',
@@ -535,10 +594,18 @@ const SettingsScreen: React.FC = () => {
 
         <TouchableOpacity 
           style={styles.bugReportButton} 
-          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Contact - Speech Link')}
+          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Bug Report - Speech Link')}
         >
           <Ionicons name="bug-outline" size={20} color={theme.text} />
           <Text style={styles.bugReportButtonText}>{t('settings.reportBug') || 'Report a Bug'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.featureRequestButton} 
+          onPress={() => Linking.openURL('mailto:pollet.dam@gmail.com?subject=Feature Request - Speech Link')}
+        >
+          <Ionicons name="bulb-outline" size={20} color={theme.text} />
+          <Text style={styles.featureRequestButtonText}>{t('settings.requestFeature') || 'Request a Feature'}</Text>
         </TouchableOpacity>
 
         <View style={styles.versionContainer}>
@@ -554,7 +621,7 @@ const SettingsScreen: React.FC = () => {
               });
             }}
           >
-            <Text style={styles.versionText}>Version 1.5</Text>
+            <Text style={styles.versionText}>Version 1.6</Text>
           </TouchableOpacity>
         </View>
 
@@ -596,6 +663,13 @@ const makeStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.text,
     marginVertical: 10,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: theme.text + '80',
+    marginTop: 8,
+    marginLeft: 44,
+    lineHeight: 20,
   },
   settingItem: {
     flexDirection: 'row',
@@ -690,13 +764,31 @@ const makeStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: theme.card,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: theme.border,
   },
   bugReportButtonText: {
+    color: theme.text,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  featureRequestButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.card,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  featureRequestButtonText: {
     color: theme.text,
     fontSize: 16,
     fontWeight: '600',

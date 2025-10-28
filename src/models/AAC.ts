@@ -29,6 +29,9 @@ export interface SampleSentence {
   categoryId: string;     // Reference to parent category
   frequency: number;      // Usage count (for favorites)
   order: number;          // Sorting order within category
+  color?: string;         // Custom color (hex), defaults to category color if null
+  icon?: string;          // Icon identifier (Ionicon name or emoji)
+  iconType?: string;      // Type: "ionicon" or "emoji"
   language: string;       // Language code (e.g., "en", "fr")
   isGlobal: boolean;      // Whether this is a system-provided sentence
   isFavorite: boolean;    // Whether user has marked as favorite
@@ -58,6 +61,9 @@ export interface SentenceUIModel {
   text: string;
   categoryId: string;
   isFavorite: boolean;
+  color?: string;         // Custom color (hex)
+  icon?: string;          // Icon identifier
+  iconType?: string;      // Type: "ionicon" or "emoji"
 }
 
 /**
@@ -88,6 +94,17 @@ export interface TTSPreviewRequest {
   text: string;
   language?: string;
   voice?: string;
+}
+
+/**
+ * AAC Preferences model
+ */
+export interface AACPreferences {
+  id: string;
+  userId: string;
+  hideDefaultSentences: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
@@ -138,7 +155,10 @@ export function mapToUISentenceModel(sentence: SampleSentence): SentenceUIModel 
     id: sentence.id,
     text: sentence.text,
     categoryId: sentence.categoryId,
-    isFavorite: sentence.isFavorite
+    isFavorite: sentence.isFavorite,
+    color: sentence.color,
+    icon: sentence.icon,
+    iconType: sentence.iconType
   };
 }
 
