@@ -3,9 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Get the network IP address for development
 const DEV_API_URL = Platform.select({
-  android: 'http://192.168.1.14:3000',
-  ios: 'http://192.168.1.14:3000',
-  default: 'http://192.168.1.14:3000',
+  android: 'https://kaya-engaging-tristin.ngrok-free.dev',
+  ios: 'https://kaya-engaging-tristin.ngrok-free.dev',
+  default: 'https://kaya-engaging-tristin.ngrok-free.dev',
 });
 
 const DEV_WS_URL = Platform.select({
@@ -24,7 +24,7 @@ const API_VERSION = '1.5';
 
 // Force production mode for testing (set to true for testing, false for normal operation)
 // This will be overridden by AsyncStorage value if available
-let FORCE_PRODUCTION = false;
+let FORCE_PRODUCTION = true;
 
 // Function to check if we should use production URL from AsyncStorage
 const checkForceProduction = async () => {

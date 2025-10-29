@@ -70,6 +70,7 @@ const LANGUAGE_OPTIONS = [
 import { apiService } from '../../services/apiService';
 import { aacService } from '../../services/aacService';
 import { AACPreferences } from '../../models/AAC';
+import webAuthService from '../../services/webAuthService';
 
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -303,12 +304,17 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
-  const handleSubscriptionPress = () => {
-    const url = `https://speech-aac.link/${i18n.language}/profile`;
-    Linking.openURL(url).catch((err) => {
-      console.error('Error opening subscription URL:', err);
-      Alert.alert(t('general.error.title'), 'Failed to open subscription page');
-    });
+  const handleSubscriptionPress = async () => {
+    try {
+      // Open the pricing/subscription page with automatic authentication
+      await webAuthService.openAuthenticatedWebPage(`/${i18n.language}/pricing`);
+    } catch (error) {
+      console.error('Error opening subscription page:', error);
+      Alert.alert(
+        t('general.error.title'), 
+        'Failed to open subscription page. Please try again.'
+      );
+    }
   };
 
   // Add navigation to the Voice Collection screen
