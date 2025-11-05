@@ -527,7 +527,16 @@
     "globalCategoryInfo": "Questa è una categoria di sistema e non può essere modificata.",
     "errorSavingCategory": "Impossibile salvare la categoria. Riprova.",
     "errorDeletingCategory": "Impossibile eliminare la categoria. Riprova.",
-    "selectCategoryAction": "Cosa vuoi fare con questa categoria?"
+    "selectCategoryAction": "Cosa vuoi fare con questa categoria?",
+    "reorderSentences": "Riordina Frasi",
+    "reorderMode": "Modalità Riordino",
+    "dragToReorder": "Trascina le frasi per riordinarle",
+    "saveOrder": "Salva Ordine",
+    "cancelReorder": "Annulla",
+    "reorderSuccess": "Ordine delle frasi salvato con successo",
+    "reorderError": "Errore nel salvare l'ordine delle frasi",
+    "sentenceCount_one": "{{count}} frase",
+    "sentenceCount_other": "{{count}} frasi"
   },
   "voiceCollection": {
     "title": "Collezione Voci",
@@ -568,5 +577,74 @@
     "aacBoard": "Tabella AAC",
     "aacBoardDesc": "Accesso rapido a frasi utilizzate frequentemente",
     "legal": "Note Legali"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Benvenuto in Speech Link!",
+      "message": "Facciamo un rapido tour per aiutarti a iniziare con le principali funzionalità dell'app."
+    },
+    "skip": "Salta Tutorial",
+    "next": "Avanti",
+    "back": "Indietro",
+    "finish": "Inizia",
+    "tapAnywhere": "Tocca ovunque per continuare",
+    "tapToFinish": "Tocca ovunque per finire",
+    "replayTutorial": "Riproduci Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Crea la Tua Frase",
+        "message": "Tocca qui per creare la tua prima frase personalizzata. Puoi aggiungere qualsiasi frase che usi frequentemente."
+      },
+      "categoryButton": {
+        "title": "Organizza per Categorie",
+        "message": "Tocca questo pulsante per accedere e gestire le tue categorie. Mantieni le tue frasi organizzate per un accesso facile."
+      },
+      "selectCategory": {
+        "title": "Scegli una Categoria",
+        "message": "Seleziona 'Bisogni Essenziali' o crea le tue categorie personalizzate per organizzare efficacemente le tue frasi."
+      },
+      "organizeSentences": {
+        "title": "Organizza le Tue Frasi",
+        "message": "Mantieni le tue frasi in categorie per trovarle rapidamente quando ne hai bisogno. Trascina e rilascia per riordinare!"
+      },
+      "voiceCollection": {
+        "title": "Prova e Scegli la Tua Voce",
+        "message": "Esplora la nostra collezione di voci e trova la voce perfetta che si adatta meglio a te. Anteprima di qualsiasi voce prima di selezionarla."
+      },
+      "pronunciation": {
+        "title": "Dizionario di Pronuncia",
+        "message": "Se una parola non suona bene, aggiungila qui! Ad esempio: 'OpenAPI' → 'Open A P I'. Personalizza come vengono pronunciate le parole."
+      },
+      "settingsLanguage": {
+        "title": "Seleziona la Tua Lingua",
+        "message": "Cambia la lingua dell'app qui. Supportiamo più lingue per rendere Speech Link accessibile a tutti."
+      },
+      "settingsAudioOutput": {
+        "title": "Scegli l'Uscita Audio",
+        "message": "Mantieni l'audio sull'altoparlante del telefono anche quando gli auricolari Bluetooth sono collegati. Perfetto per la comunicazione!"
+      },
+      "settingsHideDefaults": {
+        "title": "Nascondi Frasi Predefinite",
+        "message": "Speech Link fornisce frasi di base per iniziare. Puoi nasconderle per visualizzare solo le tue frasi personalizzate."
+      },
+      "settingsDiscord": {
+        "title": "Integrazione Discord",
+        "message": "Usa Speech Link in Discord! Discuti con persone online usando la tua voce sintetizzata nei canali vocali."
+      },
+      "settingsSubscription": {
+        "title": "Scegli il Tuo Piano",
+        "message": "Seleziona il piano di abbonamento che si adatta alle tue esigenze. Diversi piani offrono varie funzionalità e limiti di utilizzo."
+      }
+    },
+    "complete": {
+      "title": "Sei Pronto!",
+      "message": "Sei pronto per iniziare a usare Speech Link. Ricorda, puoi riprodurre questo tutorial in qualsiasi momento dalle Impostazioni."
+    },
+    "skipConfirm": {
+      "title": "Salta Tutorial?",
+      "message": "Puoi riprodurre questo tutorial in qualsiasi momento dal menu Impostazioni.",
+      "continue": "Continua Tutorial",
+      "skip": "Salta"
+    }
   }
 }

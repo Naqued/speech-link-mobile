@@ -527,7 +527,16 @@
     "globalCategoryInfo": "これはシステムカテゴリーのため変更できません。",
     "errorSavingCategory": "カテゴリーの保存に失敗しました。再試行してください。",
     "errorDeletingCategory": "カテゴリーの削除に失敗しました。再試行してください。",
-    "selectCategoryAction": "このカテゴリーでどうしますか？"
+    "selectCategoryAction": "このカテゴリーでどうしますか？",
+    "reorderSentences": "文を並べ替える",
+    "reorderMode": "並べ替えモード",
+    "dragToReorder": "文をドラッグして並べ替えます",
+    "saveOrder": "順序を保存",
+    "cancelReorder": "キャンセル",
+    "reorderSuccess": "文の順序が正常に保存されました",
+    "reorderError": "文の順序の保存に失敗しました",
+    "sentenceCount_one": "{{count}}つの文",
+    "sentenceCount_other": "{{count}}つの文"
   },
   "voiceCollection": {
     "title": "音声コレクション",
@@ -568,5 +577,74 @@
     "aacBoard": "AACボード",
     "aacBoardDesc": "頻繁に使用するフレーズへの素早いアクセス",
     "legal": "法的情報"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Speech Linkへようこそ！",
+      "message": "アプリの主要機能を始めるための簡単なツアーをご案内します。"
+    },
+    "skip": "チュートリアルをスキップ",
+    "next": "次へ",
+    "back": "戻る",
+    "finish": "始める",
+    "tapAnywhere": "どこかをタップして続ける",
+    "tapToFinish": "どこかをタップして終了",
+    "replayTutorial": "チュートリアルを再再生",
+    "steps": {
+      "createSentence": {
+        "title": "フレーズを作成",
+        "message": "ここをタップして最初のカスタムフレーズを作成します。よく使用するフレーズを追加できます。"
+      },
+      "categoryButton": {
+        "title": "カテゴリーで整理",
+        "message": "このボタンをタップしてカテゴリーにアクセスし、管理します。フレーズを整理して簡単にアクセスできるようにします。"
+      },
+      "selectCategory": {
+        "title": "カテゴリーを選択",
+        "message": "'基本的ニーズ'を選択するか、独自のカスタムカテゴリーを作成してフレーズを効果的に整理します。"
+      },
+      "organizeSentences": {
+        "title": "フレーズを整理",
+        "message": "フレーズをカテゴリーにまとめて、必要な時に素早く見つけられるようにします。ドラッグ＆ドロップで並び替えが可能です！"
+      },
+      "voiceCollection": {
+        "title": "音声を試して選択",
+        "message": "音声コレクションを探索し、あなたに最適な完璧な音声を見つけます。選択前に任意の音声をプレビューできます。"
+      },
+      "pronunciation": {
+        "title": "発音辞書",
+        "message": "単語が正しく聞こえない場合は、ここに追加してください！例：'OpenAPI' → 'Open A P I'。単語の発音方法をカスタマイズします。"
+      },
+      "settingsLanguage": {
+        "title": "言語を選択",
+        "message": "ここでアプリの言語を変更します。複数の言語をサポートし、Speech Linkを誰もが利用できるようにしています。"
+      },
+      "settingsAudioOutput": {
+        "title": "音声出力を選択",
+        "message": "Bluetoothヘッドフォンが接続されていても、スマートフォンのスピーカーで音声を再生します。コミュニケーションに最適です！"
+      },
+      "settingsHideDefaults": {
+        "title": "デフォルトのフレーズを非表示",
+        "message": "Speech Linkは開始に役立つ基本的なフレーズを提供します。カスタムフレーズのみを表示するように非表示にできます。"
+      },
+      "settingsDiscord": {
+        "title": "Discord統合",
+        "message": "DiscordでSpeech Linkを使用！音声チャンネルで合成音声を使用してオンラインで人々と話し合います。"
+      },
+      "settingsSubscription": {
+        "title": "プランを選択",
+        "message": "ニーズに合ったサブスクリプションプランを選択します。異なるプランは様々な機能と使用制限を提供します。"
+      }
+    },
+    "complete": {
+      "title": "準備完了です！",
+      "message": "Speech Linkの使用を開始する準備ができました。設定からいつでもこのチュートリアルを再再生できることを覚えておいてください。"
+    },
+    "skipConfirm": {
+      "title": "チュートリアルをスキップしますか？",
+      "message": "設定メニューからいつでもこのチュートリアルを再再生できます。",
+      "continue": "チュートリアルを続ける",
+      "skip": "スキップ"
+    }
   }
 }

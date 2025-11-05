@@ -530,6 +530,15 @@
     "errorSavingCategory": "Hindi ma-save ang kategorya. Pakisubukang muli.",
     "errorDeletingCategory": "Hindi mabura ang kategorya. Pakisubukang muli.",
     "selectCategoryAction": "Ano ang gusto mong gawin sa kategoryang ito?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Koleksyon ng Boses",
@@ -570,5 +579,74 @@
     "aacBoard": "AAC Board",
     "aacBoardDesc": "Mabilis na access sa mga karaniwang ginagamit na parirala",
     "legal": "Legal"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Maligayang Pagdating sa Speech Link!",
+      "message": "Magkaroon tayo ng mabilis na paglilibot upang matulungan kang makapagsimula sa mga pangunahing tampok ng app."
+    },
+    "skip": "Laktawan ang Tutorial",
+    "next": "Susunod",
+    "back": "Bumalik",
+    "finish": "Magsimula",
+    "tapAnywhere": "Tapikin kahit saan upang magpatuloy",
+    "tapToFinish": "Tapikin kahit saan upang matapos",
+    "replayTutorial": "I-play Muli ang Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Lumikha ng Iyong Pangungusap",
+        "message": "Tapikin dito upang lumikha ng iyong unang pasadyang pangungusap. Maaari kang magdagdag ng anumang parirala na madalas mong ginagamit."
+      },
+      "categoryButton": {
+        "title": "Ayusin ayon sa Kategorya",
+        "message": "Tapikin ang button na ito upang ma-access at pamahalaan ang iyong mga kategorya. Panatilihing organisado ang iyong mga pangungusap para sa madaling pag-access."
+      },
+      "selectCategory": {
+        "title": "Pumili ng Kategorya",
+        "message": "Pumili ng 'Batayang Pangangailangan' o lumikha ng iyong sariling pasadyang kategorya upang mabisang ayusin ang iyong mga pangungusap."
+      },
+      "organizeSentences": {
+        "title": "Ayusin ang Iyong mga Pangungusap",
+        "message": "Panatilihin ang iyong mga pangungusap sa mga kategorya upang mabilis na mahanap ang mga ito kapag kailangan mo. I-drag at i-drop upang muling ayusin!"
+      },
+      "voiceCollection": {
+        "title": "Subukan at Pumili ng Iyong Tinig",
+        "message": "Tuklasin ang aming koleksyon ng tinig at hanapin ang perpektong tinig na pinakaangkop sa iyo. I-preview ang anumang tinig bago piliin."
+      },
+      "pronunciation": {
+        "title": "Diksyonaryo ng Pagbigkas",
+        "message": "Kung ang isang salita ay hindi tama ang tunog, idagdag dito! Halimbawa: 'OpenAPI' → 'Open A P I'. I-customize kung paano binibigkas ang mga salita."
+      },
+      "settingsLanguage": {
+        "title": "Pumili ng Iyong Wika",
+        "message": "Palitan ang wika ng app dito. Sumusuporta kami ng maraming wika upang gawing naa-access ang Speech Link para sa lahat."
+      },
+      "settingsAudioOutput": {
+        "title": "Pumili ng Audio Output",
+        "message": "Panatilihin ang audio sa speaker ng iyong telepono kahit na nakakonekta ang Bluetooth headphones. Perpekto para sa komunikasyon!"
+      },
+      "settingsHideDefaults": {
+        "title": "Itago ang Default na Pangungusap",
+        "message": "Nagbibigay ang Speech Link ng mga batayang pangungusap upang makapagsimula. Maaari mong itago ang mga ito upang ipakita lamang ang iyong pasadyang mga pangungusap."
+      },
+      "settingsDiscord": {
+        "title": "Discord Integration",
+        "message": "Gamitin ang Speech Link sa Discord! Makipag-usap sa mga tao online gamit ang iyong synthesized na tinig sa voice channels."
+      },
+      "settingsSubscription": {
+        "title": "Pumili ng Iyong Plan",
+        "message": "Pumili ng subscription plan na tumugma sa iyong pangangailangan. Iba't ibang mga plan ang nag-aalok ng iba't ibang features at usage limits."
+      }
+    },
+    "complete": {
+      "title": "Handa Ka Na!",
+      "message": "Handa ka nang magsimulang gumamit ng Speech Link. Tandaan, maaari mong i-play muli ang tutorial na ito anumang oras mula sa Mga Setting."
+    },
+    "skipConfirm": {
+      "title": "Laktawan ang Tutorial?",
+      "message": "Maaari mong i-play muli ang tutorial na ito anumang oras mula sa menu ng Mga Setting.",
+      "continue": "Magpatuloy sa Tutorial",
+      "skip": "Laktawan"
+    }
   }
 }

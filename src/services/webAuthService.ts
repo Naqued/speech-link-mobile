@@ -40,7 +40,8 @@ class WebAuthService {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
-        }
+        },
+        body: JSON.stringify({})
       });
       
       if (!response.ok) {
@@ -82,19 +83,20 @@ class WebAuthService {
   /**
    * Shortcut methods for common pages
    */
-  public async openPricing(): Promise<void> {
-    return this.openAuthenticatedWebPage('/pricing');
-  }
-  
   public async openProfile(): Promise<void> {
     return this.openAuthenticatedWebPage('/profile');
   }
   
   public async openSubscription(): Promise<void> {
-    return this.openAuthenticatedWebPage('/subscription');
+    return this.openAuthenticatedWebPage('/pricing');
+  }
+  
+  public async openPricing(): Promise<void> {
+    return this.openAuthenticatedWebPage('/pricing');
   }
 }
 
 export default WebAuthService.getInstance();
+
 
 

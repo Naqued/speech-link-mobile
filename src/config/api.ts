@@ -3,9 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Get the network IP address for development
 const DEV_API_URL = Platform.select({
-  android: 'https://kaya-engaging-tristin.ngrok-free.dev',
-  ios: 'https://kaya-engaging-tristin.ngrok-free.dev',
-  default: 'https://kaya-engaging-tristin.ngrok-free.dev',
+  android: '192.168.1.14:3000',
+  ios: '192.168.1.14:3000',
+  default: '192.168.1.14:3000',
 });
 
 const DEV_WS_URL = Platform.select({

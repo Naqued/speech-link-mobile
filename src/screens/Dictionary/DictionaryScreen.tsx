@@ -16,6 +16,7 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 import * as dictionaryAPI from '../../api/dictionary';
 import AddEditEntryModal from '../../components/Dictionary/AddEditEntryModal';
+import { TutorialTarget } from '../../components/Tutorial/TutorialTarget';
 
 const DictionaryScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -223,15 +224,17 @@ const DictionaryScreen: React.FC = () => {
       <ScreenHeader 
         title={t('pronunciation.title') || 'Pronunciation'}
         rightComponent={
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              setEditingEntry(undefined);
-              setShowAddModal(true);
-            }}
-          >
-            <Ionicons name="add" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <TutorialTarget id="dictionary-add-button">
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => {
+                setEditingEntry(undefined);
+                setShowAddModal(true);
+              }}
+            >
+              <Ionicons name="add" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </TutorialTarget>
         }
       />
 

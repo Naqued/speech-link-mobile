@@ -63,7 +63,7 @@ const SentenceReorderMode: React.FC<SentenceReorderModeProps> = ({
       console.error('Error saving sentence order:', error);
       Alert.alert(
         t('general.error.title'),
-        'Failed to save sentence order'
+        t('aacBoard.reorderError')
       );
     } finally {
       setIsSaving(false);
@@ -140,7 +140,7 @@ const SentenceReorderMode: React.FC<SentenceReorderModeProps> = ({
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>Reorder Sentences</Text>
+              <Text style={styles.headerTitle}>{t('aacBoard.reorderSentences')}</Text>
               <Text style={styles.headerSubtitle}>{categoryName}</Text>
             </View>
 
@@ -167,7 +167,7 @@ const SentenceReorderMode: React.FC<SentenceReorderModeProps> = ({
           <View style={styles.instructionsContainer}>
             <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
             <Text style={styles.instructionsText}>
-              Long press and drag to reorder sentences
+              {t('aacBoard.dragToReorder')}
             </Text>
           </View>
 
@@ -183,7 +183,7 @@ const SentenceReorderMode: React.FC<SentenceReorderModeProps> = ({
           {/* Footer Info */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              {data.length} {data.length === 1 ? 'sentence' : 'sentences'}
+              {t('aacBoard.sentenceCount', { count: data.length })}
             </Text>
           </View>
         </SafeAreaView>
@@ -328,6 +328,7 @@ const makeStyles = (theme: any, categoryColor: string) =>
   });
 
 export default SentenceReorderMode;
+
 
 
 

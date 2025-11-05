@@ -527,7 +527,16 @@
     "globalCategoryInfo": "Dies ist eine Systemkategorie und kann nicht geändert werden.",
     "errorSavingCategory": "Fehler beim Speichern der Kategorie. Bitte versuchen Sie es erneut.",
     "errorDeletingCategory": "Fehler beim Löschen der Kategorie. Bitte versuchen Sie es erneut.",
-    "selectCategoryAction": "Was möchten Sie mit dieser Kategorie tun?"
+    "selectCategoryAction": "Was möchten Sie mit dieser Kategorie tun?",
+    "reorderSentences": "Sätze neu ordnen",
+    "reorderMode": "Neu-Ordnungs-Modus",
+    "dragToReorder": "Ziehen Sie die Sätze, um sie neu anzuordnen",
+    "saveOrder": "Reihenfolge speichern",
+    "cancelReorder": "Abbrechen",
+    "reorderSuccess": "Satzreihenfolge erfolgreich gespeichert",
+    "reorderError": "Fehler beim Speichern der Satzreihenfolge",
+    "sentenceCount_one": "{{count}} Satz",
+    "sentenceCount_other": "{{count}} Sätze"
   },
   "voiceCollection": {
     "title": "Stimmensammlung",
@@ -568,5 +577,74 @@
     "aacBoard": "AAC-Tafel",
     "aacBoardDesc": "Schneller Zugriff auf häufig verwendete Sätze",
     "legal": "Rechtliche Hinweise"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Willkommen bei Speech Link!",
+      "message": "Lassen Sie uns einen kurzen Rundgang machen, um Ihnen zu helfen, mit den Hauptfunktionen der App zu beginnen."
+    },
+    "skip": "Tutorium überspringen",
+    "next": "Weiter",
+    "back": "Zurück",
+    "finish": "Loslegen",
+    "tapAnywhere": "Tippen Sie überall, um fortzufahren",
+    "tapToFinish": "Tippen Sie überall, um zu beenden",
+    "replayTutorial": "Tutorium wiederholen",
+    "steps": {
+      "createSentence": {
+        "title": "Erstellen Sie Ihren Satz",
+        "message": "Tippen Sie hier, um Ihren ersten benutzerdefinierten Satz zu erstellen. Sie können jede Phrase hinzufügen, die Sie häufig verwenden."
+      },
+      "categoryButton": {
+        "title": "Nach Kategorien organisieren",
+        "message": "Tippen Sie auf diese Schaltfläche, um auf Ihre Kategorien zuzugreifen und sie zu verwalten. Halten Sie Ihre Sätze organisiert für einfachen Zugriff."
+      },
+      "selectCategory": {
+        "title": "Wählen Sie eine Kategorie",
+        "message": "Wählen Sie 'Grundbedürfnisse' oder erstellen Sie Ihre eigenen benutzerdefinierten Kategorien, um Ihre Sätze effektiv zu organisieren."
+      },
+      "organizeSentences": {
+        "title": "Organisieren Sie Ihre Sätze",
+        "message": "Behalten Sie Ihre Sätze in Kategorien, um sie schnell zu finden, wenn Sie sie brauchen. Ziehen und ablegen, um neu zu ordnen!"
+      },
+      "voiceCollection": {
+        "title": "Versuchen & Wählen Sie Ihre Stimme",
+        "message": "Entdecken Sie unsere Stimmensammlung und finden Sie die perfekte Stimme, die am besten zu Ihnen passt. Vorschau jeder Stimme vor der Auswahl."
+      },
+      "pronunciation": {
+        "title": "Aussprachewörterbuch",
+        "message": "Wenn ein Wort nicht richtig klingt, fügen Sie es hier hinzu! Zum Beispiel: 'OpenAPI' → 'Open A P I'. Passen Sie an, wie Wörter ausgesprochen werden."
+      },
+      "settingsLanguage": {
+        "title": "Wählen Sie Ihre Sprache",
+        "message": "Ändern Sie hier die Sprache der App. Wir unterstützen mehrere Sprachen, um Speech Link für alle zugänglich zu machen."
+      },
+      "settingsAudioOutput": {
+        "title": "Wählen Sie die Audioausgabe",
+        "message": "Behalten Sie das Audio auf dem Lautsprecher Ihres Telefons, auch wenn Bluetooth-Kopfhörer verbunden sind. Perfekt für die Kommunikation!"
+      },
+      "settingsHideDefaults": {
+        "title": "Standardsätze ausblenden",
+        "message": "Speech Link bietet grundlegende Sätze zum Einstieg. Sie können sie ausblenden, um nur Ihre benutzerdefinierten Sätze anzuzeigen."
+      },
+      "settingsDiscord": {
+        "title": "Discord-Integration",
+        "message": "Verwenden Sie Speech Link in Discord! Diskutieren Sie mit Menschen online, indem Sie Ihre synthetisierte Stimme in Sprachkanälen verwenden."
+      },
+      "settingsSubscription": {
+        "title": "Wählen Sie Ihren Plan",
+        "message": "Wählen Sie den Abonnementplan, der Ihren Bedürfnissen entspricht. Verschiedene Pläne bieten verschiedene Funktionen und Nutzungslimits."
+      }
+    },
+    "complete": {
+      "title": "Sie sind bereit!",
+      "message": "Sie sind bereit, Speech Link zu verwenden. Denken Sie daran, Sie können dieses Tutorium jederzeit in den Einstellungen wiederholen."
+    },
+    "skipConfirm": {
+      "title": "Tutorium überspringen?",
+      "message": "Sie können dieses Tutorium jederzeit im Einstellungsmenü wiederholen.",
+      "continue": "Tutorium fortsetzen",
+      "skip": "Überspringen"
+    }
   }
 }

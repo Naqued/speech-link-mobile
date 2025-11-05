@@ -530,6 +530,15 @@
     "errorSavingCategory": "Eroare la salvarea categoriei. Te rugăm să încerci din nou.",
     "errorDeletingCategory": "Eroare la ștergerea categoriei. Te rugăm să încerci din nou.",
     "selectCategoryAction": "Ce ai dori să faci cu această categorie?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Colecție de voci",
@@ -570,5 +579,74 @@
     "aacBoard": "Panou AAC",
     "aacBoardDesc": "Acces rapid la fraze utilizate frecvent",
     "legal": "Juridic"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Bun venit la Speech Link!",
+      "message": "Să facem un tur rapid pentru a te ajuta să începi cu funcțiile principale ale aplicației."
+    },
+    "skip": "Omită Tutorialul",
+    "next": "Următorul",
+    "back": "Înapoi",
+    "finish": "Începe",
+    "tapAnywhere": "Atingeți oriunde pentru a continua",
+    "tapToFinish": "Atingeți oriunde pentru a termina",
+    "replayTutorial": "Redă Tutorialul",
+    "steps": {
+      "createSentence": {
+        "title": "Creează Propoziția Ta",
+        "message": "Atinge aici pentru a crea prima ta propoziție personalizată. Poți adăuga orice frază pe care o folosești frecvent."
+      },
+      "categoryButton": {
+        "title": "Organizează pe Categorii",
+        "message": "Atinge acest buton pentru a accesa și gestiona categoriile tale. Păstrează propozițiile tale organizate pentru acces ușor."
+      },
+      "selectCategory": {
+        "title": "Alege o Categorie",
+        "message": "Selectează 'Nevoi de Bază' sau creează propriile categorii personalizate pentru a organiza eficient propozițiile tale."
+      },
+      "organizeSentences": {
+        "title": "Organizează Propozițiile Tale",
+        "message": "Păstrează propozițiile tale în categorii pentru a le găsi rapid când ai nevoie. Trage și plasează pentru a reordona!"
+      },
+      "voiceCollection": {
+        "title": "Încearcă și Alege Vocea Ta",
+        "message": "Explorează colecția noastră de voci și găsește vocea perfectă care îți vine cel mai bine. Previzualizează orice voce înainte de a o selecta."
+      },
+      "pronunciation": {
+        "title": "Dicționar de Pronunție",
+        "message": "Dacă un cuvânt nu sună corect, adaugă-l aici! De exemplu: 'OpenAPI' → 'Open A P I'. Personalizează modul în care cuvintele sunt pronunciate."
+      },
+      "settingsLanguage": {
+        "title": "Selectează Limba Ta",
+        "message": "Schimbă limba aplicației aici. Suportăm mai multe limbi pentru a face Speech Link accesibil pentru toți."
+      },
+      "settingsAudioOutput": {
+        "title": "Alege Ieșirea Audio",
+        "message": "Păstrează audio-ul pe difuzorul telefonului tău chiar și când căștile Bluetooth sunt conectate. Perfect pentru comunicare!"
+      },
+      "settingsHideDefaults": {
+        "title": "Ascunde Propozițiile Implicite",
+        "message": "Speech Link oferă propoziții de bază pentru a începe. Le poți ascunde pentru a afișa doar propozițiile tale personalizate."
+      },
+      "settingsDiscord": {
+        "title": "Integrare Discord",
+        "message": "Folosește Speech Link în Discord! Discută cu oameni online folosind vocea ta sintetizată în canale vocale."
+      },
+      "settingsSubscription": {
+        "title": "Alege Planul Tău",
+        "message": "Selectează planul de abonament care se potrivește nevoilor tale. Planuri diferite oferă diverse funcții și limite de utilizare."
+      }
+    },
+    "complete": {
+      "title": "Ești Gata!",
+      "message": "Ești gata să începi să folosești Speech Link. Amintește-ți, poți reda acest tutorial oricând din Setări."
+    },
+    "skipConfirm": {
+      "title": "Omită Tutorialul?",
+      "message": "Poți reda acest tutorial oricând din meniul Setări.",
+      "continue": "Continuă Tutorialul",
+      "skip": "Omită"
+    }
   }
 }

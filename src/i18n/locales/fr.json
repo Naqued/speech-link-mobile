@@ -477,7 +477,9 @@
     "feedback": "Envoyer un Commentaire",
     "integrations": "Intégrations",
     "discordSettings": "Paramètres Discord",
-    "audioRouting": "Routage Audio"
+    "audioRouting": "Routage Audio",
+    "replayTutorial": "Rejouer le tutoriel",
+    "help": "Aide"
   },
   "profile": {
     "title": "Profil",
@@ -609,7 +611,16 @@
     "globalCategoryInfo": "Il s'agit d'une catégorie fournie par le système et ne peut pas être modifiée.",
     "errorSavingCategory": "Échec de l'enregistrement de la catégorie. Veuillez réessayer.",
     "errorDeletingCategory": "Échec de la suppression de la catégorie. Veuillez réessayer.",
-    "selectCategoryAction": "Que souhaitez-vous faire avec cette catégorie?"
+    "selectCategoryAction": "Que souhaitez-vous faire avec cette catégorie?",
+    "reorderSentences": "Réorganiser les Phrases",
+    "reorderMode": "Mode Réorganisation",
+    "dragToReorder": "Faites glisser les phrases pour les réorganiser",
+    "saveOrder": "Sauvegarder l'Ordre",
+    "cancelReorder": "Annuler",
+    "reorderSuccess": "Ordre des phrases enregistré avec succès",
+    "reorderError": "Échec de la sauvegarde de l'ordre des phrases",
+    "sentenceCount_one": "{{count}} phrase",
+    "sentenceCount_other": "{{count}} phrases"
   },
   "voiceCollection": {
     "title": "Collection de Voix",
@@ -657,5 +668,74 @@
     "subMessage": "En tant que développeurs indépendants, chaque avis fait une réelle différence pour aider les autres à découvrir Speech Link.",
     "rateButton": "Évaluer sur le Store",
     "dismissButton": "Plus Tard"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Bienvenue sur Speech Link !",
+      "message": "Faisons un rapide tour pour vous aider à démarrer avec les principales fonctionnalités de l'application."
+    },
+    "skip": "Passer le tutoriel",
+    "next": "Suivant",
+    "back": "Retour",
+    "finish": "Commencer",
+    "tapAnywhere": "Appuyez n'importe où pour continuer",
+    "tapToFinish": "Appuyez n'importe où pour terminer",
+    "replayTutorial": "Rejouer le tutoriel",
+    "steps": {
+      "createSentence": {
+        "title": "Créez votre phrase",
+        "message": "Appuyez ici pour créer votre première phrase personnalisée. Vous pouvez ajouter toute phrase que vous utilisez fréquemment."
+      },
+      "categoryButton": {
+        "title": "Organisez par catégories",
+        "message": "Appuyez sur ce bouton pour accéder et gérer vos catégories. Gardez vos phrases organisées pour un accès facile."
+      },
+      "selectCategory": {
+        "title": "Choisissez une catégorie",
+        "message": "Sélectionnez 'Besoins Essentiels' ou créez vos propres catégories personnalisées pour organiser efficacement vos phrases."
+      },
+      "organizeSentences": {
+        "title": "Organisez vos phrases",
+        "message": "Gardez vos phrases dans des catégories pour les retrouver rapidement quand vous en avez besoin. Glissez-déposez pour réorganiser !"
+      },
+      "voiceCollection": {
+        "title": "Essayez et choisissez votre voix",
+        "message": "Explorez notre collection de voix et trouvez la voix parfaite qui vous convient le mieux. Prévisualisez n'importe quelle voix avant de la sélectionner."
+      },
+      "pronunciation": {
+        "title": "Dictionnaire de prononciation",
+        "message": "Si un mot ne sonne pas correctement, ajoutez-le ici ! Par exemple : 'OpenAPI' → 'Open A P I'. Personnalisez la prononciation des mots."
+      },
+      "settingsLanguage": {
+        "title": "Sélectionnez votre langue",
+        "message": "Changez la langue de l'application ici. Nous supportons plusieurs langues pour rendre Speech Link accessible à tous."
+      },
+      "settingsAudioOutput": {
+        "title": "Choisissez la sortie audio",
+        "message": "Gardez l'audio sur le haut-parleur de votre téléphone même lorsque des écouteurs Bluetooth sont connectés. Parfait pour la communication !"
+      },
+      "settingsHideDefaults": {
+        "title": "Masquer les phrases par défaut",
+        "message": "Speech Link fournit des phrases de base pour vous aider à démarrer. Vous pouvez les masquer pour n'afficher que vos phrases personnalisées."
+      },
+      "settingsDiscord": {
+        "title": "Intégration Discord",
+        "message": "Utilisez Speech Link dans Discord ! Discutez avec des personnes en ligne en utilisant votre voix synthétisée dans les canaux vocaux."
+      },
+      "settingsSubscription": {
+        "title": "Choisissez votre forfait",
+        "message": "Sélectionnez le forfait d'abonnement qui correspond à vos besoins. Différents forfaits offrent diverses fonctionnalités et limites d'utilisation."
+      }
+    },
+    "complete": {
+      "title": "Vous êtes prêt !",
+      "message": "Vous êtes prêt à commencer à utiliser Speech Link. N'oubliez pas, vous pouvez rejouer ce tutoriel à tout moment depuis les Paramètres."
+    },
+    "skipConfirm": {
+      "title": "Passer le tutoriel ?",
+      "message": "Vous pouvez rejouer ce tutoriel à tout moment depuis le menu Paramètres.",
+      "continue": "Continuer le tutoriel",
+      "skip": "Passer"
+    }
   }
 }

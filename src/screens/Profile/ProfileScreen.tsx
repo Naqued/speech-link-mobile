@@ -8,8 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  ActivityIndicator,
-  Linking
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +21,7 @@ import { ThemeContext } from '../../contexts/ThemeContext';
 // Services
 import { profileService } from '../../services/profileService';
 import { UserProfile } from '../../types/profile';
+import webAuthService from '../../services/webAuthService';
 
 // Plan configuration based on your specifications
 const PLAN_CONFIG = {
@@ -107,7 +107,7 @@ const formatCredits = (credits: number): string => {
 };
 
 const ProfileScreen: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   
@@ -185,12 +185,17 @@ const ProfileScreen: React.FC = () => {
     return date.toLocaleDateString();
   };
   // Add a function to handle external navigation
-  const handleUpgradePress = (plan: string) => {
-    const url = `https://speech-aac.link/en/profile?upgrade=${plan.toLowerCase()}`;
-    Linking.openURL(url).catch(err => {
-      console.error('Failed to open upgrade URL:', err);
-      Alert.alert(t('general.error.title'), t('general.couldNotOpenBrowser'));
-    });
+  const handleUpgradePress = async (plan: string) => {
+    try {
+      // Open the dedicated pricing page for mobile users with automatic authentication
+      await webAuthService.openAuthenticatedWebPage(`/${i18n.language}/pricing`);
+    } catch (error) {
+      console.error('Error opening upgrade page:', error);
+      Alert.alert(
+        t('general.error.title'), 
+        'Failed to open upgrade page. Please try again.'
+      );
+    }
   };
 
   // Add a function to get usage percentage and status

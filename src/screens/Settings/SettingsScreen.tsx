@@ -22,9 +22,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
+import { useTutorial } from '../../contexts/TutorialContext';
 
 // Components
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
+import { TutorialTarget } from '../../components/Tutorial/TutorialTarget';
 
 // Components
 import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings';
@@ -77,6 +79,10 @@ const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
   const { theme, toggleTheme } = useContext(ThemeContext);
   const { signOut } = useContext(AuthContext);
+  const { startTutorial, currentStep, isActive: isTutorialActive } = useTutorial();
+  
+  // Ref for auto-scrolling during tutorial
+  const scrollViewRef = React.useRef<ScrollView>(null);
   
   const { 
     userSettings, 
@@ -126,6 +132,32 @@ const SettingsScreen: React.FC = () => {
 
     fetchAACPreferences();
   }, []);
+
+  // Auto-scroll during tutorial
+  useEffect(() => {
+    if (isTutorialActive && currentStep && currentStep.targetScreen === 'Settings' && scrollViewRef.current) {
+      // Map target IDs to approximate scroll positions (in pixels from top)
+      // These values ensure the element is visible with some space around it
+      const scrollPositions: Record<string, number> = {
+        'settings-language': 0,        // At the top
+        'settings-audio-output': 150,  // Audio section
+        'settings-hide-defaults': 300, // AAC Settings section
+        'settings-discord': 480,       // Integrations section
+        'settings-subscription': 580,  // Account section
+      };
+      
+      const targetId = currentStep.targetId;
+      if (targetId && scrollPositions[targetId] !== undefined) {
+        // Delay to allow UI to settle before scrolling
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({
+            y: scrollPositions[targetId],
+            animated: true,
+          });
+        }, 100);
+      }
+    }
+  }, [isTutorialActive, currentStep]);
 
   // Find the currently selected voice
   // Handle both voiceId (from TypeScript interface) and selectedVoice (from API response)
@@ -306,13 +338,28 @@ const SettingsScreen: React.FC = () => {
 
   const handleSubscriptionPress = async () => {
     try {
-      // Open the pricing/subscription page with automatic authentication
+      // Open the dedicated pricing page for mobile users with automatic authentication
       await webAuthService.openAuthenticatedWebPage(`/${i18n.language}/pricing`);
     } catch (error) {
       console.error('Error opening subscription page:', error);
       Alert.alert(
         t('general.error.title'), 
         'Failed to open subscription page. Please try again.'
+      );
+    }
+  };
+
+  const handleReplayTutorial = async () => {
+    try {
+      // Reset tutorial status and start it
+      const { tutorialService } = await import('../../services/tutorialService');
+      await tutorialService.resetTutorial();
+      startTutorial();
+    } catch (error) {
+      console.error('Error replaying tutorial:', error);
+      Alert.alert(
+        t('general.error.title'),
+        'Failed to start tutorial. Please try again.'
       );
     }
   };
@@ -467,12 +514,14 @@ const SettingsScreen: React.FC = () => {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{t('settings.integrations')}</Text>
       
-      {renderSettingItem(
-        'logo-discord',
-        t('settings.discordSettings'),
-        null,
-        () => navigation.navigate('DiscordSettings' as never)
-      )}
+      <TutorialTarget id="settings-discord">
+        {renderSettingItem(
+          'logo-discord',
+          t('settings.discordSettings'),
+          null,
+          () => navigation.navigate('DiscordSettings' as never)
+        )}
+      </TutorialTarget>
       
       {/* {renderSettingItem(
         'options-outline',
@@ -491,7 +540,11 @@ const SettingsScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScreenHeader title={t('settings.title')} />
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        ref={scrollViewRef} 
+        style={styles.scrollView}
+        scrollEnabled={!(isTutorialActive && currentStep?.targetScreen === 'Settings')}
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.theme')}</Text>
           {renderSettingItem(
@@ -511,43 +564,49 @@ const SettingsScreen: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-          {renderSettingItem(
-            'language-outline',
-            t('language.select'),
-            <Text style={styles.settingValueText}>
-              {LANGUAGE_OPTIONS.find(l => l.id === i18n.language)?.nativeName || 'English'}
-            </Text>,
-            () => setLanguageModalVisible(true)
-          )}
+          <TutorialTarget id="settings-language">
+            {renderSettingItem(
+              'language-outline',
+              t('language.select'),
+              <Text style={styles.settingValueText}>
+                {LANGUAGE_OPTIONS.find(l => l.id === i18n.language)?.nativeName || 'English'}
+              </Text>,
+              () => setLanguageModalVisible(true)
+            )}
+          </TutorialTarget>
           {renderLanguageModal()}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.audio')}</Text>
-          {renderSettingItem(
-            'volume-high-outline',
-            t('audioOutput.title') || 'Audio Output',
-            undefined,
-            () => navigation.navigate('AudioOutputSettings' as never)
-          )}
+          <TutorialTarget id="settings-audio-output">
+            {renderSettingItem(
+              'volume-high-outline',
+              t('audioOutput.title') || 'Audio Output',
+              undefined,
+              () => navigation.navigate('AudioOutputSettings' as never)
+            )}
+          </TutorialTarget>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>AAC Settings</Text>
-          {renderSettingItem(
-            'eye-off-outline',
-            'Hide Default Sentences',
-            <Switch
-              value={aacPreferences?.hideDefaultSentences || false}
-              onValueChange={handleToggleHideDefaultSentences}
-              trackColor={{ false: theme.border, true: theme.primary + '80' }}
-              thumbColor={aacPreferences?.hideDefaultSentences ? theme.primary : '#f4f3f4'}
-              ios_backgroundColor={theme.border}
-              disabled={loadingAACPrefs}
-            />,
-            undefined,
-            false
-          )}
+          <TutorialTarget id="settings-hide-defaults">
+            {renderSettingItem(
+              'eye-off-outline',
+              'Hide Default Sentences',
+              <Switch
+                value={aacPreferences?.hideDefaultSentences || false}
+                onValueChange={handleToggleHideDefaultSentences}
+                trackColor={{ false: theme.border, true: theme.primary + '80' }}
+                thumbColor={aacPreferences?.hideDefaultSentences ? theme.primary : '#f4f3f4'}
+                ios_backgroundColor={theme.border}
+                disabled={loadingAACPrefs}
+              />,
+              undefined,
+              false
+            )}
+          </TutorialTarget>
           <Text style={styles.settingDescription}>
             When enabled, default sentences provided by the app will be hidden from your AAC board. Only your custom sentences will be displayed.
           </Text>
@@ -561,15 +620,27 @@ const SettingsScreen: React.FC = () => {
             undefined,
             () => navigation.navigate('Profile' as never)
           )}
-          {renderSettingItem(
-            'card-outline',
-            t('profile.subscription'),
-            undefined,
-            handleSubscriptionPress
-          )}
+          <TutorialTarget id="settings-subscription">
+            {renderSettingItem(
+              'card-outline',
+              t('profile.subscription'),
+              undefined,
+              handleSubscriptionPress
+            )}
+          </TutorialTarget>
         </View>
 
         {renderIntegrationSettings()}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.help')}</Text>
+          {renderSettingItem(
+            'help-circle-outline',
+            t('settings.replayTutorial') || 'Replay Tutorial',
+            undefined,
+            handleReplayTutorial
+          )}
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
@@ -627,7 +698,7 @@ const SettingsScreen: React.FC = () => {
               });
             }}
           >
-            <Text style={styles.versionText}>Version 1.6</Text>
+            <Text style={styles.versionText}>Version 2.0</Text>
           </TouchableOpacity>
         </View>
 

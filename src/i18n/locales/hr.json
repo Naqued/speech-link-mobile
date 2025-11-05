@@ -251,5 +251,85 @@
     "voices": "Glasovi",
     "history": "Povijest",
     "settings": "Postavke"
+  },
+  "about": {
+    "description": "Speech Link je moćna aplikacija za poboljšanje glasa koja vam pomaže da komunicirate učinkovitije. S funkcijama kao što su tekst-u-govor, govor-u-tekst i prilagodba glasa, možete se izražavati jasno i samopouzdano u bilo kojoj situaciji.",
+    "features": "Značajke",
+    "voiceEnhancement": "Poboljšanje glasa",
+    "voiceEnhancementDesc": "Kristalno čist izlaz glasa s prilagodljivim postavkama",
+    "textToSpeech": "Tekst u govor",
+    "textToSpeechDesc": "Pretvorite tekst u prirodno zvučeći govor",
+    "aacBoard": "AAC ploča",
+    "aacBoardDesc": "Brzi pristup često korištenim frazama",
+    "legal": "Pravne informacije"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Dobrodošli u Speech Link!",
+      "message": "Hajdemo napraviti kratku turu kako bismo vam pomogli da počnete s glavnim značajkama aplikacije."
+    },
+    "skip": "Preskoči Vodič",
+    "next": "Sljedeće",
+    "back": "Natrag",
+    "finish": "Počni",
+    "tapAnywhere": "Dodirnite bilo gdje za nastavak",
+    "tapToFinish": "Dodirnite bilo gdje za završetak",
+    "replayTutorial": "Reproduciraj Vodič Ponovno",
+    "steps": {
+      "createSentence": {
+        "title": "Kreirajte Vašu Rečenicu",
+        "message": "Dodirnite ovdje da biste kreirali vašu prvu prilagođenu rečenicu. Možete dodati bilo koju frazu koju često koristite."
+      },
+      "categoryButton": {
+        "title": "Organizirajte po Kategorijama",
+        "message": "Dodirnite ovaj gumb za pristup i upravljanje vašim kategorijama. Zadržite vaše rečenice organizirane za lak pristup."
+      },
+      "selectCategory": {
+        "title": "Odaberite Kategoriju",
+        "message": "Odaberite 'Osnovne Potrebe' ili kreirajte vlastite prilagođene kategorije za učinkovitu organizaciju vaših rečenica."
+      },
+      "organizeSentences": {
+        "title": "Organizirajte Vaše Rečenice",
+        "message": "Zadržite vaše rečenice u kategorijama da biste ih brzo pronašli kada vam zatrebaju. Povucite i pustite za preraspored!"
+      },
+      "voiceCollection": {
+        "title": "Isprobajte i Odaberite Vaš Glas",
+        "message": "Istražite našu kolekciju glasova i pronađite savršeni glas koji vam najbolje odgovara. Pregledajte bilo koji glas prije odabira."
+      },
+      "pronunciation": {
+        "title": "Rječnik Izgovora",
+        "message": "Ako riječ ne zvuči ispravno, dodajte je ovdje! Primjerice: 'OpenAPI' → 'Open A P I'. Prilagodite kako se riječi izgovaraju."
+      },
+      "settingsLanguage": {
+        "title": "Odaberite Vaš Jezik",
+        "message": "Promijenite jezik aplikacije ovdje. Podržavamo više jezika kako bismo učinili Speech Link dostupnim svima."
+      },
+      "settingsAudioOutput": {
+        "title": "Odaberite Audio Izlaz",
+        "message": "Zadržite audio na zvučniku vašeg telefona čak i kada su Bluetooth slušalice povezane. Savršeno za komunikaciju!"
+      },
+      "settingsHideDefaults": {
+        "title": "Sakrij Zadane Rečenice",
+        "message": "Speech Link pruža osnovne rečenice za početak. Možete ih sakriti da prikažete samo vaše prilagođene rečenice."
+      },
+      "settingsDiscord": {
+        "title": "Discord Integracija",
+        "message": "Koristite Speech Link u Discordu! Razgovarajte s ljudima online koristeći vaš sintetizirani glas u glasovnim kanalima."
+      },
+      "settingsSubscription": {
+        "title": "Odaberite Vaš Plan",
+        "message": "Odaberite pretplatnički plan koji odgovara vašim potrebama. Različiti planovi nude različite značajke i ograničenja upotrebe."
+      }
+    },
+    "complete": {
+      "title": "Spremni Ste!",
+      "message": "Spremni ste za početak korištenja Speech Linka. Zapamtite, možete reproducirati ovaj vodič bilo kada iz Postavki."
+    },
+    "skipConfirm": {
+      "title": "Preskoči Vodič?",
+      "message": "Možete reproducirati ovaj vodič bilo kada iz izbornika Postavki.",
+      "continue": "Nastavi Vodič",
+      "skip": "Preskoči"
+    }
   }
 }

@@ -251,5 +251,85 @@
     "voices": "Suara",
     "history": "Sejarah",
     "settings": "Tetapan"
+  },
+  "about": {
+    "description": "Speech Link ialah aplikasi peningkatan suara yang berkuasa yang membantu anda berkomunikasi dengan lebih berkesan. Dengan ciri seperti teks-ke-ucapan, ucapan-ke-teks, dan penyesuaian suara, anda boleh menyatakan diri anda dengan jelas dan yakin dalam mana-mana situasi.",
+    "features": "Ciri",
+    "voiceEnhancement": "Peningkatan Suara",
+    "voiceEnhancementDesc": "Output suara jernih kristal dengan tetapan yang boleh disesuaikan",
+    "textToSpeech": "Teks ke Ucapan",
+    "textToSpeechDesc": "Tukar teks kepada ucapan yang kedengaran semula jadi",
+    "aacBoard": "Papan AAC",
+    "aacBoardDesc": "Akses pantas kepada frasa yang kerap digunakan",
+    "legal": "Undang-undang"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Selamat Datang ke Speech Link!",
+      "message": "Mari kita buat lawatan cepat untuk membantu anda mula dengan ciri utama aplikasi."
+    },
+    "skip": "Langkau Tutorial",
+    "next": "Seterusnya",
+    "back": "Kembali",
+    "finish": "Mula",
+    "tapAnywhere": "Ketuk di mana-mana untuk meneruskan",
+    "tapToFinish": "Ketuk di mana-mana untuk menyelesaikan",
+    "replayTutorial": "Main Semula Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Cipta Ayat Anda",
+        "message": "Ketuk di sini untuk mencipta ayat tersuai pertama anda. Anda boleh menambah sebarang frasa yang anda gunakan dengan kerap."
+      },
+      "categoryButton": {
+        "title": "Susun mengikut Kategori",
+        "message": "Ketuk butang ini untuk mengakses dan menguruskan kategori anda. Pastikan ayat anda teratur untuk akses mudah."
+      },
+      "selectCategory": {
+        "title": "Pilih Kategori",
+        "message": "Pilih 'Keperluan Asas' atau buat kategori tersuai anda sendiri untuk menyusun ayat anda dengan berkesan."
+      },
+      "organizeSentences": {
+        "title": "Susun Ayat Anda",
+        "message": "Simpan ayat anda dalam kategori untuk mencarinya dengan cepat apabila diperlukan. Seret dan lepas untuk menyusun semula!"
+      },
+      "voiceCollection": {
+        "title": "Cuba & Pilih Suara Anda",
+        "message": "Terokai koleksi suara kami dan cari suara sempurna yang paling sesuai untuk anda. Pratonton sebarang suara sebelum memilihnya."
+      },
+      "pronunciation": {
+        "title": "Kamus Sebutan",
+        "message": "Jika perkataan tidak kedengaran betul, tambah di sini! Contoh: 'OpenAPI' → 'Open A P I'. Sesuaikan cara perkataan disebut."
+      },
+      "settingsLanguage": {
+        "title": "Pilih Bahasa Anda",
+        "message": "Tukar bahasa aplikasi di sini. Kami menyokong pelbagai bahasa untuk menjadikan Speech Link boleh diakses oleh semua orang."
+      },
+      "settingsAudioOutput": {
+        "title": "Pilih Output Audio",
+        "message": "Kekalkan audio pada pembesar suara telefon anda walaupun fon kepala Bluetooth disambungkan. Sempurna untuk komunikasi!"
+      },
+      "settingsHideDefaults": {
+        "title": "Sembunyi Ayat Lalai",
+        "message": "Speech Link menyediakan ayat asas untuk mula. Anda boleh menyembunyikannya untuk memaparkan hanya ayat tersuai anda."
+      },
+      "settingsDiscord": {
+        "title": "Integrasi Discord",
+        "message": "Gunakan Speech Link di Discord! Bincangkan dengan orang dalam talian menggunakan suara sintesis anda dalam saluran suara."
+      },
+      "settingsSubscription": {
+        "title": "Pilih Pelan Anda",
+        "message": "Pilih pelan langganan yang memenuhi keperluan anda. Pelan yang berbeza menawarkan pelbagai ciri dan had penggunaan."
+      }
+    },
+    "complete": {
+      "title": "Anda Sudah Bersedia!",
+      "message": "Anda sudah bersedia untuk mula menggunakan Speech Link. Ingat, anda boleh main semula tutorial ini pada bila-bila masa daripada Tetapan."
+    },
+    "skipConfirm": {
+      "title": "Langkau Tutorial?",
+      "message": "Anda boleh main semula tutorial ini pada bila-bila masa daripada menu Tetapan.",
+      "continue": "Teruskan Tutorial",
+      "skip": "Langkau"
+    }
   }
 }

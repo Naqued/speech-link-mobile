@@ -251,5 +251,85 @@
     "voices": "Äänet",
     "history": "Historia",
     "settings": "Asetukset"
+  },
+  "about": {
+    "description": "Speech Link on voimakas äänenparannussovellus, joka auttaa sinua kommunikoimaan tehokkaammin. Teksti-ääneksi, ääni-tekstiksi ja äänen mukautusominaisuuksilla voit ilmaista itsesi selkeästi ja varmasti missä tahansa tilanteessa.",
+    "features": "Ominaisuudet",
+    "voiceEnhancement": "Äänenparannus",
+    "voiceEnhancementDesc": "Kristallinkirkas äänen ulostulo muokattavilla asetuksilla",
+    "textToSpeech": "Teksti puheesta",
+    "textToSpeechDesc": "Muunna teksti luonnolliseksi puheeksi",
+    "aacBoard": "AAC-taulukko",
+    "aacBoardDesc": "Nopea pääsy usein käytettyihin fraaseihin",
+    "legal": "Juridiikka"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Tervetuloa Speech Linkiin!",
+      "message": "Tehdään nopea kierros, joka auttaa sinua aloittamaan sovelluksen tärkeimmät ominaisuudet."
+    },
+    "skip": "Ohita Opetusohjelma",
+    "next": "Seuraava",
+    "back": "Takaisin",
+    "finish": "Aloita",
+    "tapAnywhere": "Napauta missä tahansa jatkaaksesi",
+    "tapToFinish": "Napauta missä tahansa viimeistelläksesi",
+    "replayTutorial": "Toista Opetusohjelma",
+    "steps": {
+      "createSentence": {
+        "title": "Luo Lauseesi",
+        "message": "Napauta tässä luodaksesi ensimmäisen mukautetun lauseesi. Voit lisätä mitä tahansa fraasia, jota käytät usein."
+      },
+      "categoryButton": {
+        "title": "Järjestä Kategorioittain",
+        "message": "Napauta tätä painiketta päästäksesi kategorioihisi ja hallitaksesi niitä. Pidä lauseesi organisoituina helppoa pääsyä varten."
+      },
+      "selectCategory": {
+        "title": "Valitse Kategoria",
+        "message": "Valitse 'Perustarpeet' tai luo omat mukautetut kategoriasi järjestääksesi lauseesi tehokkaasti."
+      },
+      "organizeSentences": {
+        "title": "Järjestä Lauseesi",
+        "message": "Pidä lauseesi kategorioissa löytääksesi ne nopeasti tarvittaessa. Vedä ja pudota järjestelläksesi uudelleen!"
+      },
+      "voiceCollection": {
+        "title": "Kokeile ja Valitse Äänesi",
+        "message": "Selaa äänikokoelmamme ja löydä täydellinen ääni, joka sopii sinulle parhaiten. Esikatse mitä tahansa ääntä ennen valintaa."
+      },
+      "pronunciation": {
+        "title": "Ääntämyssanakirja",
+        "message": "Jos sana ei kuulosta oikealta, lisää se tähän! Esimerkki: 'OpenAPI' → 'Open A P I'. Mukauta sanojen ääntämistapaa."
+      },
+      "settingsLanguage": {
+        "title": "Valitse Kielesi",
+        "message": "Vaihda sovelluksen kieli täällä. Tuen useita kieliä tehdäksemme Speech Linkin kaikille saatavilla olevaksi."
+      },
+      "settingsAudioOutput": {
+        "title": "Valitse Äänen Ulostulo",
+        "message": "Pidä ääni puhelimesi kaiuttimessa, vaikka Bluetooth-kuulokkeet olisivat kytkettynä. Täydellinen viestintään!"
+      },
+      "settingsHideDefaults": {
+        "title": "Piilota Oletuslauseet",
+        "message": "Speech Link tarjoaa peruslauseita aloittamiseen. Voit piilottaa ne näyttääksesi vain mukautetut lauseesi."
+      },
+      "settingsDiscord": {
+        "title": "Discord-integraatio",
+        "message": "Käytä Speech Linkiä Discordissa! Keskustele ihmisten kanssa verkossa käyttämällä syntetisoitua ääntäsi äänikanavilla."
+      },
+      "settingsSubscription": {
+        "title": "Valitse Suunnitelmasi",
+        "message": "Valitse tilaussuunnitelma, joka sopii tarpeisiisi. Eri suunnitelmat tarjoavat erilaisia ominaisuuksia ja käyttörajoja."
+      }
+    },
+    "complete": {
+      "title": "Olet Valmis!",
+      "message": "Olet valmis aloittamaan Speech Linkin käytön. Muista, että voit toistaa tämän opetusohjelman milloin tahansa Asetuksista."
+    },
+    "skipConfirm": {
+      "title": "Ohita Opetusohjelma?",
+      "message": "Voit toistaa tämän opetusohjelman milloin tahansa Asetukset-valikosta.",
+      "continue": "Jatka Opetusohjelmaa",
+      "skip": "Ohita"
+    }
   }
 }

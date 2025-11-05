@@ -27,11 +27,15 @@ import { ScreenHeader } from '../../components/UI/ScreenHeader';
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { useDiscord } from '../../contexts/DiscordContext';
+import { useTutorial } from '../../contexts/TutorialContext';
 
 // Services
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { aacService } from '../../services/aacService';
+
+// Tutorial
+import { TutorialTarget } from '../../components/Tutorial/TutorialTarget';
 
 // Models
 import { 
@@ -305,6 +309,7 @@ const AACBoardScreen: React.FC = () => {
   const { userSettings } = useVoiceSettings();
   const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   const navigation = useNavigation();
+  const { currentStep, isActive: isTutorialActive } = useTutorial();
   
   // Local state for audio device (updated on focus)
   const [currentAudioDevice, setCurrentAudioDevice] = useState<string>(hookAudioDevice);
@@ -415,6 +420,25 @@ const AACBoardScreen: React.FC = () => {
       setCurrentlyPlayingText(null);
     }
   }, [ttsIsPlaying, isLoadingAudio, isSpeaking]);
+
+  // Auto-select "Basic Needs" category during tutorial
+  useEffect(() => {
+    if (isTutorialActive && currentStep?.id === 'selectCategory' && categories.length > 0) {
+      // Find the "Basic Needs" category (check both English and localized names)
+      const basicNeedsCategory = categories.find(cat => 
+        cat.id === 'basic-needs' || 
+        cat.name.toLowerCase().includes('basic') ||
+        cat.name.toLowerCase().includes('essentiels') // French
+      );
+      
+      if (basicNeedsCategory && selectedCategory !== basicNeedsCategory.id) {
+        console.log('[AACBoard] Tutorial: Auto-selecting Basic Needs category');
+        setTimeout(() => {
+          setSelectedCategory(basicNeedsCategory.id);
+        }, 500);
+      }
+    }
+  }, [isTutorialActive, currentStep, categories, selectedCategory]);
 
   // Fetch AAC preferences - refetch on screen focus
   useFocusEffect(
@@ -1356,20 +1380,26 @@ const AACBoardScreen: React.FC = () => {
                     color={theme.primary} 
                   />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
-                  <Ionicons name="folder-outline" size={24} color={theme.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
-                  <Ionicons name="add-outline" size={24} color={theme.primary} />
-                </TouchableOpacity>
+                <TutorialTarget id="aac-category-selector">
+                  <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
+                    <Ionicons name="folder-outline" size={24} color={theme.primary} />
+                  </TouchableOpacity>
+                </TutorialTarget>
+                <TutorialTarget id="aac-add-sentence-button">
+                  <TouchableOpacity style={styles.headerButton} onPress={handleAddPhrase}>
+                    <Ionicons name="add-outline" size={24} color={theme.primary} />
+                  </TouchableOpacity>
+                </TutorialTarget>
                 {/* Reorder button - only show when viewing a specific category */}
                 {selectedCategory && selectedCategory !== 'all' && (
-                  <TouchableOpacity 
-                    style={styles.headerButton} 
-                    onPress={() => handleOpenReorderMode(selectedCategory)}
-                  >
-                    <Ionicons name="swap-vertical-outline" size={24} color={theme.primary} />
-                  </TouchableOpacity>
+                  <TutorialTarget id="aac-reorder-button">
+                    <TouchableOpacity 
+                      style={styles.headerButton} 
+                      onPress={() => handleOpenReorderMode(selectedCategory)}
+                    >
+                      <Ionicons name="swap-vertical-outline" size={24} color={theme.primary} />
+                    </TouchableOpacity>
+                  </TutorialTarget>
                 )}
                 {__DEV__ && currentLanguage === 'hi' && (
                   <TouchableOpacity 
@@ -1578,31 +1608,33 @@ const AACBoardScreen: React.FC = () => {
               ) : (
                 // Portrait layout: original vertical stack
                 <View style={styles.portraitContainer}>
-                  <View style={styles.categoriesContainer}>
-                    {isCategoriesLoading ? (
-                      <View style={styles.loadingCategories}>
-                        <ActivityIndicator size="small" color={theme.primary} />
-                      </View>
-                    ) : (
-                      <FlatList
-                        data={categories}
-                        renderItem={renderCategoryItem}
-                        keyExtractor={(item) => item.id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.categoriesList}
-                        ListFooterComponent={
-                          <TouchableOpacity
-                            style={styles.addCategoryButton}
-                            onPress={handleAddCategory}
-                          >
-                            <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
-                            <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
-                          </TouchableOpacity>
-                        }
-                      />
-                    )}
-                  </View>
+                  <TutorialTarget id="aac-categories-list">
+                    <View style={styles.categoriesContainer}>
+                      {isCategoriesLoading ? (
+                        <View style={styles.loadingCategories}>
+                          <ActivityIndicator size="small" color={theme.primary} />
+                        </View>
+                      ) : (
+                        <FlatList
+                          data={categories}
+                          renderItem={renderCategoryItem}
+                          keyExtractor={(item) => item.id}
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.categoriesList}
+                          ListFooterComponent={
+                            <TouchableOpacity
+                              style={styles.addCategoryButton}
+                              onPress={handleAddCategory}
+                            >
+                              <Ionicons name="add-circle-outline" size={24} color={theme.primary} />
+                              <Text style={styles.addCategoryText}>{t('aacBoard.addCategory')}</Text>
+                            </TouchableOpacity>
+                          }
+                        />
+                      )}
+                    </View>
+                  </TutorialTarget>
                   
                   {recentPhrases.length > 0 && (
                     <Animated.View 

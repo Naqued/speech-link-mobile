@@ -251,5 +251,85 @@
     "voices": "Stemmer",
     "history": "Historik",
     "settings": "Indstillinger"
+  },
+  "about": {
+    "description": "Speech Link er en kraftfuld stemmeforbedringsanvendelse, der hjælper dig med at kommunikere mere effektivt. Med funktioner som tekst-til-tale, tale-til-tekst og stemmetilpasning kan du udtrykke dig klart og selvsikkert i enhver situation.",
+    "features": "Funktioner",
+    "voiceEnhancement": "Stemmeforbedring",
+    "voiceEnhancementDesc": "Krystalklar stemmeudgang med tilpassede indstillinger",
+    "textToSpeech": "Tekst til tale",
+    "textToSpeechDesc": "Konverter tekst til naturligt klingende tale",
+    "aacBoard": "AAC-tavle",
+    "aacBoardDesc": "Hurtig adgang til ofte anvendte sætninger",
+    "legal": "Juridisk"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Velkommen til Speech Link!",
+      "message": "Lad os tage en kort rundvisning for at hjælpe dig med at komme i gang med appens hovedfunktioner."
+    },
+    "skip": "Spring Tutorial Over",
+    "next": "Næste",
+    "back": "Tilbage",
+    "finish": "Kom i Gang",
+    "tapAnywhere": "Tryk hvor som helst for at fortsætte",
+    "tapToFinish": "Tryk hvor som helst for at afslutte",
+    "replayTutorial": "Genafspil Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Opret din Sætning",
+        "message": "Tryk her for at oprette din første tilpassede sætning. Du kan tilføje enhver frase, du ofte bruger."
+      },
+      "categoryButton": {
+        "title": "Organiser efter Kategorier",
+        "message": "Tryk på denne knap for at få adgang til og administrere dine kategorier. Hold dine sætninger organiseret for nem adgang."
+      },
+      "selectCategory": {
+        "title": "Vælg en Kategori",
+        "message": "Vælg 'Grundlæggende Behov' eller opret dine egne tilpassede kategorier for effektivt at organisere dine sætninger."
+      },
+      "organizeSentences": {
+        "title": "Organiser dine Sætninger",
+        "message": "Hold dine sætninger i kategorier for at finde dem hurtigt, når du har brug for dem. Træk og slip for at omarrangere!"
+      },
+      "voiceCollection": {
+        "title": "Prøv og Vælg din Stemme",
+        "message": "Udforsk vores stemmesamling og find den perfekte stemme, der passer bedst til dig. Forhåndsvis enhver stemme før valg."
+      },
+      "pronunciation": {
+        "title": "Udtaleordbog",
+        "message": "Hvis et ord ikke lyder rigtigt, tilføj det her! For eksempel: 'OpenAPI' → 'Open A P I'. Tilpas, hvordan ord udtales."
+      },
+      "settingsLanguage": {
+        "title": "Vælg dit Sprog",
+        "message": "Skift appens sprog her. Vi understøtter flere sprog for at gøre Speech Link tilgængelig for alle."
+      },
+      "settingsAudioOutput": {
+        "title": "Vælg Audiooutput",
+        "message": "Behold lyden på telefonens højttaler, selv når Bluetooth-hovedtelefoner er tilsluttet. Perfekt til kommunikation!"
+      },
+      "settingsHideDefaults": {
+        "title": "Skjul Standardsætninger",
+        "message": "Speech Link giver grundlæggende sætninger til at komme i gang. Du kan skjule dem for kun at vise dine tilpassede sætninger."
+      },
+      "settingsDiscord": {
+        "title": "Discord-integration",
+        "message": "Brug Speech Link i Discord! Diskuter med folk online ved hjælp af din syntetiserede stemme i stemmekanaler."
+      },
+      "settingsSubscription": {
+        "title": "Vælg din Plan",
+        "message": "Vælg abonnementsplanen, der passer til dine behov. Forskellige planer tilbyder forskellige funktioner og brugsgrænser."
+      }
+    },
+    "complete": {
+      "title": "Du er Klar!",
+      "message": "Du er klar til at begynde at bruge Speech Link. Husk, du kan genafspille denne tutorial når som helst fra Indstillinger."
+    },
+    "skipConfirm": {
+      "title": "Spring Tutorial Over?",
+      "message": "Du kan genafspille denne tutorial når som helst fra Indstillinger-menuen.",
+      "continue": "Fortsæt Tutorial",
+      "skip": "Spring Over"
+    }
   }
 }

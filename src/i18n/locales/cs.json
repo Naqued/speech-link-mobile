@@ -530,6 +530,15 @@
     "errorSavingCategory": "Chyba při ukládání kategorie. Zkuste to prosím znovu.",
     "errorDeletingCategory": "Chyba při mazání kategorie. Zkuste to prosím znovu.",
     "selectCategoryAction": "Co byste chtěli udělat s touto kategorií?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Sbírka hlasů",
@@ -570,5 +579,74 @@
     "aacBoard": "AAC panel",
     "aacBoardDesc": "Rychlý přístup k často používaným frázím",
     "legal": "Právní informace"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Vítejte v Speech Link!",
+      "message": "Pojďme si udělat rychlou prohlídku, abychom vám pomohli začít s hlavními funkcemi aplikace."
+    },
+    "skip": "Přeskočit Tutoriál",
+    "next": "Další",
+    "back": "Zpět",
+    "finish": "Začít",
+    "tapAnywhere": "Poklepněte kdekoli pro pokračování",
+    "tapToFinish": "Poklepněte kdekoli pro dokončení",
+    "replayTutorial": "Přehrát Tutoriál Znovu",
+    "steps": {
+      "createSentence": {
+        "title": "Vytvořte Větu",
+        "message": "Poklepněte zde pro vytvoření vaší první vlastní věty. Můžete přidat jakoukoli frázi, kterou často používáte."
+      },
+      "categoryButton": {
+        "title": "Organizovat podle Kategorií",
+        "message": "Poklepněte na toto tlačítko pro přístup ke kategoriím a jejich správu. Udržujte své věty organizované pro snadný přístup."
+      },
+      "selectCategory": {
+        "title": "Vyberte Kategorii",
+        "message": "Vyberte 'Základní Potřeby' nebo vytvořte své vlastní vlastní kategorie pro efektivní organizaci vět."
+      },
+      "organizeSentences": {
+        "title": "Organizujte Věty",
+        "message": "Udržujte své věty v kategoriích, abyste je rychle našli, když je potřebujete. Přetáhněte a pusťte pro změnu pořadí!"
+      },
+      "voiceCollection": {
+        "title": "Vyzkoušejte a Vyberte Hlas",
+        "message": "Prozkoumejte naši sbírku hlasů a najděte perfektní hlas, který vám nejlépe vyhovuje. Náhled libovolného hlasu před výběrem."
+      },
+      "pronunciation": {
+        "title": "Slovník Výslovnosti",
+        "message": "Pokud slovo nezní správně, přidejte ho sem! Například: 'OpenAPI' → 'Open A P I'. Přizpůsobte způsob výslovnosti slov."
+      },
+      "settingsLanguage": {
+        "title": "Vyberte Jazyk",
+        "message": "Změňte jazyk aplikace zde. Podporujeme více jazyků, aby byl Speech Link dostupný všem."
+      },
+      "settingsAudioOutput": {
+        "title": "Vyberte Zvukový Výstup",
+        "message": "Ponechte zvuk na reproduktoru telefonu, i když jsou připojena Bluetooth sluchátka. Perfektní pro komunikaci!"
+      },
+      "settingsHideDefaults": {
+        "title": "Skrýt Výchozí Věty",
+        "message": "Speech Link poskytuje základní věty pro začátek. Můžete je skrýt, aby se zobrazovaly pouze vaše vlastní věty."
+      },
+      "settingsDiscord": {
+        "title": "Integrace Discord",
+        "message": "Použijte Speech Link v Discordu! Diskutujte s lidmi online pomocí syntetizovaného hlasu ve hlasových kanálech."
+      },
+      "settingsSubscription": {
+        "title": "Vyberte Plán",
+        "message": "Vyberte předplatné, které vyhovuje vašim potřebám. Různé plány nabízejí různé funkce a limity použití."
+      }
+    },
+    "complete": {
+      "title": "Jste Připraveni!",
+      "message": "Jste připraveni začít používat Speech Link. Pamatujte, že tento tutoriál můžete kdykoli znovu přehrát z Nastavení."
+    },
+    "skipConfirm": {
+      "title": "Přeskočit Tutoriál?",
+      "message": "Tento tutoriál můžete kdykoli znovu přehrát z nabídky Nastavení.",
+      "continue": "Pokračovat v Tutoriálu",
+      "skip": "Přeskočit"
+    }
   }
 }

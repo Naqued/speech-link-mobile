@@ -530,6 +530,15 @@
     "errorSavingCategory": "Gagal menyimpan kategori. Silakan coba lagi.",
     "errorDeletingCategory": "Gagal menghapus kategori. Silakan coba lagi.",
     "selectCategoryAction": "Apa yang ingin Anda lakukan dengan kategori ini?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Koleksi Suara",
@@ -570,5 +579,74 @@
     "aacBoard": "Papan AAC",
     "aacBoardDesc": "Akses cepat ke frasa yang sering digunakan",
     "legal": "Legal"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Selamat Datang di Speech Link!",
+      "message": "Mari kita lakukan tur singkat untuk membantu Anda memulai dengan fitur utama aplikasi."
+    },
+    "skip": "Lewati Tutorial",
+    "next": "Berikutnya",
+    "back": "Kembali",
+    "finish": "Mulai",
+    "tapAnywhere": "Ketuk di mana saja untuk melanjutkan",
+    "tapToFinish": "Ketuk di mana saja untuk menyelesaikan",
+    "replayTutorial": "Putar Ulang Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Buat Kalimat Anda",
+        "message": "Ketuk di sini untuk membuat kalimat kustom pertama Anda. Anda dapat menambahkan frasa apa pun yang sering Anda gunakan."
+      },
+      "categoryButton": {
+        "title": "Atur berdasarkan Kategori",
+        "message": "Ketuk tombol ini untuk mengakses dan mengelola kategori Anda. Jaga kalimat Anda tetap terorganisir untuk akses mudah."
+      },
+      "selectCategory": {
+        "title": "Pilih Kategori",
+        "message": "Pilih 'Kebutuhan Dasar' atau buat kategori kustom Anda sendiri untuk mengatur kalimat Anda secara efektif."
+      },
+      "organizeSentences": {
+        "title": "Atur Kalimat Anda",
+        "message": "Jaga kalimat Anda dalam kategori untuk menemukannya dengan cepat saat diperlukan. Seret dan lepas untuk mengurutkan ulang!"
+      },
+      "voiceCollection": {
+        "title": "Coba & Pilih Suara Anda",
+        "message": "Jelajahi koleksi suara kami dan temukan suara sempurna yang paling cocok untuk Anda. Pratinjau suara apa pun sebelum memilihnya."
+      },
+      "pronunciation": {
+        "title": "Kamus Pengucapan",
+        "message": "Jika sebuah kata tidak terdengar benar, tambahkan di sini! Contoh: 'OpenAPI' → 'Open A P I'. Sesuaikan cara kata diucapkan."
+      },
+      "settingsLanguage": {
+        "title": "Pilih Bahasa Anda",
+        "message": "Ubah bahasa aplikasi di sini. Kami mendukung berbagai bahasa untuk membuat Speech Link dapat diakses oleh semua orang."
+      },
+      "settingsAudioOutput": {
+        "title": "Pilih Output Audio",
+        "message": "Pertahankan audio di speaker telepon Anda bahkan saat headphone Bluetooth terhubung. Sempurna untuk komunikasi!"
+      },
+      "settingsHideDefaults": {
+        "title": "Sembunyikan Kalimat Default",
+        "message": "Speech Link menyediakan kalimat dasar untuk memulai. Anda dapat menyembunyikannya untuk menampilkan hanya kalimat kustom Anda."
+      },
+      "settingsDiscord": {
+        "title": "Integrasi Discord",
+        "message": "Gunakan Speech Link di Discord! Diskusikan dengan orang online menggunakan suara sintetis Anda di saluran suara."
+      },
+      "settingsSubscription": {
+        "title": "Pilih Paket Anda",
+        "message": "Pilih paket langganan yang sesuai dengan kebutuhan Anda. Paket yang berbeda menawarkan berbagai fitur dan batas penggunaan."
+      }
+    },
+    "complete": {
+      "title": "Anda Siap!",
+      "message": "Anda siap untuk mulai menggunakan Speech Link. Ingat, Anda dapat memutar ulang tutorial ini kapan saja dari Pengaturan."
+    },
+    "skipConfirm": {
+      "title": "Lewati Tutorial?",
+      "message": "Anda dapat memutar ulang tutorial ini kapan saja dari menu Pengaturan.",
+      "continue": "Lanjutkan Tutorial",
+      "skip": "Lewati"
+    }
   }
 }

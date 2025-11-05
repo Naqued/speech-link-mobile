@@ -530,6 +530,15 @@
     "errorSavingCategory": "Nie udało się zapisać kategorii. Spróbuj ponownie.",
     "errorDeletingCategory": "Nie udało się usunąć kategorii. Spróbuj ponownie.",
     "selectCategoryAction": "Co chcesz zrobić z tą kategorią?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Kolekcja głosów",
@@ -570,5 +579,74 @@
     "aacBoard": "Tablica AAC",
     "aacBoardDesc": "Szybki dostęp do często używanych fraz",
     "legal": "Informacje prawne"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Witamy w Speech Link!",
+      "message": "Zróbmy szybką wycieczkę, aby pomóc Ci rozpocząć pracę z głównymi funkcjami aplikacji."
+    },
+    "skip": "Pomiń Samouczek",
+    "next": "Dalej",
+    "back": "Wstecz",
+    "finish": "Zacznij",
+    "tapAnywhere": "Dotknij gdziekolwiek, aby kontynuować",
+    "tapToFinish": "Dotknij gdziekolwiek, aby zakończyć",
+    "replayTutorial": "Odtwórz Samouczek",
+    "steps": {
+      "createSentence": {
+        "title": "Utwórz swoje Zdanie",
+        "message": "Dotknij tutaj, aby utworzyć swoje pierwsze niestandardowe zdanie. Możesz dodać dowolne zdanie, którego często używasz."
+      },
+      "categoryButton": {
+        "title": "Organizuj według Kategorii",
+        "message": "Dotknij tego przycisku, aby uzyskać dostęp do kategorii i zarządzać nimi. Trzymaj swoje zdania uporządkowane dla łatwego dostępu."
+      },
+      "selectCategory": {
+        "title": "Wybierz Kategorię",
+        "message": "Wybierz 'Podstawowe Potrzeby' lub utwórz własne niestandardowe kategorie, aby efektywnie organizować swoje zdania."
+      },
+      "organizeSentences": {
+        "title": "Organizuj swoje Zdania",
+        "message": "Trzymaj swoje zdania w kategoriach, aby szybko je znaleźć, gdy ich potrzebujesz. Przeciągnij i upuść, aby zmienić kolejność!"
+      },
+      "voiceCollection": {
+        "title": "Wypróbuj i Wybierz swój Głos",
+        "message": "Poznaj naszą kolekcję głosów i znajdź idealny głos, który najlepiej do Ciebie pasuje. Podglądaj dowolny głos przed wyborem."
+      },
+      "pronunciation": {
+        "title": "Słownik Wymowy",
+        "message": "Jeśli słowo nie brzmi dobrze, dodaj je tutaj! Na przykład: 'OpenAPI' → 'Open A P I'. Dostosuj sposób wymawiania słów."
+      },
+      "settingsLanguage": {
+        "title": "Wybierz swój Język",
+        "message": "Zmień język aplikacji tutaj. Obsługujemy wiele języków, aby Speech Link był dostępny dla wszystkich."
+      },
+      "settingsAudioOutput": {
+        "title": "Wybierz Wyjście Audio",
+        "message": "Zachowaj dźwięk w głośniku telefonu, nawet gdy słuchawki Bluetooth są podłączone. Idealne do komunikacji!"
+      },
+      "settingsHideDefaults": {
+        "title": "Ukryj Domyślne Zdania",
+        "message": "Speech Link zapewnia podstawowe zdania do rozpoczęcia. Możesz je ukryć, aby wyświetlać tylko swoje niestandardowe zdania."
+      },
+      "settingsDiscord": {
+        "title": "Integracja Discord",
+        "message": "Użyj Speech Link w Discord! Rozmawiaj z ludźmi online używając zsyntetyzowanego głosu w kanałach głosowych."
+      },
+      "settingsSubscription": {
+        "title": "Wybierz swój Plan",
+        "message": "Wybierz plan subskrypcji, który odpowiada Twoim potrzebom. Różne plany oferują różne funkcje i limity użycia."
+      }
+    },
+    "complete": {
+      "title": "Jesteś Gotowy!",
+      "message": "Jesteś gotowy, aby zacząć używać Speech Link. Pamiętaj, możesz odtworzyć ten samouczek w dowolnym momencie z Ustawień."
+    },
+    "skipConfirm": {
+      "title": "Pomiń Samouczek?",
+      "message": "Możesz odtworzyć ten samouczek w dowolnym momencie z menu Ustawień.",
+      "continue": "Kontynuuj Samouczek",
+      "skip": "Pomiń"
+    }
   }
 }

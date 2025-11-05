@@ -251,5 +251,85 @@
     "voices": "Hlasy",
     "history": "História",
     "settings": "Nastavenia"
+  },
+  "about": {
+    "description": "Speech Link je výkonná aplikácia na vylepšenie hlasu, ktorá vám pomáha efektívnejšie komunikovať. S funkciami ako text na reč, reč na text a prispôsobenie hlasu sa môžete vyjadrovať jasne a sebavedomo v akejkoľvek situácii.",
+    "features": "Funkcie",
+    "voiceEnhancement": "Vylepšenie hlasu",
+    "voiceEnhancementDesc": "Kryštálovo čistý hlasový výstup s prispôsobiteľnými nastaveniami",
+    "textToSpeech": "Text na reč",
+    "textToSpeechDesc": "Prevod textu na prirodzene znejúcu reč",
+    "aacBoard": "AAC panel",
+    "aacBoardDesc": "Rýchly prístup k často používaným frázam",
+    "legal": "Právne informácie"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Vitajte v Speech Link!",
+      "message": "Urobme si rýchlu prehliadku, ktorá vám pomôže začať s hlavnými funkciami aplikácie."
+    },
+    "skip": "Preskočiť Návod",
+    "next": "Ďalej",
+    "back": "Späť",
+    "finish": "Začať",
+    "tapAnywhere": "Kliknite kdekoľvek pre pokračovanie",
+    "tapToFinish": "Kliknite kdekoľvek pre dokončenie",
+    "replayTutorial": "Prehrať Návod Znovu",
+    "steps": {
+      "createSentence": {
+        "title": "Vytvorte Vetu",
+        "message": "Kliknite tu pre vytvorenie vašej prvej vlastnej vety. Môžete pridať akúkoľvek frázu, ktorú často používate."
+      },
+      "categoryButton": {
+        "title": "Organizovať podľa Kategórií",
+        "message": "Kliknite na toto tlačidlo pre prístup ku kategóriám a ich správu. Udržujte svoje vety organizované pre jednoduchý prístup."
+      },
+      "selectCategory": {
+        "title": "Vyberte Kategóriu",
+        "message": "Vyberte 'Základné Potreby' alebo vytvorte vlastné vlastné kategórie pre efektívnu organizáciu viet."
+      },
+      "organizeSentences": {
+        "title": "Organizujte Vety",
+        "message": "Udržujte svoje vety v kategóriách, aby ste ich rýchlo našli, keď ich potrebujete. Potiahnite a pustite pre zmenu poradia!"
+      },
+      "voiceCollection": {
+        "title": "Vyskúšajte a Vyberte Hlas",
+        "message": "Preskúmajte našu kolekciu hlasov a nájdite perfektný hlas, ktorý vám najlepšie vyhovuje. Náhľad ľubovoľného hlasu pred výberom."
+      },
+      "pronunciation": {
+        "title": "Slovník Výslovnosti",
+        "message": "Ak slovo neznie správne, pridajte ho sem! Napríklad: 'OpenAPI' → 'Open A P I'. Prispôsobte spôsob výslovnosti slov."
+      },
+      "settingsLanguage": {
+        "title": "Vyberte Jazyk",
+        "message": "Zmeňte jazyk aplikácie tu. Podporujeme viacero jazykov, aby bol Speech Link dostupný pre všetkých."
+      },
+      "settingsAudioOutput": {
+        "title": "Vyberte Zvukový Výstup",
+        "message": "Ponechajte zvuk na reproduktore telefónu, aj keď sú pripojené Bluetooth slúchadlá. Perfektné pre komunikáciu!"
+      },
+      "settingsHideDefaults": {
+        "title": "Skryť Predvolené Vety",
+        "message": "Speech Link poskytuje základné vety na začiatok. Môžete ich skryť, aby sa zobrazovali iba vaše vlastné vety."
+      },
+      "settingsDiscord": {
+        "title": "Integrácia Discord",
+        "message": "Použite Speech Link v Discorde! Diskutujte s ľuďmi online pomocou syntetizovaného hlasu vo hlasových kanáloch."
+      },
+      "settingsSubscription": {
+        "title": "Vyberte Plán",
+        "message": "Vyberte predplatné, ktoré vyhovuje vašim potrebám. Rôzne plány ponúkajú rôzne funkcie a limity použitia."
+      }
+    },
+    "complete": {
+      "title": "Ste Pripravení!",
+      "message": "Ste pripravení začať používať Speech Link. Pamätajte, že tento návod môžete kedykoľvek znovu prehrať z Nastavení."
+    },
+    "skipConfirm": {
+      "title": "Preskočiť Návod?",
+      "message": "Tento návod môžete kedykoľvek znovu prehrať z ponuky Nastavenia.",
+      "continue": "Pokračovať v Návode",
+      "skip": "Preskočiť"
+    }
   }
 }

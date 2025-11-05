@@ -530,6 +530,15 @@
     "errorSavingCategory": "Kategori kaydedilemedi. Lütfen tekrar deneyin.",
     "errorDeletingCategory": "Kategori silinemedi. Lütfen tekrar deneyin.",
     "selectCategoryAction": "Bu kategori ile ne yapmak istiyorsunuz?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Ses Koleksiyonu",
@@ -570,5 +579,74 @@
     "aacBoard": "AAC Panosu",
     "aacBoardDesc": "Sık kullanılan cümlelere hızlı erişim",
     "legal": "Yasal"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Speech Link'e Hoş Geldiniz!",
+      "message": "Uygulamanın ana özelliklerine başlamanıza yardımcı olmak için hızlı bir tur yapalım."
+    },
+    "skip": "Öğreticiyi Atla",
+    "next": "İleri",
+    "back": "Geri",
+    "finish": "Başla",
+    "tapAnywhere": "Devam etmek için herhangi bir yere dokunun",
+    "tapToFinish": "Bitirmek için herhangi bir yere dokunun",
+    "replayTutorial": "Öğreticiyi Yeniden Oynat",
+    "steps": {
+      "createSentence": {
+        "title": "Cümlenizi Oluşturun",
+        "message": "İlk özel cümlenizi oluşturmak için buraya dokunun. Sık kullandığınız herhangi bir ifade ekleyebilirsiniz."
+      },
+      "categoryButton": {
+        "title": "Kategorilere Göre Düzenle",
+        "message": "Kategorilerinize erişmek ve yönetmek için bu düğmeye dokunun. Kolay erişim için cümlelerinizi düzenli tutun."
+      },
+      "selectCategory": {
+        "title": "Bir Kategori Seçin",
+        "message": "'Temel İhtiyaçlar'ı seçin veya cümlelerinizi etkili bir şekilde düzenlemek için kendi özel kategorilerinizi oluşturun."
+      },
+      "organizeSentences": {
+        "title": "Cümlelerinizi Düzenleyin",
+        "message": "İhtiyaç duyduğunuzda hızlı bulmak için cümlelerinizi kategorilerde tutun. Yeniden sıralamak için sürükleyip bırakın!"
+      },
+      "voiceCollection": {
+        "title": "Sesinizi Deneyin ve Seçin",
+        "message": "Ses koleksiyonumuzu keşfedin ve size en uygun mükemmel sesi bulun. Seçmeden önce herhangi bir sesi önizleyin."
+      },
+      "pronunciation": {
+        "title": "Telaffuz Sözlüğü",
+        "message": "Bir kelime doğru gelmiyorsa buraya ekleyin! Örneğin: 'OpenAPI' → 'Open A P I'. Kelimelerin nasıl telaffuz edildiğini özelleştirin."
+      },
+      "settingsLanguage": {
+        "title": "Dilinizi Seçin",
+        "message": "Uygulamanın dilini buradan değiştirin. Speech Link'i herkes için erişilebilir kılmak için birden fazla dili destekliyoruz."
+      },
+      "settingsAudioOutput": {
+        "title": "Ses Çıkışını Seçin",
+        "message": "Bluetooth kulaklıklar bağlı olsa bile sesi telefonunuzun hoparlöründe tutun. İletişim için mükemmel!"
+      },
+      "settingsHideDefaults": {
+        "title": "Varsayılan Cümleleri Gizle",
+        "message": "Speech Link başlamanıza yardımcı olmak için temel cümleler sağlar. Yalnızca özel cümlelerinizi göstermek için bunları gizleyebilirsiniz."
+      },
+      "settingsDiscord": {
+        "title": "Discord Entegrasyonu",
+        "message": "Discord'da Speech Link kullanın! Ses kanallarında sentezlenmiş sesinizi kullanarak çevrimiçi insanlarla tartışın."
+      },
+      "settingsSubscription": {
+        "title": "Planınızı Seçin",
+        "message": "İhtiyaçlarınıza uygun abonelik planını seçin. Farklı planlar çeşitli özellikler ve kullanım limitleri sunar."
+      }
+    },
+    "complete": {
+      "title": "Hazırsınız!",
+      "message": "Speech Link'i kullanmaya başlamaya hazırsınız. Unutmayın, bu öğreticiyi Ayarlar'dan istediğiniz zaman yeniden oynatabilirsiniz."
+    },
+    "skipConfirm": {
+      "title": "Öğreticiyi Atla?",
+      "message": "Bu öğreticiyi Ayarlar menüsünden istediğiniz zaman yeniden oynatabilirsiniz.",
+      "continue": "Öğreticiye Devam Et",
+      "skip": "Atla"
+    }
   }
 }

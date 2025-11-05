@@ -530,6 +530,15 @@
     "errorSavingCategory": "Kunde inte spara kategorin. Försök igen.",
     "errorDeletingCategory": "Kunde inte ta bort kategorin. Försök igen.",
     "selectCategoryAction": "Vad vill du göra med denna kategori?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Röstsamling",
@@ -570,5 +579,74 @@
     "aacBoard": "AAC-tavla",
     "aacBoardDesc": "Snabb åtkomst till vanligt använda fraser",
     "legal": "Juridiskt"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Välkommen till Speech Link!",
+      "message": "Låt oss ta en snabb rundtur för att hjälpa dig komma igång med appens huvudfunktioner."
+    },
+    "skip": "Hoppa över Tutorial",
+    "next": "Nästa",
+    "back": "Tillbaka",
+    "finish": "Kom igång",
+    "tapAnywhere": "Tryck var som helst för att fortsätta",
+    "tapToFinish": "Tryck var som helst för att slutföra",
+    "replayTutorial": "Spela om Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Skapa din Mening",
+        "message": "Tryck här för att skapa din första anpassade mening. Du kan lägga till valfri fras som du använder ofta."
+      },
+      "categoryButton": {
+        "title": "Organisera efter Kategorier",
+        "message": "Tryck på denna knapp för att komma åt och hantera dina kategorier. Håll dina meningar organiserade för enkel åtkomst."
+      },
+      "selectCategory": {
+        "title": "Välj en Kategori",
+        "message": "Välj 'Grundläggande Behov' eller skapa dina egna anpassade kategorier för att organisera dina meningar effektivt."
+      },
+      "organizeSentences": {
+        "title": "Organisera dina Meningar",
+        "message": "Håll dina meningar i kategorier för att hitta dem snabbt när du behöver dem. Dra och släpp för att ändra ordning!"
+      },
+      "voiceCollection": {
+        "title": "Prova och Välj din Röst",
+        "message": "Utforska vår röstsamling och hitta den perfekta rösten som passar dig bäst. Förhandsgranska valfri röst innan du väljer den."
+      },
+      "pronunciation": {
+        "title": "Uttalsordbok",
+        "message": "Om ett ord inte låter rätt, lägg till det här! Till exempel: 'OpenAPI' → 'Open A P I'. Anpassa hur ord uttalas."
+      },
+      "settingsLanguage": {
+        "title": "Välj ditt Språk",
+        "message": "Ändra appens språk här. Vi stödjer flera språk för att göra Speech Link tillgängligt för alla."
+      },
+      "settingsAudioOutput": {
+        "title": "Välj Ljudutgång",
+        "message": "Behåll ljudet på telefonens högtalare även när Bluetooth-hörlurar är anslutna. Perfekt för kommunikation!"
+      },
+      "settingsHideDefaults": {
+        "title": "Dölj Standardmeningar",
+        "message": "Speech Link tillhandahåller grundläggande meningar för att komma igång. Du kan dölja dem för att endast visa dina anpassade meningar."
+      },
+      "settingsDiscord": {
+        "title": "Discord-integration",
+        "message": "Använd Speech Link i Discord! Diskutera med människor online med din syntetiserade röst i röstkanaler."
+      },
+      "settingsSubscription": {
+        "title": "Välj din Plan",
+        "message": "Välj prenumerationsplanen som passar dina behov. Olika planer erbjuder olika funktioner och användningsgränser."
+      }
+    },
+    "complete": {
+      "title": "Du är Redo!",
+      "message": "Du är redo att börja använda Speech Link. Kom ihåg att du kan spela om denna tutorial när som helst från Inställningar."
+    },
+    "skipConfirm": {
+      "title": "Hoppa över Tutorial?",
+      "message": "Du kan spela om denna tutorial när som helst från Inställningar-menyn.",
+      "continue": "Fortsätt Tutorial",
+      "skip": "Hoppa över"
+    }
   }
 }

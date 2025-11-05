@@ -26,6 +26,7 @@ const RatingPromptModal: React.FC<RatingPromptModalProps> = ({
   theme,
 }) => {
   const { t } = useTranslation();
+  const isDark = theme.background === '#121212';
 
   return (
     <Modal
@@ -54,11 +55,11 @@ const RatingPromptModal: React.FC<RatingPromptModalProps> = ({
               {t('rating.title')}
             </Text>
             
-            <Text style={[styles.message, { color: theme.textSecondary }]}>
+            <Text style={[styles.message, { color: theme.textLight }]}>
               {t('rating.message')}
             </Text>
 
-            <Text style={[styles.subMessage, { color: theme.textSecondary }]}>
+            <Text style={[styles.subMessage, { color: theme.textLight }]}>
               {t('rating.subMessage')}
             </Text>
 
@@ -97,11 +98,17 @@ const RatingPromptModal: React.FC<RatingPromptModalProps> = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.dismissButton, { borderColor: theme.border }]}
+              style={[
+                styles.dismissButton, 
+                { 
+                  borderColor: theme.border,
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                }
+              ]}
               onPress={onDismiss}
               activeOpacity={0.7}
             >
-              <Text style={[styles.dismissButtonText, { color: theme.textSecondary }]}>
+              <Text style={[styles.dismissButtonText, { color: theme.text }]}>
                 {t('rating.dismissButton')}
               </Text>
             </TouchableOpacity>

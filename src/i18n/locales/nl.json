@@ -530,6 +530,15 @@
     "errorSavingCategory": "Categorie opslaan mislukt. Probeer het opnieuw.",
     "errorDeletingCategory": "Categorie verwijderen mislukt. Probeer het opnieuw.",
     "selectCategoryAction": "Wat wil je doen met deze categorie?"
+    "reorderSentences": "Reorder Sentences",
+    "reorderMode": "Reorder Mode",
+    "dragToReorder": "Drag sentences to reorder them",
+    "saveOrder": "Save Order",
+    "cancelReorder": "Cancel",
+    "reorderSuccess": "Sentence order saved successfully",
+    "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
   },
   "voiceCollection": {
     "title": "Stemcollectie",
@@ -570,5 +579,74 @@
     "aacBoard": "AAC-bord",
     "aacBoardDesc": "Snelle toegang tot veelgebruikte zinnen",
     "legal": "Juridisch"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Welkom bij Speech Link!",
+      "message": "Laten we een korte rondleiding maken om je te helpen beginnen met de belangrijkste functies van de app."
+    },
+    "skip": "Tutorial Overslaan",
+    "next": "Volgende",
+    "back": "Terug",
+    "finish": "Aan de Slag",
+    "tapAnywhere": "Tik overal om door te gaan",
+    "tapToFinish": "Tik overal om te beëindigen",
+    "replayTutorial": "Tutorial Opnieuw Afspelen",
+    "steps": {
+      "createSentence": {
+        "title": "Maak je Zin",
+        "message": "Tik hier om je eerste aangepaste zin te maken. Je kunt elke zin toevoegen die je vaak gebruikt."
+      },
+      "categoryButton": {
+        "title": "Organiseer op Categorieën",
+        "message": "Tik op deze knop om toegang te krijgen tot je categorieën en ze te beheren. Houd je zinnen georganiseerd voor gemakkelijke toegang."
+      },
+      "selectCategory": {
+        "title": "Kies een Categorie",
+        "message": "Selecteer 'Basisbehoeften' of maak je eigen aangepaste categorieën om je zinnen effectief te organiseren."
+      },
+      "organizeSentences": {
+        "title": "Organiseer je Zinnen",
+        "message": "Houd je zinnen in categorieën om ze snel te vinden wanneer je ze nodig hebt. Sleep en zet neer om opnieuw te ordenen!"
+      },
+      "voiceCollection": {
+        "title": "Probeer & Kies je Stem",
+        "message": "Verken onze stemcollectie en vind de perfecte stem die het beste bij jou past. Bekijk elke stem voor je hem selecteert."
+      },
+      "pronunciation": {
+        "title": "Uitspraakwoordenboek",
+        "message": "Als een woord niet goed klinkt, voeg het hier toe! Bijvoorbeeld: 'OpenAPI' → 'Open A P I'. Pas aan hoe woorden worden uitgesproken."
+      },
+      "settingsLanguage": {
+        "title": "Selecteer je Taal",
+        "message": "Verander hier de taal van de app. We ondersteunen meerdere talen om Speech Link voor iedereen toegankelijk te maken."
+      },
+      "settingsAudioOutput": {
+        "title": "Kies Audio Output",
+        "message": "Houd het audio op de luidspreker van je telefoon, ook wanneer Bluetooth-headphones zijn aangesloten. Perfect voor communicatie!"
+      },
+      "settingsHideDefaults": {
+        "title": "Standaardzinnen Verbergen",
+        "message": "Speech Link biedt basiszinnen om te beginnen. Je kunt ze verbergen om alleen je aangepaste zinnen weer te geven."
+      },
+      "settingsDiscord": {
+        "title": "Discord Integratie",
+        "message": "Gebruik Speech Link in Discord! Bespreek met mensen online door je gesynthetiseerde stem in spraakkanalen te gebruiken."
+      },
+      "settingsSubscription": {
+        "title": "Kies je Plan",
+        "message": "Selecteer het abonnementsplan dat bij je behoeften past. Verschillende plannen bieden verschillende functies en gebruikslimieten."
+      }
+    },
+    "complete": {
+      "title": "Je Bent Klaar!",
+      "message": "Je bent klaar om Speech Link te gebruiken. Onthoud dat je deze tutorial altijd opnieuw kunt afspelen vanuit Instellingen."
+    },
+    "skipConfirm": {
+      "title": "Tutorial Overslaan?",
+      "message": "Je kunt deze tutorial altijd opnieuw afspelen vanuit het Instellingen-menu.",
+      "continue": "Tutorial Verdergaan",
+      "skip": "Overslaan"
+    }
   }
 }

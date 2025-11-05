@@ -28,6 +28,7 @@ import { useToast } from '../../components/UI/ToastProvider';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 import PremiumBadge from '../../components/UI/PremiumBadge';
 import UpgradePrompt from '../../components/UI/UpgradePrompt';
+import { TutorialTarget } from '../../components/Tutorial/TutorialTarget';
 
 // Hooks and Services
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
@@ -1532,9 +1533,11 @@ const VoiceCollectionScreen: React.FC = () => {
       </View>
 
       {/* Content area */}
-      <View style={styles.contentContainer}>
-        {renderVoiceList()}
-      </View>
+      <TutorialTarget id="voice-collection-container" fillContainer>
+        <View style={styles.contentContainer}>
+          {renderVoiceList()}
+        </View>
+      </TutorialTarget>
       
       {/* Advanced Filter Modal */}
       <AdvancedFilterModal

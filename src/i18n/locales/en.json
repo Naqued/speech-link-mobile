@@ -479,7 +479,9 @@
     "feedback": "Send Feedback",
     "integrations": "Integrations",
     "discordSettings": "Discord Settings",
-    "audioRouting": "Audio Routing"
+    "audioRouting": "Audio Routing",
+    "replayTutorial": "Replay Tutorial",
+    "help": "Help"
   },
   "profile": {
     "title": "Profile",
@@ -635,6 +637,8 @@
     "cancelReorder": "Cancel",
     "reorderSuccess": "Sentence order saved successfully",
     "reorderError": "Failed to save sentence order",
+    "sentenceCount_one": "{{count}} sentence",
+    "sentenceCount_other": "{{count}} sentences",
     "hideDefaultSentences": "Hide Default Sentences",
     "hideDefaultSentencesDesc": "When enabled, only your custom sentences will be shown. Default system sentences will be hidden.",
     "aacSettings": "AAC Settings"
@@ -685,5 +689,74 @@
     "subMessage": "As independent developers, every review makes a real difference in helping others discover Speech Link.",
     "rateButton": "Rate on Store",
     "dismissButton": "Maybe Later"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "Welcome to Speech Link!",
+      "message": "Let's take a quick tour to help you get started with the app's main features."
+    },
+    "skip": "Skip Tutorial",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Get Started",
+    "tapAnywhere": "Tap anywhere to continue",
+    "tapToFinish": "Tap anywhere to finish",
+    "replayTutorial": "Replay Tutorial",
+    "steps": {
+      "createSentence": {
+        "title": "Create Your Sentence",
+        "message": "Tap here to create your first custom sentence. You can add any phrase you use frequently."
+      },
+      "categoryButton": {
+        "title": "Organize by Categories",
+        "message": "Tap this button to access and manage your categories. Keep your sentences organized for easy access."
+      },
+      "selectCategory": {
+        "title": "Choose a Category",
+        "message": "Select 'Basic Needs' or create your own custom categories to organize your sentences effectively."
+      },
+      "organizeSentences": {
+        "title": "Organize Your Sentences",
+        "message": "Keep your sentences in categories to find them quickly when you need them. Drag and drop to reorder!"
+      },
+      "voiceCollection": {
+        "title": "Try & Choose Your Voice",
+        "message": "Explore our voice collection and find the perfect voice that fits you best. Preview any voice before selecting it."
+      },
+      "pronunciation": {
+        "title": "Pronunciation Dictionary",
+        "message": "If a word doesn't sound right, add it here! For example: 'OpenAPI' → 'Open A P I'. Customize how words are pronounced."
+      },
+      "settingsLanguage": {
+        "title": "Select Your Language",
+        "message": "Change the app's language here. We support multiple languages to make Speech Link accessible to everyone."
+      },
+      "settingsAudioOutput": {
+        "title": "Choose Audio Output",
+        "message": "Keep the audio on your phone speaker even when Bluetooth headphones are connected. Perfect for communication!"
+      },
+      "settingsHideDefaults": {
+        "title": "Hide Default Sentences",
+        "message": "Speech Link provides basic sentences to get you started. You can hide them to display only your custom sentences."
+      },
+      "settingsDiscord": {
+        "title": "Discord Integration",
+        "message": "Use Speech Link in Discord! Discuss with people online using your synthesized voice in voice channels."
+      },
+      "settingsSubscription": {
+        "title": "Choose Your Plan",
+        "message": "Select the subscription plan that fits your needs. Different plans offer various features and usage limits."
+      }
+    },
+    "complete": {
+      "title": "You're All Set!",
+      "message": "You're ready to start using Speech Link. Remember, you can replay this tutorial anytime from Settings."
+    },
+    "skipConfirm": {
+      "title": "Skip Tutorial?",
+      "message": "You can replay this tutorial anytime from the Settings menu.",
+      "continue": "Continue Tutorial",
+      "skip": "Skip"
+    }
   }
 }

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Speech Link",
     "slug": "speech-link-mobile",
-    "version": "1.6",
+    "version": "2.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -34,7 +34,7 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "versionCode": 33,
+      "versionCode": 34,
       "permissions": [
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS",

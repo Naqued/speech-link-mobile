@@ -527,7 +527,16 @@
     "globalCategoryInfo": "这是一个系统类别，无法修改。",
     "errorSavingCategory": "保存类别失败。请重试。",
     "errorDeletingCategory": "删除类别失败。请重试。",
-    "selectCategoryAction": "您想对此类别做什么？"
+    "selectCategoryAction": "您想对此类别做什么？",
+    "reorderSentences": "重新排序句子",
+    "reorderMode": "重排模式",
+    "dragToReorder": "拖动句子以重新排序",
+    "saveOrder": "保存顺序",
+    "cancelReorder": "取消",
+    "reorderSuccess": "句子顺序已成功保存",
+    "reorderError": "保存句子顺序失败",
+    "sentenceCount_one": "{{count}} 个句子",
+    "sentenceCount_other": "{{count}} 个句子"
   },
   "voiceCollection": {
     "title": "语音集合",
@@ -568,5 +577,74 @@
     "aacBoard": "AAC面板",
     "aacBoardDesc": "快速访问常用短语",
     "legal": "法律信息"
+  },
+  "tutorial": {
+    "welcome": {
+      "title": "欢迎使用 Speech Link！",
+      "message": "让我们快速游览一下，帮助您开始使用应用程序的主要功能。"
+    },
+    "skip": "跳过教程",
+    "next": "下一步",
+    "back": "返回",
+    "finish": "开始",
+    "tapAnywhere": "点击任意位置继续",
+    "tapToFinish": "点击任意位置完成",
+    "replayTutorial": "重播教程",
+    "steps": {
+      "createSentence": {
+        "title": "创建您的句子",
+        "message": "点击此处创建您的第一个自定义句子。您可以添加任何经常使用的短语。"
+      },
+      "categoryButton": {
+        "title": "按类别组织",
+        "message": "点击此按钮访问和管理您的类别。保持您的句子组织有序，便于访问。"
+      },
+      "selectCategory": {
+        "title": "选择类别",
+        "message": "选择\"基本需求\"或创建您自己的自定义类别，以有效组织您的句子。"
+      },
+      "organizeSentences": {
+        "title": "整理您的句子",
+        "message": "将您的句子保存在类别中，以便在需要时快速找到它们。拖放即可重新排序！"
+      },
+      "voiceCollection": {
+        "title": "尝试并选择您的声音",
+        "message": "探索我们的声音收藏，找到最适合您的完美声音。在选择之前预览任何声音。"
+      },
+      "pronunciation": {
+        "title": "发音词典",
+        "message": "如果某个词听起来不对，请在此处添加！例如：'OpenAPI' → 'Open A P I'。自定义单词的发音方式。"
+      },
+      "settingsLanguage": {
+        "title": "选择您的语言",
+        "message": "在此处更改应用程序的语言。我们支持多种语言，使 Speech Link 可供所有人使用。"
+      },
+      "settingsAudioOutput": {
+        "title": "选择音频输出",
+        "message": "即使连接了蓝牙耳机，也保持手机扬声器上的音频。非常适合通信！"
+      },
+      "settingsHideDefaults": {
+        "title": "隐藏默认句子",
+        "message": "Speech Link 提供基本句子来帮助您入门。您可以隐藏它们以仅显示您的自定义句子。"
+      },
+      "settingsDiscord": {
+        "title": "Discord 集成",
+        "message": "在 Discord 中使用 Speech Link！在语音频道中使用您合成的语音与在线用户讨论。"
+      },
+      "settingsSubscription": {
+        "title": "选择您的计划",
+        "message": "选择适合您需求的订阅计划。不同的计划提供各种功能和使用限制。"
+      }
+    },
+    "complete": {
+      "title": "您已准备就绪！",
+      "message": "您已准备好开始使用 Speech Link。请记住，您可以随时从设置中重播此教程。"
+    },
+    "skipConfirm": {
+      "title": "跳过教程？",
+      "message": "您可以随时从设置菜单重播此教程。",
+      "continue": "继续教程",
+      "skip": "跳过"
+    }
   }
 }

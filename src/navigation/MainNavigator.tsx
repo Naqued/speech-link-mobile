@@ -7,12 +7,16 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import { ThemeContext } from '../contexts/ThemeContext';
 import { DiscordProvider } from '../contexts/DiscordContext';
+import { useTutorial } from '../contexts/TutorialContext';
 
 // Services
 import appRatingService from '../services/appRatingService';
+import { tutorialService } from '../services/tutorialService';
 
 // UI Components
 import { RatingPromptModal } from '../components/UI';
+import { TutorialOverlay } from '../components/Tutorial/TutorialOverlay';
+import { NavigationBridge } from '../components/Tutorial/NavigationBridge';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -126,6 +130,7 @@ const MainTabs = () => {
 
 const MainNavigator: React.FC = () => {
   const { theme } = useContext(ThemeContext);
+  const { startTutorial } = useTutorial();
   const [showRatingPrompt, setShowRatingPrompt] = useState(false);
 
   // Log when rating prompt state changes
@@ -134,6 +139,24 @@ const MainNavigator: React.FC = () => {
   }, [showRatingPrompt]);
 
   useEffect(() => {
+    // Check if tutorial should be shown
+    const checkTutorial = async () => {
+      try {
+        const shouldShow = await tutorialService.shouldShowTutorial();
+        console.log('[MainNavigator] Should show tutorial:', shouldShow);
+        
+        if (shouldShow) {
+          // Show tutorial after a brief delay to let UI settle
+          setTimeout(() => {
+            console.log('[MainNavigator] Starting tutorial');
+            startTutorial();
+          }, 500);
+        }
+      } catch (error) {
+        console.error('[MainNavigator] Error checking tutorial:', error);
+      }
+    };
+
     // Track app opens and check if rating prompt should be shown
     const checkRatingPrompt = async () => {
       try {
@@ -157,8 +180,9 @@ const MainNavigator: React.FC = () => {
       }
     };
 
+    checkTutorial();
     checkRatingPrompt();
-  }, []);
+  }, [startTutorial]);
 
   // Add a function to force show the rating prompt
   const forceShowRatingPrompt = () => {
@@ -193,6 +217,9 @@ const MainNavigator: React.FC = () => {
 
   return (
     <DiscordProvider>
+      {/* Bridge component to connect navigation to tutorial context */}
+      <NavigationBridge />
+      
       <Stack.Navigator
         screenOptions={{
           headerShown: false
@@ -214,6 +241,9 @@ const MainNavigator: React.FC = () => {
         onDismiss={handleDismiss}
         theme={theme}
       />
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay />
     </DiscordProvider>
   );
 };
