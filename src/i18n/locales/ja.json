@@ -425,6 +425,8 @@
     "audioRouting": "オーディオルーティング",
     "replayTutorial": "チュートリアルを再再生",
     "help": "ヘルプ",
+    "hideDefaultSentences": "デフォルトの文章を非表示",
+    "hideDefaultSentencesDesc": "有効にすると、アプリが提供するデフォルトの文章がAACボードから非表示になります。カスタム文章のみが表示されます。",
     "speechEnhancement": {
       "title": "音声改善",
       "enable": "音声改善を有効にする",

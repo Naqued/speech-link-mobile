@@ -318,6 +318,8 @@
     "audioRouting": "Usmjeravanje zvuka",
     "replayTutorial": "Reproduciraj Vodič Ponovno",
     "help": "Pomoć",
+    "hideDefaultSentences": "Sakrij Zadane Rečenice",
+    "hideDefaultSentencesDesc": "Kada je omogućeno, zadane rečenice koje pruža aplikacija bit će skrivene s vaše AAC ploče. Prikazat će se samo vaše prilagođene rečenice.",
     "speechEnhancement": {
       "title": "Poboljšanje Govora",
       "enable": "Omogući Poboljšanje Govora",

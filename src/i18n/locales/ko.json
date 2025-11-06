@@ -427,6 +427,8 @@
     "audioRouting": "오디오 라우팅",
     "replayTutorial": "튜토리얼 다시 재생",
     "help": "도움말",
+    "hideDefaultSentences": "기본 문장 숨기기",
+    "hideDefaultSentencesDesc": "활성화되면 앱에서 제공하는 기본 문장이 AAC 보드에서 숨겨집니다. 사용자 지정 문장만 표시됩니다.",
     "speechEnhancement": {
       "title": "음성 향상",
       "enable": "음성 향상 활성화",

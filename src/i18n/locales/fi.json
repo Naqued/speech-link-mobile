@@ -318,6 +318,8 @@
     "audioRouting": "Äänenreititys",
     "replayTutorial": "Toista Opetusohjelma",
     "help": "Ohje",
+    "hideDefaultSentences": "Piilota Oletuslauseet",
+    "hideDefaultSentencesDesc": "Kun käytössä, sovelluksen tarjoamat oletuslauseet piilotetaan AAC-laudaltasi. Näytetään vain omat mukautetut lauseesi.",
     "speechEnhancement": {
       "title": "Puheen Parannus",
       "enable": "Ota Käyttöön Puheen Parannus",

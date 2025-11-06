@@ -425,6 +425,8 @@
     "audioRouting": "Audio-Routing",
     "replayTutorial": "Tutorium wiederholen",
     "help": "Hilfe",
+    "hideDefaultSentences": "Standardsätze Ausblenden",
+    "hideDefaultSentencesDesc": "Wenn aktiviert, werden die von der App bereitgestellten Standardsätze von Ihrem AAC-Board ausgeblendet. Es werden nur Ihre benutzerdefinierten Sätze angezeigt.",
     "speechEnhancement": {
       "title": "Sprachverbesserung",
       "enable": "Sprachverbesserung aktivieren",

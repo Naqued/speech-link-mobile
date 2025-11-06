@@ -483,6 +483,8 @@
     "audioRouting": "Audio-routering",
     "replayTutorial": "Tutorial Opnieuw Afspelen",
     "help": "Hulp",
+    "hideDefaultSentences": "Standaardzinnen Verbergen",
+    "hideDefaultSentencesDesc": "Wanneer ingeschakeld, worden de standaardzinnen die door de app worden geleverd verborgen van uw AAC-bord. Alleen uw aangepaste zinnen worden weergegeven.",
     "speechEnhancement": {
       "title": "Spraakverbetering",
       "enable": "Spraakverbetering Inschakelen",

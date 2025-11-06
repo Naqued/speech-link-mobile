@@ -483,6 +483,8 @@
     "audioRouting": "Ljudroutning",
     "replayTutorial": "Spela om Tutorial",
     "help": "Hjälp",
+    "hideDefaultSentences": "Dölj Standardsatser",
+    "hideDefaultSentencesDesc": "När aktiverat kommer standardsatserna som tillhandahålls av appen att döljas från din AAC-tavla. Endast dina anpassade meningar kommer att visas.",
     "speechEnhancement": {
       "title": "Talverbetering",
       "enable": "Aktivera Talverbetering",

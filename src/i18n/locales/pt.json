@@ -483,6 +483,8 @@
     "audioRouting": "Roteamento de Áudio",
     "replayTutorial": "Reproduzir Tutorial",
     "help": "Ajuda",
+    "hideDefaultSentences": "Ocultar Frases Padrão",
+    "hideDefaultSentencesDesc": "Quando ativado, as frases padrão fornecidas pelo aplicativo serão ocultadas do seu quadro AAC. Apenas suas frases personalizadas serão exibidas.",
     "speechEnhancement": {
       "title": "Melhoria de Fala",
       "enable": "Ativar Melhoria de Fala",

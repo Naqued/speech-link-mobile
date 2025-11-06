@@ -483,6 +483,8 @@
     "audioRouting": "Routing audio",
     "replayTutorial": "Odtwórz Samouczek",
     "help": "Pomoc",
+    "hideDefaultSentences": "Ukryj Domyślne Zdania",
+    "hideDefaultSentencesDesc": "Po włączeniu domyślne zdania dostarczane przez aplikację zostaną ukryte z tablicy AAC. Wyświetlane będą tylko Twoje niestandardowe zdania.",
     "speechEnhancement": {
       "title": "Ulepszenie Mowy",
       "enable": "Włącz Ulepszenie Mowy",

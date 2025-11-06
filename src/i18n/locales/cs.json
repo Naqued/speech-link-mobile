@@ -427,6 +427,8 @@
     "audioRouting": "Směrování zvuku",
     "replayTutorial": "Přehrát Tutoriál Znovu",
     "help": "Nápověda",
+    "hideDefaultSentences": "Skrýt Výchozí Věty",
+    "hideDefaultSentencesDesc": "Když je povoleno, výchozí věty poskytované aplikací budou skryty z vaší AAC tabule. Zobrazí se pouze vaše vlastní věty.",
     "speechEnhancement": {
       "title": "Vylepšení Řeči",
       "enable": "Povolit Vylepšení Řeči",

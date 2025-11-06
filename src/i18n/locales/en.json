@@ -488,6 +488,8 @@
     "audioRouting": "Audio Routing",
     "replayTutorial": "Replay Tutorial",
     "help": "Help",
+    "hideDefaultSentences": "Hide Default Sentences",
+    "hideDefaultSentencesDesc": "When enabled, default sentences provided by the app will be hidden from your AAC board. Only your custom sentences will be displayed.",
     "speechEnhancement": {
       "title": "Speech Enhancement",
       "enable": "Enable Speech Enhancement",
@@ -713,8 +715,6 @@
     "reorderError": "Failed to save sentence order",
     "sentenceCount_one": "{{count}} sentence",
     "sentenceCount_other": "{{count}} sentences",
-    "hideDefaultSentences": "Hide Default Sentences",
-    "hideDefaultSentencesDesc": "When enabled, only your custom sentences will be shown. Default system sentences will be hidden.",
     "aacSettings": "AAC Settings"
   },
   "voiceCollection": {

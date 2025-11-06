@@ -485,6 +485,8 @@
     "audioRouting": "Routage Audio",
     "replayTutorial": "Rejouer le tutoriel",
     "help": "Aide",
+    "hideDefaultSentences": "Masquer les Phrases par Défaut",
+    "hideDefaultSentencesDesc": "Lorsqu'il est activé, les phrases par défaut fournies par l'application seront masquées de votre tableau AAC. Seules vos phrases personnalisées seront affichées.",
     "speechEnhancement": {
       "title": "Amélioration de la Parole",
       "enable": "Activer l'Amélioration de la Parole",

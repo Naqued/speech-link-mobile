@@ -483,6 +483,8 @@
     "audioRouting": "Ses Yönlendirme",
     "replayTutorial": "Öğreticiyi Yeniden Oynat",
     "help": "Yardım",
+    "hideDefaultSentences": "Varsayılan Cümleleri Gizle",
+    "hideDefaultSentencesDesc": "Etkinleştirildiğinde, uygulama tarafından sağlanan varsayılan cümleler AAC panonuzdan gizlenecektir. Yalnızca özel cümleleriniz görüntülenecektir.",
     "speechEnhancement": {
       "title": "Konuşma İyileştirme",
       "enable": "Konuşma İyileştirmeyi Etkinleştir",

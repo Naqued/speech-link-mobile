@@ -483,6 +483,8 @@
     "audioRouting": "Perutean Audio",
     "replayTutorial": "Putar Ulang Tutorial",
     "help": "Bantuan",
+    "hideDefaultSentences": "Sembunyikan Kalimat Default",
+    "hideDefaultSentencesDesc": "Ketika diaktifkan, kalimat default yang disediakan oleh aplikasi akan disembunyikan dari papan AAC Anda. Hanya kalimat kustom Anda yang akan ditampilkan.",
     "speechEnhancement": {
       "title": "Peningkatan Ucapan",
       "enable": "Aktifkan Peningkatan Ucapan",

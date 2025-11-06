@@ -201,6 +201,8 @@
     "audioRouting": "Penghalaan Audio",
     "replayTutorial": "Main Semula Tutorial",
     "help": "Bantuan",
+    "hideDefaultSentences": "Sembunyikan Ayat Lalai",
+    "hideDefaultSentencesDesc": "Apabila diaktifkan, ayat lalai yang disediakan oleh aplikasi akan disembunyikan dari papan AAC anda. Hanya ayat tersuai anda akan dipaparkan.",
     "speechEnhancement": {
       "title": "Peningkatan Pertuturan",
       "enable": "Dayakan Peningkatan Pertuturan",

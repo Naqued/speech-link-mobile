@@ -490,6 +490,8 @@
     "audioRouting": "آڈیو راؤٹنگ",
     "replayTutorial": "ٹیوٹوریل دوبارہ چلائیں",
     "help": "مدد",
+    "hideDefaultSentences": "ڈیفالٹ جملے چھپائیں",
+    "hideDefaultSentencesDesc": "جب فعال ہو، ایپ کی طرف سے فراہم کردہ ڈیفالٹ جملے آپ کے AAC بورڈ سے چھپا دیے جائیں گے۔ صرف آپ کے حسب ضرورت جملے دکھائے جائیں گے۔",
     "speechEnhancement": {
       "title": "تقریر کی بہتری",
       "enable": "تقریر کی بہتری فعال کریں",
@@ -714,8 +716,6 @@
     "reorderError": "جملے کی ترتیب محفوظ کرنے میں ناکام",
     "sentenceCount_one": "{{count}} جملہ",
     "sentenceCount_other": "{{count}} جملے",
-    "hideDefaultSentences": "ڈیفالٹ جملے چھپائیں",
-    "hideDefaultSentencesDesc": "جب فعال ہو، صرف آپ کے حسب ضرورت جملے دکھائے جائیں گے۔ ڈیفالٹ سسٹم جملے چھپا دیے جائیں گے۔",
     "aacSettings": "AAC ترتیبات"
   },
   "voiceCollection": {

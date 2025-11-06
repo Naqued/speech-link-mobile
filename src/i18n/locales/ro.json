@@ -483,6 +483,8 @@
     "audioRouting": "Rutare Audio",
     "replayTutorial": "Redă Tutorialul",
     "help": "Ajutor",
+    "hideDefaultSentences": "Ascunde Propozițiile Implicite",
+    "hideDefaultSentencesDesc": "Când este activat, propozițiile implicite furnizate de aplicație vor fi ascunse de pe panoul tău AAC. Vor fi afișate doar propozițiile tale personalizate.",
     "speechEnhancement": {
       "title": "Îmbunătățirea Vorbirii",
       "enable": "Activează Îmbunătățirea Vorbirii",

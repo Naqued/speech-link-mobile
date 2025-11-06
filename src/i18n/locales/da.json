@@ -201,6 +201,8 @@
     "audioRouting": "Lydrouting",
     "replayTutorial": "Genafspil Tutorial",
     "help": "Hjælp",
+    "hideDefaultSentences": "Skjul Standardsætninger",
+    "hideDefaultSentencesDesc": "Når aktiveret, vil standardsætningerne, som appen leverer, blive skjult fra dit AAC-panel. Kun dine tilpassede sætninger vil blive vist.",
     "speechEnhancement": {
       "title": "Taleforbedring",
       "enable": "Aktivér Taleforbedring",

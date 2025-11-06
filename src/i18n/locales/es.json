@@ -425,6 +425,8 @@
     "audioRouting": "Enrutamiento de Audio",
     "replayTutorial": "Repetir Tutorial",
     "help": "Ayuda",
+    "hideDefaultSentences": "Ocultar Oraciones Predeterminadas",
+    "hideDefaultSentencesDesc": "Cuando está habilitado, las oraciones predeterminadas proporcionadas por la aplicación se ocultarán de su tablero AAC. Solo se mostrarán sus oraciones personalizadas.",
     "speechEnhancement": {
       "title": "Mejora del Habla",
       "enable": "Activar Mejora del Habla",

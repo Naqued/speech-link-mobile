@@ -201,6 +201,8 @@
     "audioRouting": "Smerovanie zvuku",
     "replayTutorial": "Prehrať Návod Znovu",
     "help": "Pomoc",
+    "hideDefaultSentences": "Skryť Predvolené Vety",
+    "hideDefaultSentencesDesc": "Keď je povolené, predvolené vety poskytované aplikáciou budú skryté z vašej AAC tabule. Zobrazia sa len vaše vlastné vety.",
     "speechEnhancement": {
       "title": "Vylepšenie Reči",
       "enable": "Povoliť Vylepšenie Reči",

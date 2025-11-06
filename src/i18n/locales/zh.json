@@ -425,6 +425,8 @@
     "audioRouting": "音频路由",
     "replayTutorial": "重播教程",
     "help": "帮助",
+    "hideDefaultSentences": "隐藏默认句子",
+    "hideDefaultSentencesDesc": "启用后，应用程序提供的默认句子将从您的AAC面板中隐藏。仅显示您的自定义句子。",
     "speechEnhancement": {
       "title": "语音增强",
       "enable": "启用语音增强",

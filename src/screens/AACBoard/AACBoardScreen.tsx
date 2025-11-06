@@ -200,13 +200,15 @@ const TypingModal: React.FC<{
         </View>
         
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardContainer}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <ScrollView 
             style={styles.scrollContent} 
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
           >
             <View style={styles.content}>
               {/* Model Selector - Show to all users */}
@@ -1562,7 +1564,7 @@ const AACBoardScreen: React.FC = () => {
     >
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.contentContainer}>

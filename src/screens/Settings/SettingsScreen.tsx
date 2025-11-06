@@ -674,7 +674,7 @@ const SettingsScreen: React.FC = () => {
           <TutorialTarget id="settings-hide-defaults">
             {renderSettingItem(
               'eye-off-outline',
-              'Hide Default Sentences',
+              t('settings.hideDefaultSentences'),
               <Switch
                 value={aacPreferences?.hideDefaultSentences || false}
                 onValueChange={handleToggleHideDefaultSentences}
@@ -688,7 +688,7 @@ const SettingsScreen: React.FC = () => {
             )}
           </TutorialTarget>
           <Text style={styles.settingDescription}>
-            When enabled, default sentences provided by the app will be hidden from your AAC board. Only your custom sentences will be displayed.
+            {t('settings.hideDefaultSentencesDesc')}
           </Text>
         </View>
 

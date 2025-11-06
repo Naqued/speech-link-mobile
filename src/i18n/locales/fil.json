@@ -483,6 +483,8 @@
     "audioRouting": "Audio Routing",
     "replayTutorial": "I-play Muli ang Tutorial",
     "help": "Tulong",
+    "hideDefaultSentences": "Itago ang Default na Pangungusap",
+    "hideDefaultSentencesDesc": "Kapag naka-enable, ang mga default na pangungusap na ibinigay ng app ay itatago mula sa iyong AAC board. Tanging ang iyong mga custom na pangungusap ang ipapakita.",
     "speechEnhancement": {
       "title": "Pagpapahusay ng Pagsasalita",
       "enable": "Paganahin ang Pagpapahusay ng Pagsasalita",

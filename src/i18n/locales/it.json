@@ -425,6 +425,8 @@
     "audioRouting": "Instradamento Audio",
     "replayTutorial": "Riproduci Tutorial",
     "help": "Aiuto",
+    "hideDefaultSentences": "Nascondi Frasi Predefinite",
+    "hideDefaultSentencesDesc": "Quando abilitato, le frasi predefinite fornite dall'app verranno nascoste dalla tua tavola AAC. Verranno visualizzate solo le tue frasi personalizzate.",
     "speechEnhancement": {
       "title": "Miglioramento del Discorso",
       "enable": "Abilita Miglioramento del Discorso",
