@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
 
 // Components
 import AdvancedFilterModal, { FilterParams } from '../../components/VoiceSearch/AdvancedFilterModal';
@@ -75,6 +76,7 @@ function usePrevious<T>(value: T): T | undefined {
 const VoiceCollectionScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
+  const featureGate = useFeatureGate();
 
   // Tab state - now supporting three tabs
   type TabType = 'default' | 'all' | 'favorites';
@@ -898,11 +900,11 @@ const VoiceCollectionScreen: React.FC = () => {
 
     const isFavoriteLoading = favoriteOperation?.voiceId === item.id && favoriteOperation.loading;
     
-    // Voice access control
-    const canPreview = canPreviewVoice(item.id);
-    const canSelect = canSelectVoice(item.id);
-    const voiceAccess = getVoiceAccess(item.id);
+    // Voice access control - NOW USING FEATUREGATE
     const isPremiumVoice = item.isPremium || item.accessLevel === 'premium';
+    const canPreview = featureGate.canPreviewVoice(isPremiumVoice);
+    const canSelect = featureGate.canSelectVoice(isPremiumVoice);
+    const requiresUpgrade = isPremiumVoice && !featureGate.canAccessPremiumVoices;
     
     // Try to get enhanced name from profile data
     let enhancedVoiceName = item.name;
@@ -1106,20 +1108,6 @@ const VoiceCollectionScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        
-        {/* Show upgrade prompt for premium voices that require upgrade */}
-        {voiceAccess?.requiresUpgrade && (
-          <View style={styles.upgradeSection}>
-            <UpgradePrompt
-              variant="banner"
-              size="small"
-              title={t('upgrade.premiumRequired', 'Premium Required')}
-              message={t('upgrade.upgradeForVoice', 'Upgrade to access this premium voice.')}
-              ctaText={t('upgrade.upgrade', 'Upgrade')}
-              style={styles.upgradePrompt}
-            />
-          </View>
-        )}
       </TouchableOpacity>
     );
   };

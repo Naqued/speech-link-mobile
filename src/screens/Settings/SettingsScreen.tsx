@@ -34,6 +34,8 @@ import DeveloperSettings from '../../components/SettingsScreen/DeveloperSettings
 // Hooks
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
+import { VOICE_MODELS, requiresV3Model } from '../../utils/voiceModels';
 
 // Language options with native names and flags
 const LANGUAGE_OPTIONS = [
@@ -65,7 +67,8 @@ const LANGUAGE_OPTIONS = [
   { id: 'da', name: 'Danish', nativeName: 'Dansk', flag: '🇩🇰' },
   { id: 'ta', name: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳' },
   { id: 'uk', name: 'Ukrainian', nativeName: 'Українська', flag: '🇺🇦' },
-  { id: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' }
+  { id: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' },
+  { id: 'urd', name: 'Urdu', nativeName: 'اردو', flag: '🇵🇰' }
 ];
 
 // Add apiService import at the top
@@ -98,6 +101,9 @@ const SettingsScreen: React.FC = () => {
     isAudioRoutingEnabled,
     toggleAudioRouting 
   } = useTextToSpeech();
+  
+  // Feature gating for premium languages
+  const { canSelectLanguage, requiresPremiumForLanguage } = useFeatureGate();
   
   const isDarkMode = theme.background === themes.dark.background;
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
@@ -235,6 +241,15 @@ const SettingsScreen: React.FC = () => {
 
   const handleChangeLanguage = async (languageCode: string) => {
     try {
+      // Check if language can be selected
+      if (!canSelectLanguage(languageCode)) {
+        Alert.alert(
+          t('modelSelection.languageRequiresPremium') || 'Premium Required',
+          t('emotionalTags.premiumRequired') || 'This language requires INTENSIVE or DAILY_COMPANION plan'
+        );
+        return;
+      }
+      
       console.log('[SettingsScreen] Changing language to:', languageCode);
       console.log('[SettingsScreen] Current language before change:', i18n.language);
       
@@ -253,6 +268,33 @@ const SettingsScreen: React.FC = () => {
         setTimeout(() => {
           i18n.changeLanguage(languageCode);
         }, 100);
+      }
+      
+      // Check if this language requires v3 Alpha model
+      if (requiresV3Model(languageCode)) {
+        console.log('[SettingsScreen] Language requires v3 Alpha model, switching...');
+        try {
+          await updateVoiceSettings({ modelId: VOICE_MODELS.ELEVEN_LABS_PREMIUM } as any);
+          
+          // Show toast notification
+          const languageName = LANGUAGE_OPTIONS.find(l => l.id === languageCode)?.name || 'Urdu';
+          if (Platform.OS === 'android') {
+            const { ToastAndroid } = require('react-native');
+            ToastAndroid.show(
+              t('modelSelection.switchedForLanguage', { language: languageName }) || 
+              `Switched to Premium Model (v3 Alpha) for ${languageName} language support`,
+              ToastAndroid.LONG
+            );
+          } else {
+            Alert.alert(
+              t('general.success') || 'Success',
+              t('modelSelection.switchedForLanguage', { language: languageName }) || 
+              `Switched to Premium Model (v3 Alpha) for ${languageName} language support`
+            );
+          }
+        } catch (error) {
+          console.error('[SettingsScreen] Failed to switch model:', error);
+        }
       }
     } catch (error) {
       console.error('Failed to change language', error);
@@ -442,27 +484,65 @@ const SettingsScreen: React.FC = () => {
         <FlatList
           data={filteredLanguages}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.languageOption}
-              onPress={() => {
-                handleChangeLanguage(item.id);
-                setLanguageModalVisible(false);
-                setSearchQuery('');
-              }}
-            >
-              <View style={styles.languageRow}>
-                <Text style={styles.languageFlag}>{item.flag}</Text>
-                <View style={styles.languageTextContainer}>
-                  <Text style={styles.languageText}>{item.nativeName}</Text>
-                  <Text style={styles.languageSubtext}>{t(`languages.${item.id}`)}</Text>
+          renderItem={({ item }) => {
+            const isLocked = !canSelectLanguage(item.id);
+            const isSelected = i18n.language === item.id;
+            const requiresPremiumModel = requiresV3Model(item.id);
+            
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.languageOption,
+                  isLocked && styles.languageOptionLocked
+                ]}
+                onPress={() => {
+                  if (isLocked) {
+                    Alert.alert(
+                      t('modelSelection.languageRequiresPremium') || 'Premium Required',
+                      t('emotionalTags.premiumRequired') || 'This language requires INTENSIVE or DAILY_COMPANION plan'
+                    );
+                    return;
+                  }
+                  
+                  handleChangeLanguage(item.id);
+                  setLanguageModalVisible(false);
+                  setSearchQuery('');
+                }}
+                disabled={isLocked && !isSelected}
+              >
+                <View style={styles.languageRow}>
+                  <Text style={styles.languageFlag}>{item.flag}</Text>
+                  <View style={styles.languageTextContainer}>
+                    <Text style={[
+                      styles.languageText,
+                      isLocked && styles.languageTextLocked
+                    ]}>
+                      {item.nativeName}
+                    </Text>
+                    <Text style={[
+                      styles.languageSubtext,
+                      isLocked && styles.languageTextLocked
+                    ]}>
+                      {t(`languages.${item.id}`)}
+                    </Text>
+                    {requiresPremiumModel && !isLocked && (
+                      <View style={styles.premiumModelBadge}>
+                        <Text style={styles.premiumModelBadgeText}>
+                          🎭 v3 Alpha
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  {isLocked && (
+                    <Text style={styles.lockIcon}>🔒</Text>
+                  )}
                 </View>
-              </View>
-              {i18n.language === item.id && (
-                <Ionicons name="checkmark" size={22} color={theme.primary} />
-              )}
-            </TouchableOpacity>
-          )}
+                {isSelected && !isLocked && (
+                  <Ionicons name="checkmark" size={22} color={theme.primary} />
+                )}
+              </TouchableOpacity>
+            );
+          }}
         />
       </SafeAreaView>
     </Modal>
@@ -794,9 +874,19 @@ const makeStyles = (theme: any) => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
   },
+  languageOptionLocked: {
+    opacity: 0.5,
+  },
   languageText: {
     fontSize: 16,
     color: theme.text,
+  },
+  languageTextLocked: {
+    color: theme.text + '66',
+  },
+  lockIcon: {
+    fontSize: 16,
+    marginLeft: 8,
   },
   warningContainer: {
     padding: 10,
@@ -818,6 +908,36 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  premiumModelBadge: {
+    backgroundColor: theme.primary + '20',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginTop: 4,
+    alignSelf: 'flex-start',
+  },
+  premiumModelBadgeText: {
+    color: theme.primary,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: theme.primary + '15',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.primary,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 13,
+    color: theme.text + 'CC',
+    marginLeft: 10,
+    lineHeight: 18,
   },
   logoutButton: {
     flexDirection: 'row',

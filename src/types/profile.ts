@@ -52,6 +52,7 @@ export interface VoiceSettingsInfo {
   enhancementEnabled: boolean;
   sttProvider: string;
   autoSpeakEnabled: boolean;
+  confidenceThreshold?: number;
 }
 
 export interface TopPhrase {

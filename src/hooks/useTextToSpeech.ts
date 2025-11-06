@@ -11,6 +11,7 @@ import { audioRoutingService } from '../services/AudioRoutingService';
 import { requestAudioPermissions } from '../utils/permissions';
 import nativeAudioOutput from '../services/nativeAudioOutputService';
 import i18next from 'i18next';
+import { voiceSettingsService } from '../services/voiceSettingsService';
 
 // Helper function to configure audio output device
 const configureAudioOutput = async (device: string) => {
@@ -414,6 +415,18 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
     });
     
     try {
+      // Load user's saved modelId from database
+      let savedModelId: string | undefined;
+      try {
+        const userSettings = await voiceSettingsService.getUserSettings();
+        savedModelId = userSettings?.voiceSettings?.modelId;
+        if (savedModelId) {
+          console.log('[TTS] Using saved modelId from database:', savedModelId);
+        }
+      } catch (err) {
+        console.log('[TTS] Could not load modelId from settings:', err);
+      }
+      
       // Build request with optional parameters
       const request: TTSRequest = {
         text
@@ -422,6 +435,7 @@ export const useTextToSpeech = (): UseTextToSpeechResult => {
       // Only add fields if they're defined
       if (voiceId) request.voiceId = voiceId;
       if (provider) request.provider = provider;
+      if (savedModelId) request.modelId = savedModelId; // Add modelId from database
       if (language) {
         request.settings = {
           ...(request.settings || {}),

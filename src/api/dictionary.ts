@@ -30,6 +30,9 @@ export interface DictionaryEntry {
   word: string;
   pronunciation: string;
   language: string;
+  isAutoLearned: boolean;
+  confidence: number | null;
+  usageCount: number;
   createdAt: string;
   updatedAt: string;
 }

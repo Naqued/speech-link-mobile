@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Voice } from '../../services/ttsService';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
-import { useVoiceSettings } from '../../hooks/useVoiceSettings';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
 import { useTranslation } from 'react-i18next';
 import { PremiumBadge, UpgradePrompt } from '../UI';
 
@@ -27,7 +27,7 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { previewVoice, stopSpeaking } = useTextToSpeech();
-  const { canPreviewVoice, getVoiceAccess } = useVoiceSettings();
+  const featureGate = useFeatureGate();
   const [isPlaying, setIsPlaying] = useState(false);
 
   if (!voice) {
@@ -50,10 +50,10 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
 
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(voice.name)}&background=4A6FEA&color=fff`;
   
-  // Get voice access information
-  const voiceAccess = getVoiceAccess(voice.id);
-  const canPreview = canPreviewVoice(voice.id);
+  // Voice access control - NOW USING FEATUREGATE
   const isPremiumVoice = voice.isPremium || voice.accessLevel === 'premium';
+  const canPreview = featureGate.canPreviewVoice(isPremiumVoice);
+  const requiresUpgrade = isPremiumVoice && !featureGate.canAccessPremiumVoices;
 
   const handlePlayPreview = async () => {
     try {
@@ -113,7 +113,7 @@ const SelectedVoiceCard: React.FC<SelectedVoiceCardProps> = ({
       </View>
       
       {/* Show upgrade prompt if voice requires premium but user doesn't have access */}
-      {voiceAccess?.requiresUpgrade && (
+      {requiresUpgrade && (
         <UpgradePrompt
           variant="inline"
           size="small"

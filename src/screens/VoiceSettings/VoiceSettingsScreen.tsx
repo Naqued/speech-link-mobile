@@ -22,18 +22,21 @@ import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { Voice } from '../../services/ttsService';
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
 import { VoiceSettings } from '../../services/voiceSettingsService';
 import { Audio } from 'expo-av';
 import { apiService } from '../../services/apiService';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../components/UI/ToastProvider';
-import { SelectedVoiceCard, VoiceDetailModal } from '../../components/VoiceCollection';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 import { PremiumBadge, UpgradePrompt } from '../../components/UI';
+import { ModelSelector } from '../../components/ModelSelector';
+import { canUseElevenV3 } from '../../utils/subscriptionUtils';
 
 const VoiceSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
   const { t } = useTranslation();
+  const featureGate = useFeatureGate();
   const { 
     userSettings, 
     availableVoices, 
@@ -44,10 +47,7 @@ const VoiceSettingsScreen: React.FC = () => {
     toggleFavoriteVoice,
     refreshSettings,
     profileData,
-    fetchProfileData,
-    canPreviewVoice,
-    canSelectVoice,
-    getVoiceAccess
+    fetchProfileData
   } = useVoiceSettings();
   
   const { 
@@ -63,6 +63,8 @@ const VoiceSettingsScreen: React.FC = () => {
   const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const styles = makeStyles(theme);
 
   // Clean up audio resources on unmount
   useEffect(() => {
@@ -194,6 +196,20 @@ const VoiceSettingsScreen: React.FC = () => {
     }
   };
 
+  const handleModelChange = async (modelId: string) => {
+    if (!userSettings?.voiceSettings) return;
+    
+    try {
+      await updateVoiceSettings({
+        ...userSettings.voiceSettings,
+        modelId
+      });
+      Alert.alert('Success', 'Voice model updated successfully');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update voice model');
+    }
+  };
+
   const handleToggleAudioRouting = async (value: boolean) => {
     if (value) {
       // Show confirmation dialog when enabling
@@ -234,11 +250,11 @@ const VoiceSettingsScreen: React.FC = () => {
     const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
     const isLoading = isVoiceLoading(item.id);
     
-    // Voice access control
-    const canPreview = canPreviewVoice(item.id);
-    const canSelect = canSelectVoice(item.id);
-    const voiceAccess = getVoiceAccess(item.id);
+    // Voice access control - NOW USING FEATUREGATE
     const isPremiumVoice = item.isPremium || item.accessLevel === 'premium';
+    const canPreview = featureGate.canPreviewVoice(isPremiumVoice);
+    const canSelect = featureGate.canSelectVoice(isPremiumVoice);
+    const requiresUpgrade = isPremiumVoice && !featureGate.canAccessPremiumVoices;
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4A6FEA&color=fff`;
 
@@ -294,7 +310,7 @@ const VoiceSettingsScreen: React.FC = () => {
           </Text>
           
           {/* Show upgrade prompt for premium voices that require upgrade */}
-          {voiceAccess?.requiresUpgrade && (
+          {requiresUpgrade && (
             <UpgradePrompt
               variant="inline"
               size="small"
@@ -379,6 +395,23 @@ const VoiceSettingsScreen: React.FC = () => {
             />
           </View>
           
+          {/* Voice Model Selection (Premium Only) */}
+          {canUseElevenV3(profileData?.subscription?.tier) && (
+            <>
+              <View style={styles.sectionDivider} />
+              <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+                <Text style={[styles.settingLabel, { color: theme.text }]}>Voice Model</Text>
+              </View>
+              <ModelSelector
+                selectedModel={userSettings?.voiceSettings?.modelId}
+                onModelChange={handleModelChange}
+                theme={theme}
+              />
+            </>
+          )}
+        </View>
+        
+        <View style={styles.section}>
           {/* Audio routing feature hidden until native implementation is complete
           <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
             <View style={styles.settingLabelContainer}>
@@ -458,7 +491,7 @@ const VoiceSettingsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -475,6 +508,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: theme.border || theme.text + '20',
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
   settingItem: {
     flexDirection: 'row',
@@ -558,10 +597,6 @@ const styles = StyleSheet.create({
   },
   avatarDisabled: {
     opacity: 0.5,
-  },
-  voiceNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   premiumBadge: {
     marginLeft: 8,

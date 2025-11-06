@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,15 @@ import { useTutorial } from '../../contexts/TutorialContext';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { aacService } from '../../services/aacService';
+
+// New components for emotional tags & model selection
+import { ModelSelector } from '../../components/ModelSelector';
+import { EmotionalTagSelector } from '../../components/EmotionalTagSelector';
+import { ModelInfoModal } from '../../components/ModelInfoModal';
+import { ModelSelectionModal } from '../../components/ModelSelectionModal';
+import { VOICE_MODELS, getCharacterLimit } from '../../utils/voiceModels';
+import { insertTagAtPosition, EmotionalTag } from '../../utils/emotionalTags';
+import { canUseElevenV3 } from '../../utils/subscriptionUtils';
 
 // Tutorial
 import { TutorialTarget } from '../../components/Tutorial/TutorialTarget';
@@ -72,6 +81,9 @@ const TypingModal: React.FC<{
   onStop: () => void;
   theme: any;
   t: any;
+  userPlanId?: string;
+  savedModelId?: string;
+  onModelChange?: (modelId: string) => Promise<void>;
 }> = React.memo(({
   visible,
   onClose,
@@ -84,9 +96,92 @@ const TypingModal: React.FC<{
   onClear,
   onStop,
   theme,
-  t
+  t,
+  userPlanId,
+  savedModelId,
+  onModelChange
 }) => {
   const styles = makeTypingModalStyles(theme);
+  
+  // State for cursor position and tags visibility
+  const [cursorPosition, setCursorPosition] = React.useState(0);
+  const [showTags, setShowTags] = React.useState(false);
+  const [showModelInfo, setShowModelInfo] = React.useState(false);
+  const inputRef = React.useRef<TextInput>(null);
+  
+  // Use saved model from database, fallback to default
+  const selectedModel = savedModelId || VOICE_MODELS.ELEVEN_LABS;
+  
+  // Get character limit based on selected model
+  const characterLimit = getCharacterLimit(selectedModel);
+  const isPremium = userPlanId ? canUseElevenV3(userPlanId) : false;
+  
+  // Debug: Log user plan info
+  React.useEffect(() => {
+    console.log('[TypingModal] User Plan ID:', userPlanId);
+    console.log('[TypingModal] Is Premium:', isPremium);
+    console.log('[TypingModal] Can use Eleven V3:', canUseElevenV3(userPlanId || ''));
+  }, [userPlanId, isPremium]);
+  
+  // Handle tag insertion with auto-switch to v3 Alpha
+  const handleTagSelect = async (tag: EmotionalTag) => {
+    // Check if we need to switch to v3 Alpha model
+    if (selectedModel !== VOICE_MODELS.ELEVEN_LABS_PREMIUM) {
+      // Auto-switch to Premium model
+      if (onModelChange) {
+        try {
+          await onModelChange(VOICE_MODELS.ELEVEN_LABS_PREMIUM);
+          
+          // Show toast notification
+          if (Platform.OS === 'android') {
+            const { ToastAndroid } = require('react-native');
+            ToastAndroid.show(
+              t('modelSelection.emotionalTagSwitch'),
+              ToastAndroid.LONG
+            );
+          } else {
+            // iOS fallback
+            Alert.alert(
+              t('general.success'),
+              t('modelSelection.emotionalTagSwitch'),
+              [{ text: 'OK' }]
+            );
+          }
+        } catch (error) {
+          console.error('Error switching model:', error);
+        }
+      }
+    }
+    
+    // Insert the tag
+    const result = insertTagAtPosition(customMessage, tag.value, cursorPosition);
+    onChangeText(result.newText);
+    setCursorPosition(result.newCursorPosition);
+    // Focus back on input
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+  
+  // Handle model change - save to database
+  const handleModelChange = async (modelId: string) => {
+    // If text exceeds new model's limit, show warning
+    if (customMessage.length > getCharacterLimit(modelId)) {
+      Alert.alert(
+        t('general.warning') || 'Warning',
+        `The ${modelId === VOICE_MODELS.ELEVEN_LABS_PREMIUM ? 'Premium' : 'Standard'} model supports up to ${getCharacterLimit(modelId)} characters. Your text will be truncated.`,
+        [{ text: 'OK' }]
+      );
+    }
+    
+    // Save to database
+    if (onModelChange) {
+      await onModelChange(modelId);
+    }
+  };
+  
+  // Handle learn more button
+  const handleLearnMore = () => {
+    setShowModelInfo(true);
+  };
   
   return (
     <Modal
@@ -108,75 +203,134 @@ const TypingModal: React.FC<{
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardContainer}
         >
-          <View style={styles.content}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder={isSpeaking ? t('general.loading') : t('home.typeMessage')}
-                placeholderTextColor={theme.text + '80'}
-                value={customMessage}
-                onChangeText={onChangeText}
-                multiline
-                maxLength={200}
-                editable={!isSpeaking}
-                autoFocus
-                textAlignVertical="top"
+          <ScrollView 
+            style={styles.scrollContent} 
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
+            <View style={styles.content}>
+              {/* Model Selector - Show to all users */}
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={handleModelChange}
+                theme={theme}
               />
-              <Text style={styles.characterCount}>
-                {customMessage.length}/200
-              </Text>
-            </View>
-            
-            <View style={styles.actions}>
-              {customMessage.length > 0 && !isSpeaking && (
-                <>
-                  <TouchableOpacity style={styles.actionButton} onPress={onSave}>
-                    <Ionicons name="bookmark-outline" size={24} color={theme.primary} />
-                    <Text style={styles.actionText}>{t('general.save')}</Text>
+              
+              {/* Text Input */}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  ref={inputRef}
+                  style={styles.input}
+                  placeholder={isSpeaking ? t('general.loading') : t('home.typeMessage')}
+                  placeholderTextColor={theme.text + '80'}
+                  value={customMessage}
+                  onChangeText={onChangeText}
+                  onSelectionChange={(event) => {
+                    setCursorPosition(event.nativeEvent.selection.start);
+                  }}
+                  multiline
+                  maxLength={characterLimit}
+                  editable={!isSpeaking}
+                  autoFocus
+                  textAlignVertical="top"
+                />
+                <View style={styles.inputFooter}>
+                  <Text style={styles.characterCount}>
+                    {customMessage.length}/{characterLimit}
+                  </Text>
+                  {/* Toggle Tags Button */}
+                  <TouchableOpacity
+                    onPress={() => setShowTags(!showTags)}
+                    style={[styles.tagsToggle, { borderColor: theme.primary }]}
+                  >
+                    <Text style={{ color: theme.primary }}>
+                      🎭 {showTags ? 'Hide' : 'Tags'}
+                    </Text>
                   </TouchableOpacity>
+                </View>
+              </View>
+              
+              {/* Emotional Tags Selector */}
+              {showTags && (
+                <View style={styles.tagsSection}>
+                  <EmotionalTagSelector
+                    onTagSelect={handleTagSelect}
+                    theme={theme}
+                    maxHeight={200}
+                    onLearnMore={handleLearnMore}
+                  />
                   
-                  <TouchableOpacity style={styles.actionButton} onPress={onClear}>
-                    <Ionicons name="trash-outline" size={24} color={theme.text + '80'} />
-                    <Text style={styles.actionText}>{t('home.clearText')}</Text>
-                  </TouchableOpacity>
-                </>
+                  {/* Emotional Tags Tip */}
+                  {isPremium && selectedModel === VOICE_MODELS.ELEVEN_LABS_PREMIUM && (
+                    <View style={[styles.tipBox, { backgroundColor: theme.primary + '15', borderColor: theme.primary }]}>
+                      <Text style={[styles.tipText, { color: theme.text }]}>
+                        {t('emotionalTags.emotionLimit')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               )}
               
-              {isSpeaking && (
-                <TouchableOpacity style={styles.actionButton} onPress={onStop}>
-                  <Ionicons name="stop-circle" size={24} color={theme.error || '#EF4444'} />
-                  <Text style={styles.actionText}>{t('general.stop')}</Text>
-                </TouchableOpacity>
-              )}
+              {/* Actions */}
+              <View style={styles.actions}>
+                {customMessage.length > 0 && !isSpeaking && (
+                  <>
+                    <TouchableOpacity style={styles.actionButton} onPress={onSave}>
+                      <Ionicons name="bookmark-outline" size={24} color={theme.primary} />
+                      <Text style={styles.actionText}>{t('general.save')}</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={styles.actionButton} onPress={onClear}>
+                      <Ionicons name="trash-outline" size={24} color={theme.text + '80'} />
+                      <Text style={styles.actionText}>{t('home.clearText')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                
+                {isSpeaking && (
+                  <TouchableOpacity style={styles.actionButton} onPress={onStop}>
+                    <Ionicons name="stop-circle" size={24} color={theme.error || '#EF4444'} />
+                    <Text style={styles.actionText}>{t('general.stop')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              
+              {/* Speak Button */}
+              <TouchableOpacity
+                style={[
+                  styles.speakButton,
+                  (!customMessage.trim() || isSpeaking) && styles.speakButtonDisabled,
+                ]}
+                onPress={async () => {
+                  await onSpeak();
+                  if (!isSpeaking) {
+                    onClose();
+                  }
+                }}
+                disabled={!customMessage.trim() || isSpeaking}
+              >
+                {isLoadingAudio && isSpeaking ? (
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Ionicons name="volume-high" size={32} color="#FFFFFF" />
+                    <Text style={styles.speakButtonText}>
+                      {t('aacBoard.speak')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
-            
-            <TouchableOpacity
-              style={[
-                styles.speakButton,
-                (!customMessage.trim() || isSpeaking) && styles.speakButtonDisabled,
-              ]}
-              onPress={async () => {
-                await onSpeak();
-                if (!isSpeaking) {
-                  onClose();
-                }
-              }}
-              disabled={!customMessage.trim() || isSpeaking}
-            >
-              {isLoadingAudio && isSpeaking ? (
-                <ActivityIndicator size="large" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Ionicons name="volume-high" size={32} color="#FFFFFF" />
-                  <Text style={styles.speakButtonText}>
-                    {t('aacBoard.speak')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      
+      {/* Model Info Modal */}
+      <ModelInfoModal
+        visible={showModelInfo}
+        onClose={() => setShowModelInfo(false)}
+        theme={theme}
+      />
     </Modal>
   );
 });
@@ -212,16 +366,14 @@ const makeTypingModalStyles = (theme: any) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   content: {
-    flex: 1,
     padding: 20,
   },
   inputContainer: {
     backgroundColor: theme.card,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: theme.border,
     borderRadius: 15,
     padding: 20,
-    flex: 1,
     maxHeight: 300,
     shadowColor: theme.shadowColor,
     shadowOffset: { width: 0, height: 2 },
@@ -235,12 +387,41 @@ const makeTypingModalStyles = (theme: any) => StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     textAlignVertical: 'top',
+    minHeight: 80,
+    backgroundColor: 'transparent',
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
   characterCount: {
-    alignSelf: 'flex-end',
-    marginTop: 10,
     color: theme.text + '80',
     fontSize: 14,
+  },
+  tagsToggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  tagsSection: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  tipBox: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+  },
+  tipText: {
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  scrollContent: {
+    flex: 1,
   },
   actions: {
     flexDirection: 'row',
@@ -306,7 +487,7 @@ const AACBoardScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const { speak, stopSpeaking, isPlaying: ttsIsPlaying, selectedAudioDevice: hookAudioDevice, forceAudioDevice } = useTextToSpeech();
-  const { userSettings } = useVoiceSettings();
+  const { userSettings, updateVoiceSettings, profileData } = useVoiceSettings();
   const { isAuthenticated, isConnected, streamSpeech } = useDiscord();
   const navigation = useNavigation();
   const { currentStep, isActive: isTutorialActive } = useTutorial();
@@ -381,8 +562,15 @@ const AACBoardScreen: React.FC = () => {
   // Track subscription limit status
   const [subscriptionLimitReached, setSubscriptionLimitReached] = useState(false);
   
+  // Check if user has premium access for v3 model
+  const userPlanId = profileData?.subscription?.tier;
+  const hasPremiumAccess = userPlanId ? canUseElevenV3(userPlanId) : false;
+  const currentModelId = userSettings?.voiceSettings?.modelId || 'eleven_flash_v2_5';
+  
   // Modal state
   const [sentenceFormVisible, setSentenceFormVisible] = useState(false);
+  const [modelSelectorVisible, setModelSelectorVisible] = useState(false);
+  const [modelInfoVisible, setModelInfoVisible] = useState(false);
   const [editingSentence, setEditingSentence] = useState<SentenceUIModel | undefined>(undefined);
   const [categoryFormVisible, setCategoryFormVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryUIModel | undefined>(undefined);
@@ -797,6 +985,23 @@ const AACBoardScreen: React.FC = () => {
     Linking.openURL('https://speechlink.example.com/subscribe');
   };
 
+  // Handler for saving model selection to database
+  const handleModelChange = useCallback(async (modelId: string) => {
+    try {
+      // Partial update: only send the modelId field
+      // Backend will update only this field for existing settings
+      await updateVoiceSettings({
+        modelId
+      } as any);
+      console.log('[AACBoard] Model saved to database:', modelId);
+      
+      // Note: Modal closing and success message is handled by ModelSelectionModal component
+    } catch (error) {
+      console.error('[AACBoard] Failed to save model selection:', error);
+      throw error; // Let the modal handle the error display
+    }
+  }, [updateVoiceSettings]);
+
   const speakCustomMessage = async () => {
     if (customMessage.trim()) {
       try {
@@ -860,7 +1065,10 @@ const AACBoardScreen: React.FC = () => {
           }
         }
         
-        // Speak the message directly
+        // Get saved modelId from user settings (with fallback)
+        const savedModelId = userSettings?.voiceSettings?.modelId;
+        
+        // Speak the message directly with modelId in settings
         await speak(customMessage, undefined, undefined, currentLanguage);
         
         // Clear the input
@@ -1354,6 +1562,26 @@ const AACBoardScreen: React.FC = () => {
             title={""}
             rightComponent={
               <View style={styles.headerActions}>
+                  {/* Model Selector - Only show for premium users */}
+                  {hasPremiumAccess && (
+                  <TouchableOpacity 
+                    style={[styles.headerButton, styles.modelSelectorButton]} 
+                    onPress={() => setModelSelectorVisible(true)}
+                  >
+                    <View style={styles.modelIconContainer}>
+                      <Ionicons 
+                        name={currentModelId === 'eleven_v3_alpha' ? 'sparkles' : 'flash'} 
+                        size={24} 
+                        color={theme.primary} 
+                      />
+                      <View style={[styles.modelBadge, { backgroundColor: currentModelId === 'eleven_v3_alpha' ? '#FFD700' : theme.primary }]}>
+                        <Text style={styles.modelBadgeText}>
+                          {currentModelId === 'eleven_v3_alpha' ? 'v3' : 'v2.5'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity 
                   style={styles.headerButton} 
                   onPress={async () => {
@@ -1380,6 +1608,7 @@ const AACBoardScreen: React.FC = () => {
                     color={theme.primary} 
                   />
                 </TouchableOpacity>
+              
                 <TutorialTarget id="aac-category-selector">
                   <TouchableOpacity style={styles.headerButton} onPress={handleAddCategory}>
                     <Ionicons name="folder-outline" size={24} color={theme.primary} />
@@ -1401,17 +1630,7 @@ const AACBoardScreen: React.FC = () => {
                     </TouchableOpacity>
                   </TutorialTarget>
                 )}
-                {__DEV__ && currentLanguage === 'hi' && (
-                  <TouchableOpacity 
-                    style={styles.headerButton} 
-                    onPress={() => {
-                      console.log('🔍 Running Hindi API Debug Test...');
-                      quickHindiTest().catch(err => console.error('Debug test failed:', err));
-                    }}
-                  >
-                    <Ionicons name="bug-outline" size={24} color="#FF6B6B" />
-                  </TouchableOpacity>
-                )}
+                
                 {isAuthenticated && (
                   <DiscordIndicator 
                     size="medium" 
@@ -1421,8 +1640,7 @@ const AACBoardScreen: React.FC = () => {
                 )}
               </View>
             }
-          />
-          
+          />          
           {subscriptionLimitReached && (
             <TouchableOpacity 
               style={styles.limitBanner} 
@@ -1830,6 +2048,29 @@ const AACBoardScreen: React.FC = () => {
         onStop={handleStopSpeaking}
         theme={theme}
         t={t}
+        userPlanId={profileData?.subscription?.tier}
+        savedModelId={userSettings?.voiceSettings?.modelId}
+        onModelChange={handleModelChange}
+      />
+      
+      {/* Model Selection Modal */}
+      <ModelSelectionModal
+        visible={modelSelectorVisible}
+        onClose={() => setModelSelectorVisible(false)}
+        selectedModel={currentModelId}
+        onModelChange={handleModelChange}
+        onLearnMore={() => {
+          setModelSelectorVisible(false);
+          setModelInfoVisible(true);
+        }}
+        theme={theme}
+      />
+      
+      {/* Model Info Modal */}
+      <ModelInfoModal
+        visible={modelInfoVisible}
+        onClose={() => setModelInfoVisible(false)}
+        theme={theme}
       />
     </SafeAreaView>
   );
@@ -1875,6 +2116,28 @@ const makeStyles = (theme: any) => StyleSheet.create({
   },
   headerButton: {
     padding: 8,
+  },
+  modelSelectorButton: {
+    position: 'relative',
+  },
+  modelIconContainer: {
+    position: 'relative',
+  },
+  modelBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 8,
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modelBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: 'bold',
   },
   categoriesContainer: {
     height: 90,

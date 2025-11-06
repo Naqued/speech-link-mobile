@@ -63,7 +63,7 @@ class DictionaryService {
   async getEntries(language?: string): Promise<DictionaryEntry[]> {
     try {
       const params = language ? `?language=${language}` : '';
-      const response = await apiService.fetchWithAuth(`/user-dictionary${params}`);
+      const response = await apiService.fetchWithAuth(`/api/user-dictionary${params}`);
       const data = await response.json();
       return data.entries || [];
     } catch (error) {
@@ -98,7 +98,7 @@ class DictionaryService {
     try {
       console.log('[DictionaryService] Creating entry:', data);
       
-      const response = await apiService.fetchWithAuth('/user-dictionary', {
+      const response = await apiService.fetchWithAuth('/api/user-dictionary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,6 +113,10 @@ class DictionaryService {
 
       const result = await response.json();
       console.log('[DictionaryService] Entry created successfully:', result.entry.id);
+      
+      // Clear API cache to ensure fresh data on next fetch
+      apiService.clearCache();
+      
       return result.entry;
     } catch (error) {
       console.error('[DictionaryService] Error creating entry:', error);
@@ -147,7 +151,7 @@ class DictionaryService {
     try {
       console.log('[DictionaryService] Updating entry:', data.id);
       
-      const response = await apiService.fetchWithAuth(`/user-dictionary/${data.id}`, {
+      const response = await apiService.fetchWithAuth(`/api/user-dictionary/${data.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -162,6 +166,10 @@ class DictionaryService {
 
       const result = await response.json();
       console.log('[DictionaryService] Entry updated successfully');
+      
+      // Clear API cache to ensure fresh data on next fetch
+      apiService.clearCache();
+      
       return result.entry;
     } catch (error) {
       console.error('[DictionaryService] Error updating entry:', error);
@@ -177,7 +185,7 @@ class DictionaryService {
     try {
       console.log('[DictionaryService] Deleting entry:', id);
       
-      const response = await apiService.fetchWithAuth(`/user-dictionary/${id}`, {
+      const response = await apiService.fetchWithAuth(`/api/user-dictionary/${id}`, {
         method: 'DELETE',
       });
 
@@ -187,6 +195,10 @@ class DictionaryService {
       }
 
       console.log('[DictionaryService] Entry deleted successfully');
+      
+      // Clear API cache to ensure fresh data on next fetch
+      apiService.clearCache();
+      
       return true;
     } catch (error) {
       console.error('[DictionaryService] Error deleting entry:', error);

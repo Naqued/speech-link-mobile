@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Voice } from '../../services/ttsService';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
-import { useVoiceSettings } from '../../hooks/useVoiceSettings';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
 import { useTranslation } from 'react-i18next';
 import { PremiumBadge, UpgradePrompt } from '../UI';
 
@@ -47,7 +47,7 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
     stopSpeaking, 
     previewVoice 
   } = useTextToSpeech();
-  const { canPreviewVoice, canSelectVoice, getVoiceAccess } = useVoiceSettings();
+  const featureGate = useFeatureGate();
   
   const [isModalButtonLoading, setIsModalButtonLoading] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -56,11 +56,11 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
 
   if (!voice) return null;
 
-  // Get voice access information
-  const voiceAccess = getVoiceAccess(voice.id);
-  const canPreview = canPreviewVoice(voice.id);
-  const canSelect = canSelectVoice(voice.id);
+  // Voice access control - NOW USING FEATUREGATE
   const isPremiumVoice = voice.isPremium || voice.accessLevel === 'premium';
+  const canPreview = featureGate.canPreviewVoice(isPremiumVoice);
+  const canSelect = featureGate.canSelectVoice(isPremiumVoice);
+  const requiresUpgrade = isPremiumVoice && !featureGate.canAccessPremiumVoices;
 
   const playVoiceSample = async () => {
     if (isTTSHookPlaying) { // If sound is actually playing globally from the hook
@@ -276,7 +276,7 @@ const VoiceDetailModal: React.FC<VoiceDetailModalProps> = ({
               </View>
               
               {/* Show upgrade prompt if voice requires premium but user doesn't have access */}
-              {voiceAccess?.requiresUpgrade && (
+              {requiresUpgrade && (
                 <UpgradePrompt
                   variant="card"
                   size="medium"

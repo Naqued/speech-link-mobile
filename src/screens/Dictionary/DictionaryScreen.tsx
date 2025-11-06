@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/UI/ScreenHeader';
 import * as dictionaryAPI from '../../api/dictionary';
@@ -37,6 +38,14 @@ const DictionaryScreen: React.FC = () => {
     loadEntries();
   }, [currentLanguage]);
 
+  // Refresh entries when screen gains focus (e.g., returning from another screen)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[DictionaryScreen] Screen focused, refreshing entries');
+      loadEntries();
+    }, [loadEntries])
+  );
+
   // Filter entries when search query changes
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -52,12 +61,13 @@ const DictionaryScreen: React.FC = () => {
     }
   }, [searchQuery, entries]);
 
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
     try {
       setLoading(true);
       const fetchedEntries = await dictionaryAPI.getDictionaryEntries(currentLanguage);
       setEntries(fetchedEntries);
       setFilteredEntries(fetchedEntries);
+      console.log(`[DictionaryScreen] Loaded ${fetchedEntries.length} entries for language: ${currentLanguage}`);
     } catch (error) {
       console.error('Failed to load pronunciation entries:', error);
       Alert.alert(
@@ -67,7 +77,7 @@ const DictionaryScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLanguage, t]);
 
   const handleAddEntry = async (word: string, pronunciation: string) => {
     try {
@@ -159,11 +169,29 @@ const DictionaryScreen: React.FC = () => {
   };
 
   const renderEntry = ({ item }: { item: dictionaryAPI.DictionaryEntry }) => (
-    <View style={styles.entryCard}>
+    <View style={[
+      styles.entryCard,
+      item.isAutoLearned && styles.autoLearnedCard
+    ]}>
       <View style={styles.entryContent}>
         <View style={styles.entryTexts}>
-          <Text style={styles.wordText}>{item.word}</Text>
+          <View style={styles.wordHeader}>
+            <Text style={styles.wordText}>{item.word}</Text>
+            {item.isAutoLearned && (
+              <View style={styles.autoLearnedBadge}>
+                <Ionicons name="sparkles" size={12} color="#FF9800" />
+                <Text style={styles.autoLearnedText}>
+                  {t('pronunciation.autoLearned', 'Auto-learned')}
+                </Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.pronunciationText}>→ {item.pronunciation}</Text>
+          {item.isAutoLearned && item.confidence !== null && (
+            <Text style={styles.confidenceText}>
+              {t('pronunciation.confidence', 'Confidence')}: {Math.round(item.confidence * 100)}% • {t('pronunciation.used', 'Used')} {item.usageCount}x
+            </Text>
+          )}
         </View>
         <View style={styles.entryActions}>
           <TouchableOpacity
@@ -370,6 +398,11 @@ const makeStyles = (theme: any) =>
       borderWidth: 1,
       borderColor: theme.border,
     },
+    autoLearnedCard: {
+      borderColor: '#FF9800',
+      borderWidth: 2,
+      backgroundColor: theme.card,
+    },
     entryContent: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -379,10 +412,35 @@ const makeStyles = (theme: any) =>
       flex: 1,
       gap: 4,
     },
+    wordHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap',
+    },
     wordText: {
       fontSize: 18,
       fontWeight: '600',
       color: theme.text,
+    },
+    autoLearnedBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: '#FFF3E0',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+    },
+    autoLearnedText: {
+      fontSize: 11,
+      color: '#FF9800',
+      fontWeight: '600',
+    },
+    confidenceText: {
+      fontSize: 12,
+      color: theme.text + '80',
+      fontStyle: 'italic',
     },
     pronunciationText: {
       fontSize: 16,

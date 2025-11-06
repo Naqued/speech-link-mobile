@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { DiscordProvider } from '../contexts/DiscordContext';
 import { useTutorial } from '../contexts/TutorialContext';
+import { FeatureGateWrapper } from '../components/FeatureGateWrapper';
 
 // Services
 import appRatingService from '../services/appRatingService';
@@ -31,6 +32,7 @@ import TermsOfServiceScreen from '../screens/TermsOfService/TermsOfServiceScreen
 import DiscordSettingsScreen from '../screens/Discord/DiscordSettingsScreen';
 import DictionaryScreen from '../screens/Dictionary/DictionaryScreen';
 import AudioOutputSettings from '../screens/Settings/AudioOutputSettings';
+import SpeechEnhancerScreen from '../screens/SpeechEnhancer/SpeechEnhancerScreen';
 
 // Types
 export type MainTabParamList = {
@@ -38,6 +40,7 @@ export type MainTabParamList = {
   AACBoard: undefined;
   VoiceCollection: undefined;
   Dictionary: undefined;
+  SpeechEnhancer: undefined;
   History: undefined;
   Settings: undefined;
 };
@@ -73,6 +76,8 @@ const MainTabs = () => {
             iconName = focused ? 'mic' : 'mic-outline';
           } else if (route.name === 'Dictionary') {
             iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'SpeechEnhancer') {
+            iconName = focused ? 'megaphone' : 'megaphone-outline';
           } else if (route.name === 'History') {
             iconName = focused ? 'time' : 'time-outline';
           } else if (route.name === 'Settings') {
@@ -113,6 +118,11 @@ const MainTabs = () => {
         name="Dictionary" 
         component={DictionaryScreen} 
         options={{ title: t('pronunciation.title') || 'Pronunciation', headerShown: false }} 
+      />
+      <Tab.Screen 
+        name="SpeechEnhancer" 
+        component={SpeechEnhancerScreen} 
+        options={{ title: t('speechEnhancer.title') || 'Speech Enhancer', headerShown: false }} 
       />
       {/* <Tab.Screen 
         name="History" 
@@ -216,15 +226,16 @@ const MainNavigator: React.FC = () => {
   };
 
   return (
-    <DiscordProvider>
-      {/* Bridge component to connect navigation to tutorial context */}
-      <NavigationBridge />
-      
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false
-        }}
-      >
+    <FeatureGateWrapper>
+      <DiscordProvider>
+        {/* Bridge component to connect navigation to tutorial context */}
+        <NavigationBridge />
+        
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false
+          }}
+        >
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="About" component={AboutScreen} />
@@ -244,7 +255,8 @@ const MainNavigator: React.FC = () => {
 
       {/* Tutorial Overlay */}
       <TutorialOverlay />
-    </DiscordProvider>
+      </DiscordProvider>
+    </FeatureGateWrapper>
   );
 };
 

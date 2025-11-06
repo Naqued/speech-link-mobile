@@ -129,11 +129,29 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
       setError(null);
       const updatedSettings = await voiceSettingsService.updateVoiceSettings(settings);
       
-      // Update local state with new settings
+      // Map database format to mobile format (same as getUserSettings)
+      const mappedSettings: VoiceSettings = {
+        provider: updatedSettings.provider || 'ELEVENLABS',
+        voiceId: (updatedSettings as any).selectedVoice || updatedSettings.voiceId || '',
+        settings: {
+          speed: (updatedSettings as any).speed || updatedSettings.settings?.speed,
+          pitch: (updatedSettings as any).pitch || updatedSettings.settings?.pitch
+        },
+        enhancementEnabled: updatedSettings.enhancementEnabled,
+        autoSpeakEnabled: updatedSettings.autoSpeakEnabled,
+        audioRoutingEnabled: updatedSettings.audioRoutingEnabled,
+        sttProvider: updatedSettings.sttProvider,
+        confidenceThreshold: updatedSettings.confidenceThreshold,
+        modelId: updatedSettings.modelId
+      };
+      
+      // Update local state with mapped settings
       setUserSettings(prev => prev ? {
         ...prev,
-        voiceSettings: updatedSettings
+        voiceSettings: mappedSettings
       } : null);
+      
+      console.log('[useVoiceSettings] Settings updated:', { modelId: mappedSettings.modelId });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update voice settings');
       console.error('Error updating voice settings:', err);

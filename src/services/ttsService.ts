@@ -8,6 +8,7 @@ export interface TTSRequest {
   text: string;
   provider?: 'ELEVENLABS' | 'OPENAI';
   voiceId?: string;
+  modelId?: string; // TTS model selection (e.g., 'eleven_flash_v2_5' or 'eleven_v3_alpha')
   settings?: {
     speed?: number;
     pitch?: number;
@@ -15,6 +16,7 @@ export interface TTSRequest {
     clarity?: number;
     style?: number;
     language?: string;
+    modelId?: string; // Also support in settings for backward compatibility
     [key: string]: any;
   };
 }

@@ -13,10 +13,12 @@ export interface VoiceSettings {
     style?: number;
     [key: string]: any;
   };
+  modelId?: string; // TTS model selection (e.g., 'eleven_flash_v2_5' or 'eleven_v3_alpha')
   sttProvider?: 'AUTO' | 'DEEPGRAM' | 'WHISPER' | 'SPEECHMATIC' | 'ELEVENLABS';
   enhancementEnabled?: boolean;
   autoSpeakEnabled?: boolean;
   audioRoutingEnabled?: boolean;
+  confidenceThreshold?: number;
   selectedVoice?: {
     id: string;
     name: string | null;
@@ -72,11 +74,30 @@ class VoiceSettingsService {
       console.log('Fetching voice settings from API...');
       try {
         // Get voice settings from the API
-        const voiceSettingsResponse = await apiService.get<VoiceSettings>('/api/voice-settings');
-        console.log('Received voice settings:', JSON.stringify(voiceSettingsResponse));
+        const voiceSettingsResponse = await apiService.get<any>('/api/voice-settings');
+        console.log('Received voice settings response:', JSON.stringify(voiceSettingsResponse));
+        
+        // The backend returns { settings: {...}, voices: [...] }
+        const settingsData = voiceSettingsResponse.settings || voiceSettingsResponse;
+        
+        // Map database fields to mobile interface (selectedVoice -> voiceId)
+        const mappedSettings: VoiceSettings = {
+          provider: settingsData.provider || 'ELEVENLABS',
+          voiceId: settingsData.selectedVoice || settingsData.voiceId || '',
+          settings: {
+            speed: settingsData.speed,
+            pitch: settingsData.pitch
+          },
+          enhancementEnabled: settingsData.enhancementEnabled,
+          autoSpeakEnabled: settingsData.autoSpeakEnabled,
+          audioRoutingEnabled: settingsData.audioRoutingEnabled,
+          sttProvider: settingsData.sttProvider,
+          confidenceThreshold: settingsData.confidenceThreshold,
+          modelId: settingsData.modelId
+        };
         
         const userSettings: UserSettings = {
-          voiceSettings: voiceSettingsResponse,
+          voiceSettings: mappedSettings,
           favorites: {
             voices: [],
             sentences: []
@@ -361,31 +382,34 @@ class VoiceSettingsService {
     try {
       console.log('Updating voice settings:', JSON.stringify(settings));
       
-      // Get the voice details to include publicOwnerId and voiceName
+      // Handle both voiceId (mobile interface) and selectedVoice (database field)
+      const voiceId = settings.voiceId || (settings as any).selectedVoice;
+      
+      // Get the voice details to include publicOwnerId and voiceName (only if voiceId is provided)
       let publicOwnerId: string | undefined;
       let voiceName: string | undefined;
       
-      if (settings.provider === 'ELEVENLABS') {
+      if (voiceId && (settings.provider === 'ELEVENLABS' || settings.provider === 'ELEVEN_LABS')) {
         try {
           // Use the specialized function for getting shared voice details
-          const sharedVoiceDetails = await this.getSharedVoiceDetails(settings.voiceId);
+          const sharedVoiceDetails = await this.getSharedVoiceDetails(voiceId);
           publicOwnerId = sharedVoiceDetails.publicOwnerId;
           voiceName = sharedVoiceDetails.voiceName;
           
           if (publicOwnerId && voiceName) {
             console.log('Found shared voice details:', { 
-              voiceId: settings.voiceId, 
+              voiceId, 
               publicOwnerId, 
               voiceName 
             });
           } else {
             // Fallback to try to get the voice data from other sources
-            const voiceData = await this.getVoiceData(settings.voiceId);
+            const voiceData = await this.getVoiceData(voiceId);
             if (voiceData) {
               publicOwnerId = voiceData.public_owner_id || voiceData.publicOwnerId;
               voiceName = voiceData.name;
               console.log('Found voice data (fallback):', { 
-                voiceId: settings.voiceId, 
+                voiceId, 
                 publicOwnerId, 
                 voiceName 
               });
@@ -396,21 +420,39 @@ class VoiceSettingsService {
         }
       }
       
-      // Map our internal field names to what the API expects and match exactly the web project format
-      const apiRequest = {
-        // Always use selectedVoice (not voiceId)
-        selectedVoice: settings.voiceId,
-        // Always use ELEVEN_LABS (with underscore)
-        provider: settings.provider === 'ELEVENLABS' ? 'ELEVEN_LABS' : settings.provider,
-        speed: settings.settings?.speed || 1.0,
-        pitch: settings.settings?.pitch || 0,
-        enhancementEnabled: settings.enhancementEnabled || false,
-        sttProvider: settings.sttProvider || 'AUTO',
-        autoSpeakEnabled: settings.autoSpeakEnabled !== undefined ? settings.autoSpeakEnabled : true,
-        // Include these fields needed for shared voices only if they exist
-        ...(publicOwnerId && { publicOwnerId }),
-        ...(voiceName && { voiceName })
-      };
+      // Build API request with only provided fields (partial update support)
+      const apiRequest: any = {};
+      
+      // Only include fields that are actually provided
+      if (voiceId) apiRequest.selectedVoice = voiceId;
+      if (settings.provider) {
+        apiRequest.provider = settings.provider === 'ELEVENLABS' ? 'ELEVEN_LABS' : settings.provider;
+      }
+      if (settings.settings?.speed !== undefined || (settings as any).speed !== undefined) {
+        apiRequest.speed = settings.settings?.speed || (settings as any).speed;
+      }
+      if (settings.settings?.pitch !== undefined || (settings as any).pitch !== undefined) {
+        apiRequest.pitch = settings.settings?.pitch || (settings as any).pitch;
+      }
+      if (settings.enhancementEnabled !== undefined) {
+        apiRequest.enhancementEnabled = settings.enhancementEnabled;
+      }
+      if (settings.sttProvider !== undefined) {
+        apiRequest.sttProvider = settings.sttProvider;
+      }
+      if (settings.autoSpeakEnabled !== undefined) {
+        apiRequest.autoSpeakEnabled = settings.autoSpeakEnabled;
+      }
+      if (settings.confidenceThreshold !== undefined) {
+        apiRequest.confidenceThreshold = settings.confidenceThreshold;
+      }
+      if (settings.modelId !== undefined) {
+        apiRequest.modelId = settings.modelId;
+      }
+      
+      // Include these fields needed for shared voices only if they exist
+      if (publicOwnerId) apiRequest.publicOwnerId = publicOwnerId;
+      if (voiceName) apiRequest.voiceName = voiceName;
       
       console.log('Mapped API request:', JSON.stringify(apiRequest));
       const response = await apiService.post<VoiceSettings>('/api/voice-settings', apiRequest);

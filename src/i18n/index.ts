@@ -6,7 +6,7 @@ import { InitOptions } from 'i18next';
 
 // Debug language initialization
 console.log('[i18n] Starting i18n initialization');
-console.log('[i18n] Device locale:', Localization.locale);
+console.log('[i18n] Device locale:', Localization.getLocales()[0].languageCode || '');
 
 // Import translations
 import en from './locales/en.json';
@@ -17,31 +17,32 @@ import zh from './locales/zh.json';
 import de from './locales/de.json';
 import hi from './locales/hi.json';
 import ko from './locales/ko.json';
-// import pt from './locales/pt.json';
+import pt from './locales/pt.json';
 import it from './locales/it.json';
 import es from './locales/es.json';
-// import id from './locales/id.json';
-// import nl from './locales/nl.json';
-// import tr from './locales/tr.json';
-// import fil from './locales/fil.json';
-// import pl from './locales/pl.json';
-// import sv from './locales/sv.json';
-// import bg from './locales/bg.json';
-// import ro from './locales/ro.json';
+import id from './locales/id.json';
+import nl from './locales/nl.json';
+import tr from './locales/tr.json';
+import fil from './locales/fil.json';
+import pl from './locales/pl.json';
+import sv from './locales/sv.json';
+import bg from './locales/bg.json';
+import ro from './locales/ro.json';
 import ar from './locales/ar.json';
 // import cs from './locales/cs.json';
 // import el from './locales/el.json';
-// import fi from './locales/fi.json';
-// import hr from './locales/hr.json';
+import fi from './locales/fi.json';
+import hr from './locales/hr.json';
 // import ms from './locales/ms.json';
 // import sk from './locales/sk.json';
 // import da from './locales/da.json';
 // import ta from './locales/ta.json';
-// import uk from './locales/uk.json';
-// import ru from './locales/ru.json';
+import uk from './locales/uk.json';
+import ru from './locales/ru.json';
+import urd from './locales/urd.json';
 
 // Define supported languages
-export const SUPPORTED_LANGUAGES = ['en', 'fr', 'hi', 'ar', 'ja', 'zh', 'de', 'it', 'es', 'ko'];
+export const SUPPORTED_LANGUAGES = ['en', 'fr', 'hi', 'ar', 'ja', 'zh', 'de', 'it', 'es', 'ko', 'urd', 'pt', 'ru', 'pl', 'uk', 'tr', 'id', 'nl', 'fil', 'sv', 'bg', 'ro', 'fi', 'hr'];
 // These will be uncommented and added as new language files are created
 // export const SUPPORTED_LANGUAGES = [
 //   'en', 'fr', 'ja', 'zh', 'de', 'hi', 'ko', 'pt', 'it', 'es', 
@@ -61,28 +62,29 @@ const resources = {
   de: { translation: de },
   hi: { translation: hi },
   ko: { translation: ko },
-  // pt: { translation: pt },
+  pt: { translation: pt },
   it: { translation: it },
   es: { translation: es },
-  // id: { translation: id },
-  // nl: { translation: nl },
-  // tr: { translation: tr },
-  // fil: { translation: fil },
-  // pl: { translation: pl },
-  // sv: { translation: sv },
-  // bg: { translation: bg },
-  // ro: { translation: ro },
-  ar: { translation: ar }
+  id: { translation: id },
+  nl: { translation: nl },
+  tr: { translation: tr },
+  fil: { translation: fil },
+  pl: { translation: pl },
+  sv: { translation: sv },
+  bg: { translation: bg },
+  ro: { translation: ro },
+  ar: { translation: ar },
   // cs: { translation: cs },
   // el: { translation: el },
-  // fi: { translation: fi },
-  // hr: { translation: hr },
+  fi: { translation: fi },
+  hr: { translation: hr },
   // ms: { translation: ms },
   // sk: { translation: sk },
   // da: { translation: da },
   // ta: { translation: ta },
-  // uk: { translation: uk },
-  // ru: { translation: ru }
+  uk: { translation: uk },
+  ru: { translation: ru },
+  urd: { translation: urd }
 };
 
 // Debug resource loading
@@ -94,7 +96,7 @@ Object.keys(resources).forEach(lang => {
 // Detect device language
 const getDeviceLanguage = () => {
   try {
-    const locale = Localization.locale || '';
+    const locale = Localization.getLocales()[0].languageCode || '';
     console.log('[i18n] Raw locale from device:', locale);
     
     // Safe split with fallback
