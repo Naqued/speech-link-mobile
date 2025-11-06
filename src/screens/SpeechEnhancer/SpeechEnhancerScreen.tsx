@@ -61,7 +61,7 @@ const SpeechEnhancerScreen: React.FC = () => {
   const { userSettings, refreshSettings } = useVoiceSettings();
 
   // Recording mode
-  const [mode, setMode] = useState<RecordingMode>('continuous');
+  const [mode, setMode] = useState<RecordingMode>('press-to-talk');
   
   // Recording state
   const [isListening, setIsListening] = useState(false);
@@ -946,13 +946,6 @@ const SpeechEnhancerScreen: React.FC = () => {
           )}
         </View>
 
-        {/* Info Section */}
-        <View style={[styles.infoCard, { backgroundColor: theme.card }]}>
-          <Ionicons name="information-circle-outline" size={24} color={theme.primary} />
-          <Text style={[styles.infoText, { color: theme.text }]}>
-            {t('speechEnhancer.infoText', 'This feature continuously listens to your speech, enhances it using your personal dictionary, and speaks it back clearly. Perfect for users with speech impairments.')}
-          </Text>
-        </View>
       </ScrollView>
 
       {/* Toast Notification */}

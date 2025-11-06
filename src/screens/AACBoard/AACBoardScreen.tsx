@@ -258,6 +258,7 @@ const TypingModal: React.FC<{
                     theme={theme}
                     maxHeight={200}
                     onLearnMore={handleLearnMore}
+                    selectedModel={selectedModel}
                   />
                   
                   {/* Emotional Tags Tip */}
@@ -643,6 +644,13 @@ const AACBoardScreen: React.FC = () => {
       fetchPreferences();
     }, [])
   );
+
+  // Clear phrases cache when language changes to prevent showing old language data
+  useEffect(() => {
+    console.log('[AACBoard] Language changed to:', currentLanguage, '- clearing phrases cache');
+    setPhrases({});
+    setAllPhrases([]);
+  }, [currentLanguage]);
 
   // Fetch categories from API
   useEffect(() => {
@@ -1570,13 +1578,13 @@ const AACBoardScreen: React.FC = () => {
                   >
                     <View style={styles.modelIconContainer}>
                       <Ionicons 
-                        name={currentModelId === 'eleven_v3_alpha' ? 'sparkles' : 'flash'} 
+                        name={currentModelId === 'eleven_v3' ? 'sparkles' : 'flash'} 
                         size={24} 
                         color={theme.primary} 
                       />
-                      <View style={[styles.modelBadge, { backgroundColor: currentModelId === 'eleven_v3_alpha' ? '#FFD700' : theme.primary }]}>
+                      <View style={[styles.modelBadge, { backgroundColor: currentModelId === 'eleven_v3' ? '#FFD700' : theme.primary }]}>
                         <Text style={styles.modelBadgeText}>
-                          {currentModelId === 'eleven_v3_alpha' ? 'v3' : 'v2.5'}
+                          {currentModelId === 'eleven_v3' ? 'v3' : 'v2.5'}
                         </Text>
                       </View>
                     </View>

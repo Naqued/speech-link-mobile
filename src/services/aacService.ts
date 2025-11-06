@@ -25,6 +25,26 @@ const LANGUAGE_CODE_MAPPING: Record<string, string> = {
   'ko': 'ko', // Korean
   'zh': 'zh', // Chinese
   'ar': 'ar', // Arabic
+  'pt': 'pt', // Portuguese
+  'ru': 'ru', // Russian
+  'pl': 'pl', // Polish
+  'uk': 'uk', // Ukrainian
+  'tr': 'tr', // Turkish
+  'id': 'id', // Indonesian
+  'nl': 'nl', // Dutch
+  'fil': 'fil', // Filipino
+  'sv': 'sv', // Swedish
+  'bg': 'bg', // Bulgarian
+  'ro': 'ro', // Romanian
+  'fi': 'fi', // Finnish
+  'hr': 'hr', // Croatian
+  'ta': 'ta', // Tamil
+  'urd': 'urd', // Urdu
+  'cs': 'cs', // Czech
+  'el': 'el', // Greek
+  'ms': 'ms', // Malay
+  'sk': 'sk', // Slovak
+  'da': 'da', // Danish
   // Add more mappings as needed
 };
 

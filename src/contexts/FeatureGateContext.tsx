@@ -56,7 +56,7 @@ export const FeatureGateProvider: React.FC<FeatureGateProviderProps> = ({
     // Check if user has premium subscription
     const isPremiumUser = PREMIUM_PLANS.some(p => p.toLowerCase() === normalizedPlan);
     
-    // Check if current model is v3 Alpha
+    // Check if current model is v3
     const isV3AlphaModel = selectedModel === VOICE_MODELS.ELEVEN_LABS_PREMIUM;
     
     // Feature flags

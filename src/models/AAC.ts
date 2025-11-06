@@ -177,8 +177,8 @@ export function mapToBackendSentenceModel(sentence: SentenceUIModel, language: s
 
 // Map default backend category IDs to icons
 export const getDefaultCategoryIcon = (categoryId: string): string => {
-  // Handle both language variants (en/fr)
-  const baseId = categoryId.replace(/_en$|_fr$/, '');
+  // Handle all language variants by removing language suffix (e.g., _en, _fr, _ja, _zh, etc.)
+  const baseId = categoryId.replace(/_[a-z]{2,3}$/i, '');
   
   console.log('Getting icon for category:', categoryId, 'baseId:', baseId);
   
@@ -219,8 +219,8 @@ export const getDefaultCategoryIcon = (categoryId: string): string => {
 
 // Map default backend category IDs to colors
 export const getDefaultCategoryColor = (categoryId: string): string => {
-  // Handle both language variants (en/fr)
-  const baseId = categoryId.replace(/_en$|_fr$/, '');
+  // Handle all language variants by removing language suffix (e.g., _en, _fr, _ja, _zh, etc.)
+  const baseId = categoryId.replace(/_[a-z]{2,3}$/i, '');
   
   switch (baseId) {
     case 'cat_basic_needs':

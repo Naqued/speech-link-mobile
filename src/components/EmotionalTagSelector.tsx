@@ -10,29 +10,39 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { EmotionalTag, EMOTIONAL_TAGS, getTagsByCategory } from '../utils/emotionalTags';
 import { useFeatureGate } from '../contexts/FeatureGateContext';
+import { VOICE_MODELS } from '../utils/voiceModels';
 
 interface EmotionalTagSelectorProps {
   onTagSelect: (tag: EmotionalTag) => void;
   theme: any;
   maxHeight?: number;
   onLearnMore?: () => void;
+  selectedModel?: string; // Optional prop to override context value
 }
 
+// Categories match the backend tagConfig.ts structure
 const CATEGORIES = [
   { id: 'emotion', icon: '😊' },
-  { id: 'expression', icon: '🎭' },
-  { id: 'style', icon: '🎨' },
-  { id: 'pattern', icon: '🎵' }
+  { id: 'expression', icon: '😂' },
+  { id: 'style', icon: '🎭' },
+  { id: 'pattern', icon: '🔊' }
 ];
 
 export const EmotionalTagSelector: React.FC<EmotionalTagSelectorProps> = ({
   onTagSelect,
   theme,
   maxHeight = 300,
-  onLearnMore
+  onLearnMore,
+  selectedModel
 }) => {
   const { t } = useTranslation();
-  const { isV3AlphaModel, isPremiumUser } = useFeatureGate();
+  const { isV3AlphaModel: contextIsV3AlphaModel, isPremiumUser } = useFeatureGate();
+  
+  // Use prop if provided, otherwise fall back to context value
+  const isV3AlphaModel = selectedModel 
+    ? selectedModel === VOICE_MODELS.ELEVEN_LABS_PREMIUM 
+    : contextIsV3AlphaModel;
+  
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['emotion']) // Expand emotions by default
   );

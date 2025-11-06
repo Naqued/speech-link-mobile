@@ -32,6 +32,8 @@ import {
 // Components
 import { IconPicker, IconSelection } from '../../../components/AAC/IconPicker';
 import { ColorPicker } from '../../../components/AAC/ColorPicker';
+import { EmotionalTagSelector } from '../../../components/EmotionalTagSelector';
+import { insertTagAtPosition, EmotionalTag } from '../../../utils/emotionalTags';
 
 interface SentenceFormModalProps {
   visible: boolean;
@@ -59,8 +61,11 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   const [iconSelection, setIconSelection] = useState<IconSelection | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showEmotionalTags, setShowEmotionalTags] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{ text?: string; categoryId?: string }>({});
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const textInputRef = React.useRef<TextInput>(null);
   
   // Reset form when visibility changes or editSentence changes
   useEffect(() => {
@@ -69,6 +74,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         setText(editSentence.text);
         setCategoryId(editSentence.categoryId);
         setColor(editSentence.color || null);
+        // Set cursor position to end of text when editing
+        setCursorPosition(editSentence.text.length);
         if (editSentence.icon && editSentence.iconType) {
           setIconSelection({
             icon: editSentence.icon,
@@ -85,12 +92,23 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         setCategoryId(firstRealCategory ? firstRealCategory.id : '');
         setColor(null);
         setIconSelection(null);
+        setCursorPosition(0);
       }
       setErrors({});
       setShowColorPicker(false);
       setShowIconPicker(false);
+      setShowEmotionalTags(false);
     }
   }, [visible, editSentence, categories]);
+  
+  // Handle emotional tag selection
+  const handleTagSelect = (tag: EmotionalTag) => {
+    const result = insertTagAtPosition(text, tag.value, cursorPosition);
+    setText(result.newText);
+    setCursorPosition(result.newCursorPosition);
+    // Focus back on input
+    setTimeout(() => textInputRef.current?.focus(), 100);
+  };
   
   const styles = makeStyles(theme);
   
@@ -327,12 +345,48 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                 )}
               </View>
 
+              {/* Emotional Tags */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('emotionalTags.title') || 'Emotional Tags'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowEmotionalTags(!showEmotionalTags)}
+                >
+                  <Ionicons
+                    name="happy-outline"
+                    size={24}
+                    color={theme.text}
+                  />
+                  <Text style={styles.customizationButtonText}>
+                    {t('emotionalTags.title')}
+                  </Text>
+                  <Ionicons
+                    name={showEmotionalTags ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showEmotionalTags && (
+                  <View style={styles.pickerContainer}>
+                    <EmotionalTagSelector
+                      onTagSelect={handleTagSelect}
+                      theme={theme}
+                      maxHeight={300}
+                    />
+                  </View>
+                )}
+              </View>
+
               <View style={[styles.formGroup, styles.phraseFormGroup]}>
                 <Text style={styles.label}>{t('aacBoard.phraseText')}</Text>
                 <TextInput
+                  ref={textInputRef}
                   style={[styles.input, errors.text ? styles.inputError : null]}
                   value={text}
                   onChangeText={setText}
+                  onSelectionChange={(e) => {
+                    setCursorPosition(e.nativeEvent.selection.start);
+                  }}
                   placeholder={t('aacBoard.enterPhraseText')}
                   placeholderTextColor={theme.text + '60'}
                   multiline

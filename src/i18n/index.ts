@@ -29,20 +29,20 @@ import sv from './locales/sv.json';
 import bg from './locales/bg.json';
 import ro from './locales/ro.json';
 import ar from './locales/ar.json';
-// import cs from './locales/cs.json';
-// import el from './locales/el.json';
+import cs from './locales/cs.json';
+import el from './locales/el.json';
 import fi from './locales/fi.json';
 import hr from './locales/hr.json';
-// import ms from './locales/ms.json';
-// import sk from './locales/sk.json';
-// import da from './locales/da.json';
-// import ta from './locales/ta.json';
+import ms from './locales/ms.json';
+import sk from './locales/sk.json';
+import da from './locales/da.json';
+import ta from './locales/ta.json';
 import uk from './locales/uk.json';
 import ru from './locales/ru.json';
 import urd from './locales/urd.json';
 
 // Define supported languages
-export const SUPPORTED_LANGUAGES = ['en', 'fr', 'hi', 'ar', 'ja', 'zh', 'de', 'it', 'es', 'ko', 'urd', 'pt', 'ru', 'pl', 'uk', 'tr', 'id', 'nl', 'fil', 'sv', 'bg', 'ro', 'fi', 'hr'];
+export const SUPPORTED_LANGUAGES = ['en', 'fr', 'hi', 'ar', 'ja', 'zh', 'de', 'it', 'es', 'ko', 'urd', 'pt', 'ru', 'pl', 'uk', 'tr', 'id', 'nl', 'fil', 'sv', 'bg', 'ro', 'fi', 'hr', 'ta', 'cs', 'el', 'ms', 'sk', 'da'];
 // These will be uncommented and added as new language files are created
 // export const SUPPORTED_LANGUAGES = [
 //   'en', 'fr', 'ja', 'zh', 'de', 'hi', 'ko', 'pt', 'it', 'es', 
@@ -74,14 +74,14 @@ const resources = {
   bg: { translation: bg },
   ro: { translation: ro },
   ar: { translation: ar },
-  // cs: { translation: cs },
-  // el: { translation: el },
+  cs: { translation: cs },
+  el: { translation: el },
   fi: { translation: fi },
   hr: { translation: hr },
-  // ms: { translation: ms },
-  // sk: { translation: sk },
-  // da: { translation: da },
-  // ta: { translation: ta },
+  ms: { translation: ms },
+  sk: { translation: sk },
+  da: { translation: da },
+  ta: { translation: ta },
   uk: { translation: uk },
   ru: { translation: ru },
   urd: { translation: urd }

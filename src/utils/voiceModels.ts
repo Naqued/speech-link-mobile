@@ -7,7 +7,7 @@
 
 export const VOICE_MODELS = {
   ELEVEN_LABS: 'eleven_flash_v2_5',
-  ELEVEN_LABS_PREMIUM: 'eleven_v3_alpha',
+  ELEVEN_LABS_PREMIUM: 'eleven_v3',
   WHISPER: 'tts-1'
 } as const;
 
@@ -61,7 +61,7 @@ export function supportsEmotionalTags(modelId: string): boolean {
 }
 
 /**
- * Languages that require v3 Alpha model
+ * Languages that require v3 model
  * These languages are only available in the premium model
  */
 export const V3_ONLY_LANGUAGES = ['urd'];

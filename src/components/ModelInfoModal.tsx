@@ -1,7 +1,7 @@
 /**
  * ModelInfoModal Component (React Native)
  * 
- * Modal that explains the Eleven v3 Alpha model features, limitations, and best practices
+ * Modal that explains the Eleven v3 model features, limitations, and best practices
  */
 
 import React from 'react';

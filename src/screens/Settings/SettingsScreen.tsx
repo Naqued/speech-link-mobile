@@ -270,9 +270,9 @@ const SettingsScreen: React.FC = () => {
         }, 100);
       }
       
-      // Check if this language requires v3 Alpha model
+      // Check if this language requires v3 model
       if (requiresV3Model(languageCode)) {
-        console.log('[SettingsScreen] Language requires v3 Alpha model, switching...');
+        console.log('[SettingsScreen] Language requires v3 model, switching...');
         try {
           await updateVoiceSettings({ modelId: VOICE_MODELS.ELEVEN_LABS_PREMIUM } as any);
           
@@ -282,14 +282,14 @@ const SettingsScreen: React.FC = () => {
             const { ToastAndroid } = require('react-native');
             ToastAndroid.show(
               t('modelSelection.switchedForLanguage', { language: languageName }) || 
-              `Switched to Premium Model (v3 Alpha) for ${languageName} language support`,
+              `Switched to Premium Model (v3) for ${languageName} language support`,
               ToastAndroid.LONG
             );
           } else {
             Alert.alert(
               t('general.success') || 'Success',
               t('modelSelection.switchedForLanguage', { language: languageName }) || 
-              `Switched to Premium Model (v3 Alpha) for ${languageName} language support`
+              `Switched to Premium Model (v3) for ${languageName} language support`
             );
           }
         } catch (error) {
@@ -528,7 +528,7 @@ const SettingsScreen: React.FC = () => {
                     {requiresPremiumModel && !isLocked && (
                       <View style={styles.premiumModelBadge}>
                         <Text style={styles.premiumModelBadgeText}>
-                          🎭 v3 Alpha
+                          🎭 v3
                         </Text>
                       </View>
                     )}

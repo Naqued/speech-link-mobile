@@ -13,7 +13,7 @@ export interface VoiceSettings {
     style?: number;
     [key: string]: any;
   };
-  modelId?: string; // TTS model selection (e.g., 'eleven_flash_v2_5' or 'eleven_v3_alpha')
+  modelId?: string; // TTS model selection (e.g., 'eleven_flash_v2_5' or 'eleven_v3')
   sttProvider?: 'AUTO' | 'DEEPGRAM' | 'WHISPER' | 'SPEECHMATIC' | 'ELEVENLABS';
   enhancementEnabled?: boolean;
   autoSpeakEnabled?: boolean;
