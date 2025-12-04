@@ -23,6 +23,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -68,14 +69,21 @@ const SpeechEnhancerScreen: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false); // For press-to-talk
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const [hasAudioPermission, setHasAudioPermission] = useState<boolean | null>(null);
   
   // Phrase history
   const [phrases, setPhrases] = useState<ProcessedPhrase[]>([]);
   const [currentLowConfidenceWords, setCurrentLowConfidenceWords] = useState<LowConfidenceWord[]>([]);
+  const [currentSentence, setCurrentSentence] = useState<string>('');
   
   // Settings
   const [showCorrections, setShowCorrections] = useState(true);
   const [showDiagnostics, setShowDiagnostics] = useState(false); // Only used in development
+  
+  // VAD Configuration (user-adjustable)
+  const [vadSensitivity, setVadSensitivity] = useState(0.2); // 0.1-0.5 (lower = less noise tolerance)
+  const [vadSilenceDuration, setVadSilenceDuration] = useState(0.7); // 0.5-2.0 seconds
   
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -89,16 +97,28 @@ const SpeechEnhancerScreen: React.FC = () => {
   const recordingService = useRef<ContinuousRecordingService | null>(null);
   const pressToTalkRecording = useRef<Audio.Recording | null>(null);
   const unsubscribeDiagnostics = useRef<(() => void) | null>(null);
+  const pressStartTime = useRef<number>(0);
+  const isHoldMode = useRef<boolean>(false);
 
-  // Initialize recording service
-  useEffect(() => {
+  // Initialize recording service with user settings
+  const initializeRecordingService = () => {
+    // Clean up existing service
+    if (unsubscribeDiagnostics.current) {
+      unsubscribeDiagnostics.current();
+      unsubscribeDiagnostics.current = null;
+    }
+    if (recordingService.current?.isActive()) {
+      recordingService.current.stop();
+    }
+
+    // Create new service with current settings
     recordingService.current = new ContinuousRecordingService({
-      silenceDuration: 500,         // 500ms (0.5s) silence ends phrase - fast response
-      minPhraseDuration: 300,       // 300ms minimum (catch short words)
-      energyThreshold: 0.20,        // 20% threshold (real-world calibrated: silence < 20%)
-      meteringInterval: 80,         // 80ms updates (responsive)
-      adaptiveThreshold: true,      // Enable adaptive threshold
-      debugMode: true,              // Enable detailed logging
+      silenceDuration: vadSilenceDuration * 1000,  // Convert seconds to milliseconds
+      minPhraseDuration: 300,                      // 300ms minimum (catch short words)
+      energyThreshold: vadSensitivity,             // User-configurable noise tolerance
+      meteringInterval: 80,                        // 80ms updates (responsive)
+      adaptiveThreshold: true,                     // Enable adaptive threshold
+      debugMode: true,                             // Enable detailed logging
     });
 
     // Subscribe to diagnostics (development only)
@@ -107,6 +127,11 @@ const SpeechEnhancerScreen: React.FC = () => {
         setVadDiagnostics(diag);
       });
     }
+  };
+
+  // Initialize recording service on mount
+  useEffect(() => {
+    initializeRecordingService();
 
     return () => {
       // Cleanup on unmount
@@ -120,6 +145,29 @@ const SpeechEnhancerScreen: React.FC = () => {
         pressToTalkRecording.current.stopAndUnloadAsync();
       }
     };
+  }, []);
+
+  // Reinitialize service when VAD settings change
+  useEffect(() => {
+    // Only reinitialize if service exists and is not currently active
+    if (recordingService.current && !isListening) {
+      console.log('[SpeechEnhancer] VAD settings changed, reinitializing service');
+      initializeRecordingService();
+    }
+  }, [vadSensitivity, vadSilenceDuration]);
+
+  // Check audio permissions on mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      try {
+        const { status } = await Audio.getPermissionsAsync();
+        setHasAudioPermission(status === 'granted');
+      } catch (error) {
+        console.error('[SpeechEnhancer] Error checking permissions:', error);
+        setHasAudioPermission(false);
+      }
+    };
+    checkPermissions();
   }, []);
 
   // Stop any active recording when mode changes
@@ -217,13 +265,20 @@ const SpeechEnhancerScreen: React.FC = () => {
       // Get user's language and settings
       const language = i18n.language || 'en';
       const enhancementEnabled = userSettings?.voiceSettings?.enhancementEnabled || false;
+      // Default threshold of 0.7 catches words with < 70% confidence
+      // (ElevenLabs uses 0.8 base confidence for speech impaired users)
+      const confidenceThreshold = userSettings?.voiceSettings?.confidenceThreshold || 0.7;
 
       console.log('[SpeechEnhancer] Using language for STT:', language);
+      console.log('[SpeechEnhancer] Enhancement enabled:', enhancementEnabled);
+      console.log('[SpeechEnhancer] Confidence threshold:', confidenceThreshold);
 
-      // Send to STT API
+      // Send to STT API with enhancement settings
       const sttResult = await apiService.post<any>('/api/stt', {
         audio: audioBase64,
         language,
+        enhancementEnabled,
+        confidenceThreshold,
       });
 
       // Check if audio was skipped by backend
@@ -275,9 +330,15 @@ const SpeechEnhancerScreen: React.FC = () => {
         setAudioSkipCount(0);
       }
 
-      // Show corrections if enabled and words exist
-      if (enhancementEnabled && lowConfidenceWords.length > 0 && showCorrections) {
+      // Show sentence for corrections ONLY if enhancement is enabled
+      // Display sentence even if no low-confidence words (user can still add words to dictionary)
+      if (enhancementEnabled && enhancedText.trim()) {
         setCurrentLowConfidenceWords(lowConfidenceWords);
+        setCurrentSentence(enhancedText);
+      } else {
+        // Clear the banner if enhancement is disabled
+        setCurrentLowConfidenceWords([]);
+        setCurrentSentence('');
       }
 
       // Auto-speak if enabled (use backend setting)
@@ -356,74 +417,264 @@ const SpeechEnhancerScreen: React.FC = () => {
   };
 
   /**
-   * Start press-to-talk recording
+   * Request audio permissions
    */
-  const startPressToTalkRecording = async () => {
+  const requestAudioPermission = async (): Promise<boolean> => {
+    if (isRequestingPermission) {
+      console.log('[SpeechEnhancer] Permission request already in progress');
+      return false;
+    }
+
+    try {
+      setIsRequestingPermission(true);
+      console.log('[SpeechEnhancer] Requesting audio permissions...');
+      
+      const { status } = await Audio.requestPermissionsAsync();
+      const granted = status === 'granted';
+      
+      setHasAudioPermission(granted);
+      console.log('[SpeechEnhancer] Permission result:', granted ? 'granted' : 'denied');
+      
+      if (!granted) {
+        Alert.alert(
+          t('general.error.title'),
+          t('speechEnhancer.microphonePermissionNotGranted', 'Microphone permission is required to record audio')
+        );
+      }
+      
+      return granted;
+    } catch (error) {
+      console.error('[SpeechEnhancer] Error requesting permissions:', error);
+      setHasAudioPermission(false);
+      return false;
+    } finally {
+      setIsRequestingPermission(false);
+    }
+  };
+
+  /**
+   * Cleanup any existing recording
+   */
+  const cleanupPressToTalkRecording = async () => {
+    if (pressToTalkRecording.current) {
+      try {
+        console.log('[SpeechEnhancer] Cleaning up existing recording');
+        await pressToTalkRecording.current.stopAndUnloadAsync();
+      } catch (error: any) {
+        // Ignore errors if recording doesn't exist anymore
+        if (!error.message?.toLowerCase().includes('does not exist')) {
+          console.warn('[SpeechEnhancer] Error cleaning up recording:', error);
+        }
+      } finally {
+        pressToTalkRecording.current = null;
+      }
+    }
+  };
+
+  /**
+   * Start press-to-talk recording (internal)
+   */
+  const startPressToTalkRecordingInternal = async (): Promise<boolean> => {
+    // Prevent multiple concurrent recordings
+    if (isRecording || pressToTalkRecording.current) {
+      console.log('[SpeechEnhancer] Recording already in progress, ignoring');
+      return false;
+    }
+
+    // Don't start if processing or speaking
+    if (isProcessing || isSpeaking) {
+      console.log('[SpeechEnhancer] System busy, cannot start recording');
+      return false;
+    }
+
     try {
       console.log('[SpeechEnhancer] Starting press-to-talk recording');
       
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        throw new Error(t('speechEnhancer.microphonePermissionNotGranted', 'Microphone permission not granted'));
+      // Check permission first
+      if (hasAudioPermission !== true) {
+        const granted = await requestAudioPermission();
+        if (!granted) {
+          return false;
+        }
       }
 
+      // Clean up any stale recording
+      await cleanupPressToTalkRecording();
+
+      // Configure audio mode
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
+        playThroughEarpieceAndroid: false,
       });
 
+      // Create new recording
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
 
       pressToTalkRecording.current = recording;
       setIsRecording(true);
+      console.log('[SpeechEnhancer] Recording started successfully');
+      return true;
     } catch (error: any) {
       console.error('[SpeechEnhancer] Failed to start press-to-talk recording:', error);
-      Alert.alert(
-        t('general.error.title'),
-        error.message || t('speechEnhancer.failedToStartRecording', 'Failed to start recording')
-      );
+      
+      // Clean up on error
+      await cleanupPressToTalkRecording();
+      setIsRecording(false);
+      
+      // Only show alert if it's not a permission issue (already handled)
+      if (!error.message?.includes('permission')) {
+        Alert.alert(
+          t('general.error.title'),
+          error.message || t('speechEnhancer.failedToStartRecording', 'Failed to start recording')
+        );
+      }
+      return false;
     }
+  };
+
+  /**
+   * Handle press in (for hold mode)
+   */
+  const handlePressIn = async () => {
+    console.log('[SpeechEnhancer] Press In detected');
+    pressStartTime.current = Date.now();
+    isHoldMode.current = false;
+    
+    // Start recording immediately
+    await startPressToTalkRecordingInternal();
+  };
+
+  /**
+   * Handle press out (for hold mode)
+   */
+  const handlePressOut = async () => {
+    const pressDuration = Date.now() - pressStartTime.current;
+    console.log('[SpeechEnhancer] Press Out detected, duration:', pressDuration);
+    
+    // If held for more than 200ms, it's hold mode
+    if (pressDuration >= 200) {
+      console.log('[SpeechEnhancer] Hold mode detected');
+      isHoldMode.current = true;
+      await stopPressToTalkRecording();
+    }
+    // Otherwise it's a tap, handled by onPress
   };
 
   /**
    * Stop press-to-talk recording and process
    */
   const stopPressToTalkRecording = async () => {
-    if (!pressToTalkRecording.current) return;
+    if (!pressToTalkRecording.current) {
+      console.log('[SpeechEnhancer] No recording object to stop');
+      setIsRecording(false);
+      return;
+    }
+
+    if (!isRecording) {
+      console.log('[SpeechEnhancer] Recording state already false');
+      await cleanupPressToTalkRecording();
+      return;
+    }
+
+    // Store reference before any async operations
+    const recordingRef = pressToTalkRecording.current;
 
     try {
       console.log('[SpeechEnhancer] Stopping press-to-talk recording');
       
-      // Get status BEFORE stopping and nullifying
-      const status = await pressToTalkRecording.current.getStatusAsync();
+      // Get status BEFORE stopping
+      let status;
+      try {
+        status = await recordingRef.getStatusAsync();
+      } catch (statusError) {
+        console.warn('[SpeechEnhancer] Could not get recording status:', statusError);
+        // Recording might already be stopped, try to get URI anyway
+      }
       
-      // Check if recording duration is too short (< 100ms)
-      if (status.durationMillis && status.durationMillis < 100) {
-        console.log('[SpeechEnhancer] Recording too short, skipping');
-        await pressToTalkRecording.current.stopAndUnloadAsync();
-        pressToTalkRecording.current = null;
+      // Check if recording duration is too short (< 150ms to avoid accidental taps)
+      if (status?.durationMillis && status.durationMillis < 150) {
+        console.log(`[SpeechEnhancer] Recording too short (${status.durationMillis}ms), skipping`);
+        await cleanupPressToTalkRecording();
         setIsRecording(false);
         return;
       }
 
-      setIsRecording(false);
-      await pressToTalkRecording.current.stopAndUnloadAsync();
-      const uri = pressToTalkRecording.current.getURI();
-      pressToTalkRecording.current = null;
+      // Get URI before stopping (safer)
+      let uri: string | null = null;
+      try {
+        uri = recordingRef.getURI();
+      } catch (uriError) {
+        console.warn('[SpeechEnhancer] Could not get URI before stopping:', uriError);
+      }
 
+      // Stop recording
+      try {
+        await recordingRef.stopAndUnloadAsync();
+      } catch (stopError: any) {
+        console.warn('[SpeechEnhancer] Error stopping recording (may already be stopped):', stopError);
+        // Try to get URI again if we didn't get it before
+        if (!uri) {
+          try {
+            uri = recordingRef.getURI();
+          } catch (e) {
+            console.warn('[SpeechEnhancer] Could not get URI after stop error');
+          }
+        }
+      }
+      
+      // Clean up reference immediately
+      pressToTalkRecording.current = null;
+      setIsRecording(false);
+
+      // Process the audio if we have a URI
       if (uri) {
+        console.log('[SpeechEnhancer] Processing recorded audio:', uri);
         await handlePhraseDetected(uri);
       } else {
-        console.warn('[SpeechEnhancer] No recording URI available');
+        console.warn('[SpeechEnhancer] No recording URI available, skipping processing');
       }
-    } catch (error) {
-      console.error('[SpeechEnhancer] Error stopping press-to-talk recording:', error);
-      Alert.alert(
-        t('general.error.title'),
-        t('speechEnhancer.recordingError', 'Failed to process recording. Please try again.')
-      );
+    } catch (error: any) {
+      console.error('[SpeechEnhancer] Error in stopPressToTalkRecording:', error);
+      
+      // Ensure cleanup
+      await cleanupPressToTalkRecording();
+      setIsRecording(false);
+      
+      // Only show error if it's not just "recorder doesn't exist"
+      if (!error.message?.toLowerCase().includes('does not exist') && 
+          !error.message?.toLowerCase().includes('recorder')) {
+        Alert.alert(
+          t('general.error.title'),
+          t('speechEnhancer.recordingError', 'Failed to process recording. Please try again.')
+        );
+      }
+    }
+  };
+
+  /**
+   * Handle tap (toggle mode)
+   */
+  const handleTap = async () => {
+    // Wait a bit to see if it was a hold
+    await new Promise(resolve => setTimeout(resolve, 250));
+    
+    // If it was a hold, don't process tap
+    if (isHoldMode.current) {
+      console.log('[SpeechEnhancer] Hold mode already handled, skipping tap');
+      isHoldMode.current = false;
+      return;
+    }
+    
+    console.log('[SpeechEnhancer] Tap mode detected');
+    
+    // Toggle recording
+    if (isRecording) {
+      await stopPressToTalkRecording();
+    } else {
+      await startPressToTalkRecordingInternal();
     }
   };
 
@@ -584,23 +835,32 @@ const SpeechEnhancerScreen: React.FC = () => {
                   styles.mainButton,
                   styles.pressToTalkButton,
                   {
-                    backgroundColor: isRecording ? '#F44336' : theme.primary,
+                    backgroundColor: isRecording ? '#F44336' : isRequestingPermission ? '#9E9E9E' : theme.primary,
+                    opacity: isRequestingPermission ? 0.6 : 1,
                   }
                 ]}
-                onPressIn={startPressToTalkRecording}
-                onPressOut={stopPressToTalkRecording}
+                onPress={handleTap}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                disabled={isRequestingPermission}
                 activeOpacity={0.8}
               >
-                <Ionicons
-                  name="mic"
-                  size={48}
-                  color="#FFFFFF"
-                />
+                {isRequestingPermission ? (
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                ) : (
+                  <Ionicons
+                    name={isRecording ? 'stop' : 'mic'}
+                    size={48}
+                    color="#FFFFFF"
+                  />
+                )}
               </TouchableOpacity>
 
               <Text style={[styles.mainButtonLabel, { color: theme.text }]}>
-                {isRecording
-                  ? t('speechEnhancer.release', 'Release to Send')
+                {isRequestingPermission
+                  ? t('general.loading', 'Loading...')
+                  : isRecording
+                  ? t('speechEnhancer.recording', 'Recording...')
                   : t('speechEnhancer.holdToTalk', 'Hold to Talk')}
               </Text>
             </>
@@ -679,7 +939,7 @@ const SpeechEnhancerScreen: React.FC = () => {
                     autoSpeakEnabled: userSettings.voiceSettings.autoSpeakEnabled !== undefined 
                       ? userSettings.voiceSettings.autoSpeakEnabled 
                       : true,
-                    confidenceThreshold: userSettings.voiceSettings.confidenceThreshold || 0.6
+                    confidenceThreshold: userSettings.voiceSettings.confidenceThreshold || 0.7
                   };
                   
                   // Only include selectedVoice if it exists
@@ -691,6 +951,12 @@ const SpeechEnhancerScreen: React.FC = () => {
                   
                   // Refresh settings to update UI
                   await refreshSettings();
+                  
+                  // Clear the correction banner if enhancement is being disabled
+                  if (!value) {
+                    setCurrentLowConfidenceWords([]);
+                    setCurrentSentence('');
+                  }
                   
                   // Show toast notification
                   setToastMessage(value 
@@ -709,38 +975,42 @@ const SpeechEnhancerScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Low Confidence Word Corrections */}
-        {currentLowConfidenceWords.length > 0 && showCorrections && (
+        {/* Sentence Correction Banner - Show when enhancement enabled and sentence exists */}
+        {currentSentence && (
           <CorrectionBanner
             words={currentLowConfidenceWords}
+            sentence={currentSentence}
             onCorrect={handleCorrectWord}
-            onDismiss={() => setCurrentLowConfidenceWords([])}
+            onDismiss={() => {
+              setCurrentLowConfidenceWords([]);
+              setCurrentSentence('');
+            }}
           />
         )}
 
-        {/* Settings */}
-        <View style={[styles.settingsCard, { backgroundColor: theme.card }]}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            {t('speechEnhancer.settings', 'Settings')}
-          </Text>
+        {/* Settings - Development Only (for VAD diagnostics) */}
+        {isDevelopment && (
+          <View style={[styles.settingsCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              {t('speechEnhancer.settings', 'Settings')}
+            </Text>
 
-          <View style={styles.settingRow}>
-            <View style={styles.settingLabelContainer}>
-              <Ionicons name="create-outline" size={20} color={theme.text} />
-              <Text style={[styles.settingLabel, { color: theme.text }]}>
-                {t('speechEnhancer.showCorrections', 'Show word corrections')}
-              </Text>
+            <View style={styles.settingRow}>
+              <View style={styles.settingLabelContainer}>
+                <Ionicons name="create-outline" size={20} color={theme.text} />
+                <Text style={[styles.settingLabel, { color: theme.text }]}>
+                  {t('speechEnhancer.showCorrections', 'Show word corrections')}
+                </Text>
+              </View>
+              <Switch
+                value={showCorrections}
+                onValueChange={setShowCorrections}
+                trackColor={{ false: theme.border, true: theme.primary + '80' }}
+                thumbColor={showCorrections ? theme.primary : '#f4f3f4'}
+              />
             </View>
-            <Switch
-              value={showCorrections}
-              onValueChange={setShowCorrections}
-              trackColor={{ false: theme.border, true: theme.primary + '80' }}
-              thumbColor={showCorrections ? theme.primary : '#f4f3f4'}
-            />
-          </View>
 
-          {/* VAD Diagnostics Toggle (Development Only) */}
-          {isDevelopment && (
+            {/* VAD Diagnostics Toggle */}
             <View style={styles.settingRow}>
               <View style={styles.settingLabelContainer}>
                 <Ionicons name="bug-outline" size={20} color={theme.text} />
@@ -755,8 +1025,8 @@ const SpeechEnhancerScreen: React.FC = () => {
                 thumbColor={showDiagnostics ? theme.primary : '#f4f3f4'}
               />
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* VAD Diagnostics Panel (Development Only) */}
         {isDevelopment && showDiagnostics && vadDiagnostics && mode === 'continuous' && (
@@ -946,6 +1216,94 @@ const SpeechEnhancerScreen: React.FC = () => {
           )}
         </View>
 
+        {/* VAD Settings - Continuous Mode Only */}
+        {mode === 'continuous' && (
+          <View style={[styles.vadSettingsCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              {t('speechEnhancer.voiceDetectionSettings', 'Voice Detection Settings')}
+            </Text>
+            <Text style={[styles.vadSettingsDesc, { color: theme.text + '80' }]}>
+              {t('speechEnhancer.voiceDetectionDesc', 'Adjust how the app detects when you start and stop speaking')}
+            </Text>
+            
+            {/* Environment Noise Setting */}
+            <View style={styles.vadSettingItem}>
+              <View style={styles.vadSettingHeader}>
+                <Ionicons name="volume-medium-outline" size={20} color={theme.text} />
+                <Text style={[styles.vadSettingLabel, { color: theme.text }]}>
+                  {t('speechEnhancer.environmentNoise', 'Your Environment')}
+                </Text>
+              </View>
+              <View style={styles.sliderContainer}>
+                <View style={styles.sliderLabelContainer}>
+                  <Ionicons name="volume-mute-outline" size={16} color={theme.text + '80'} />
+                  <Text style={[styles.sliderLabel, { color: theme.text + '80' }]}>
+                    {t('speechEnhancer.quiet', 'Quiet')}
+                  </Text>
+                </View>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0.1}
+                  maximumValue={0.5}
+                  step={0.1}
+                  value={vadSensitivity}
+                  onValueChange={setVadSensitivity}
+                  minimumTrackTintColor={theme.primary}
+                  maximumTrackTintColor={theme.border}
+                  thumbTintColor={theme.primary}
+                />
+                <View style={styles.sliderLabelContainer}>
+                  <Ionicons name="volume-high-outline" size={16} color={theme.text + '80'} />
+                  <Text style={[styles.sliderLabel, { color: theme.text + '80' }]}>
+                    {t('speechEnhancer.noisy', 'Noisy')}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.vadSettingHelp, { color: theme.text + '60' }]}>
+                {t('speechEnhancer.environmentNoiseHelp', 'In a quiet room, use lower setting. In noisy places, increase this to avoid false triggers')}
+              </Text>
+            </View>
+
+            {/* Speaking Speed Setting */}
+            <View style={styles.vadSettingItem}>
+              <View style={styles.vadSettingHeader}>
+                <Ionicons name="speedometer-outline" size={20} color={theme.text} />
+                <Text style={[styles.vadSettingLabel, { color: theme.text }]}>
+                  {t('speechEnhancer.speakingSpeed', 'Your Speaking Speed')}
+                </Text>
+              </View>
+              <View style={styles.sliderContainer}>
+                <View style={styles.sliderLabelContainer}>
+                  <Ionicons name="hourglass-outline" size={16} color={theme.text + '80'} />
+                  <Text style={[styles.sliderLabel, { color: theme.text + '80' }]}>
+                    {t('speechEnhancer.slowSpeaker', 'Slow')}
+                  </Text>
+                </View>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0.5}
+                  maximumValue={2.0}
+                  step={0.1}
+                  value={vadSilenceDuration}
+                  onValueChange={setVadSilenceDuration}
+                  minimumTrackTintColor={theme.primary}
+                  maximumTrackTintColor={theme.border}
+                  thumbTintColor={theme.primary}
+                />
+                <View style={styles.sliderLabelContainer}>
+                  <Ionicons name="flash-outline" size={16} color={theme.text + '80'} />
+                  <Text style={[styles.sliderLabel, { color: theme.text + '80' }]}>
+                    {t('general.fast', 'Fast')}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.vadSettingHelp, { color: theme.text + '60' }]}>
+                {t('speechEnhancer.speakingSpeedHelp', 'Slow speakers: longer pauses. Fast speakers: shorter pauses. Currently: {{seconds}}s pause', { seconds: vadSilenceDuration.toFixed(1) })}
+              </Text>
+            </View>
+          </View>
+        )}
+
       </ScrollView>
 
       {/* Toast Notification */}
@@ -1108,6 +1466,64 @@ const styles = StyleSheet.create({
   },
   enhancementDesc: {
     fontSize: 14,
+  },
+  vadSettingsCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  vadSettingsDesc: {
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  vadSettingItem: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+  },
+  vadSettingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  vadSettingLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  vadSettingHelp: {
+    fontSize: 12,
+    marginTop: 8,
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  slider: {
+    flex: 1,
+    marginHorizontal: 12,
+    height: 40,
+  },
+  sliderLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  sliderLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 60,
   },
   settingsCard: {
     borderRadius: 12,

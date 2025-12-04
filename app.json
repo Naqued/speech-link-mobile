@@ -34,7 +34,7 @@
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "versionCode": 34,
+      "versionCode": 35,
       "permissions": [
         "INTERNET",
         "MODIFY_AUDIO_SETTINGS",
@@ -42,8 +42,8 @@
       ],
       "icon": "./assets/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/favicon.png",
+        "backgroundColor": "#4A6FEA"
       },
       "edgeToEdgeEnabled": true,
       "compileSdkVersion": 35,
