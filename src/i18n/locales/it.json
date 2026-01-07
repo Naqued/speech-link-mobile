@@ -386,7 +386,8 @@
       "add": "Aggiungi Frase",
       "edit": "Modifica Frase",
       "delete": "Elimina Frase"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Hai raggiunto il tuo limite di utilizzo mensile. Aggiorna il tuo piano per ottenere più crediti."
   },
   "settings": {
     "title": "Impostazioni",
@@ -568,6 +569,7 @@
     "search": "Cerca",
     "loading": "Caricamento...",
     "error": {
+      "title": "Errore",
       "required": "Questo campo è obbligatorio",
       "maxLength": "Massimo {{max}} caratteri consentiti"
     },
@@ -579,11 +581,25 @@
     "disable": "Disattiva",
     "notSpecified": "Non specificato",
     "general": "Generale",
-    "stop": "Stop"
+    "stop": "Stop",
+    "later": "Più tardi",
+    "upgrade": "Aggiorna",
+    "subscriptionRequired": "Abbonamento Richiesto",
+    "couldNotOpenBrowser": "Impossibile aprire il browser"
   },
   "language": {
     "select": "Seleziona Lingua",
     "more_coming": "Altre lingue in arrivo"
+  },
+  "subscription": {
+    "noCreditsTitle": "Crediti Esauriti",
+    "noCreditsMessage": "Hai utilizzato tutti i tuoi crediti per questo mese.",
+    "indieDevMessage": "SpeechLink è creato da sviluppatori indipendenti. L'abbonamento ci aiuta a continuare a migliorare l'app e ad aggiungere nuove funzionalità per le persone che ne hanno bisogno.",
+    "upgrade": "Aggiorna Piano",
+    "later": "Forse Più Tardi",
+    "limitReached": "Limite di abbonamento raggiunto. Tocca per aggiornare.",
+    "limitTitle": "Limite di Abbonamento Raggiunto",
+    "limitMessage": "Hai raggiunto il tuo limite di utilizzo mensile. Aggiorna il tuo piano per ottenere più crediti."
   },
   "tabs": {
     "home": "Home",

@@ -391,6 +391,19 @@ const SettingsScreen: React.FC = () => {
     }
   };
 
+  const handleResourcesPress = async () => {
+    try {
+      // Open the resources page with automatic authentication
+      await webAuthService.openAuthenticatedWebPage(`/${i18n.language}/resources`);
+    } catch (error) {
+      console.error('Error opening resources page:', error);
+      Alert.alert(
+        t('general.error.title'), 
+        t('settings.resourcesError') || 'Failed to open resources page. Please try again.'
+      );
+    }
+  };
+
   const handleReplayTutorial = async () => {
     try {
       // Reset tutorial status and start it
@@ -654,6 +667,12 @@ const SettingsScreen: React.FC = () => {
               () => setLanguageModalVisible(true)
             )}
           </TutorialTarget>
+          {renderSettingItem(
+            'people-outline',
+            t('settings.resources') || 'Resources',
+            undefined,
+            handleResourcesPress
+          )}
           {renderLanguageModal()}
         </View>
 

@@ -386,7 +386,8 @@
       "add": "Satz hinzufügen",
       "edit": "Satz bearbeiten",
       "delete": "Satz löschen"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Sie haben Ihr monatliches Nutzungslimit erreicht. Upgraden Sie Ihren Plan für mehr Credits."
   },
   "settings": {
     "title": "Einstellungen",
@@ -568,6 +569,7 @@
     "search": "Suchen",
     "loading": "Laden...",
     "error": {
+      "title": "Fehler",
       "required": "Dieses Feld ist erforderlich",
       "maxLength": "Maximal {{max}} Zeichen erlaubt"
     },
@@ -579,11 +581,25 @@
     "disable": "Deaktivieren",
     "notSpecified": "Nicht angegeben",
     "general": "Allgemein",
-    "stop": "Stopp"
+    "stop": "Stopp",
+    "later": "Später",
+    "upgrade": "Upgrade",
+    "subscriptionRequired": "Abonnement erforderlich",
+    "couldNotOpenBrowser": "Browser konnte nicht geöffnet werden"
   },
   "language": {
     "select": "Sprache auswählen",
     "more_coming": "Weitere Sprachen werden in Kürze hinzugefügt"
+  },
+  "subscription": {
+    "noCreditsTitle": "Guthaben aufgebraucht",
+    "noCreditsMessage": "Sie haben alle Ihre Guthaben für diesen Monat verwendet.",
+    "indieDevMessage": "SpeechLink wird von unabhängigen Entwicklern erstellt. Ein Abonnement hilft uns, die App weiter zu verbessern und neue Funktionen für Menschen hinzuzufügen, die sie benötigen.",
+    "upgrade": "Plan upgraden",
+    "later": "Vielleicht später",
+    "limitReached": "Abonnementlimit erreicht. Tippen Sie zum Upgraden.",
+    "limitTitle": "Abonnementlimit erreicht",
+    "limitMessage": "Sie haben Ihr monatliches Nutzungslimit erreicht. Upgraden Sie Ihren Plan für mehr Credits."
   },
   "tabs": {
     "home": "Start",

@@ -444,7 +444,8 @@
       "add": "Magdagdag ng Parirala",
       "edit": "I-edit ang Parirala",
       "delete": "Burahin ang Parirala"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Naabot mo na ang iyong buwanang limitasyon sa paggamit. I-upgrade ang iyong plano para sa mas maraming credits."
   },
   "settings": {
     "title": "Mga Setting",
@@ -626,6 +627,7 @@
     "search": "Maghanap",
     "loading": "Naglo-load...",
     "error": {
+      "title": "Error",
       "required": "Kinakailangan ang field na ito",
       "maxLength": "Maximum na {{max}} characters ang pinapayagan"
     },
@@ -637,11 +639,25 @@
     "disable": "I-disable",
     "notSpecified": "Hindi natukoy",
     "general": "Pangkalahatan",
-    "stop": "Ihinto"
+    "stop": "Ihinto",
+    "later": "Mamaya",
+    "upgrade": "I-upgrade",
+    "subscriptionRequired": "Kinakailangan ang Subscription",
+    "couldNotOpenBrowser": "Hindi mabuksan ang browser"
   },
   "language": {
     "select": "Pumili ng Wika",
     "more_coming": "Mas maraming wika ang darating sa lalong madaling panahon"
+  },
+  "subscription": {
+    "noCreditsTitle": "Naubos na ang Credits",
+    "noCreditsMessage": "Nagamit mo na ang lahat ng iyong credits para sa buwang ito.",
+    "indieDevMessage": "Ang SpeechLink ay ginawa ng mga indie developer. Ang pag-subscribe ay tumutulong sa amin na patuloy na pagbutihin ang app at magdagdag ng mga bagong feature para sa mga taong nangangailangan nito.",
+    "upgrade": "I-upgrade ang Plan",
+    "later": "Baka Mamaya",
+    "limitReached": "Naabot na ang limitasyon ng subscription. Tap para i-upgrade.",
+    "limitTitle": "Naabot na ang Limitasyon ng Subscription",
+    "limitMessage": "Naabot mo na ang iyong buwanang limitasyon sa paggamit. I-upgrade ang iyong plano para sa mas maraming credits."
   },
   "tabs": {
     "home": "Home",

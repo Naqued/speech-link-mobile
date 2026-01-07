@@ -329,18 +329,39 @@
     "create": "Opret",
     "search": "Søg",
     "loading": "Indlæser...",
-    "error": "Fejl",
+    "error": {
+      "title": "Fejl",
+      "required": "Dette felt er påkrævet",
+      "maxLength": "Maksimum {{max}} tegn tilladt"
+    },
     "success": "Succes",
     "retry": "Prøv igen",
     "back": "Tilbage",
     "ok": "OK",
     "enable": "Aktivér",
     "disable": "Deaktivér",
-    "stop": "Stop"
+    "stop": "Stop",
+    "later": "Senere",
+    "upgrade": "Opgrader",
+    "subscriptionRequired": "Abonnement påkrævet",
+    "couldNotOpenBrowser": "Kunne ikke åbne browseren"
   },
   "language": {
     "select": "Vælg sprog",
     "more_coming": "Flere sprog på vej"
+  },
+  "subscription": {
+    "noCreditsTitle": "Kreditter opbrugt",
+    "noCreditsMessage": "Du har brugt alle dine kreditter for denne måned.",
+    "indieDevMessage": "SpeechLink er lavet af uafhængige udviklere. Abonnement hjælper os med at fortsætte med at forbedre appen og tilføje nye funktioner til mennesker, der har brug for det.",
+    "upgrade": "Opgrader plan",
+    "later": "Måske senere",
+    "limitReached": "Abonnementsgrænse nået. Tryk for at opgradere.",
+    "limitTitle": "Abonnementsgrænse nået",
+    "limitMessage": "Du har nået din månedlige brugsgrænse. Opgrader din plan for flere kreditter."
+  },
+  "aac": {
+    "subscriptionLimitReachedMessage": "Du har nået din månedlige brugsgrænse. Opgrader din plan for flere kreditter."
   },
   "tabs": {
     "home": "Hjem",

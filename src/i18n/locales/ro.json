@@ -444,7 +444,8 @@
       "add": "Adaugă frază",
       "edit": "Editează frază",
       "delete": "Șterge frază"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Ați atins limita dvs. lunară de utilizare. Actualizați planul dvs. pentru mai multe credite."
   },
   "settings": {
     "title": "Setări",
@@ -626,6 +627,7 @@
     "search": "Caută",
     "loading": "Se încarcă...",
     "error": {
+      "title": "Eroare",
       "required": "Acest câmp este obligatoriu",
       "maxLength": "Maximum {{max}} caractere permise"
     },
@@ -637,11 +639,25 @@
     "disable": "Dezactivează",
     "notSpecified": "Nespecificat",
     "general": "General",
-    "stop": "Stop"
+    "stop": "Stop",
+    "later": "Mai târziu",
+    "upgrade": "Actualizează",
+    "subscriptionRequired": "Abonament Necesar",
+    "couldNotOpenBrowser": "Nu s-a putut deschide browserul"
   },
   "language": {
     "select": "Selectează limba",
     "more_coming": "Mai multe limbi vor fi disponibile în curând"
+  },
+  "subscription": {
+    "noCreditsTitle": "Credite Epuizate",
+    "noCreditsMessage": "Ați folosit toate creditele dvs. pentru această lună.",
+    "indieDevMessage": "SpeechLink este creat de dezvoltatori independenți. Abonarea ne ajută să continuăm să îmbunătățim aplicația și să adăugăm funcții noi pentru persoanele care au nevoie de ele.",
+    "upgrade": "Actualizează Planul",
+    "later": "Poate Mai Târziu",
+    "limitReached": "Limita de abonament atinsă. Apăsați pentru actualizare.",
+    "limitTitle": "Limita de Abonament Atinsă",
+    "limitMessage": "Ați atins limita dvs. lunară de utilizare. Actualizați planul dvs. pentru mai multe credite."
   },
   "tabs": {
     "home": "Acasă",

@@ -444,7 +444,8 @@
       "add": "Tambah Frasa",
       "edit": "Edit Frasa",
       "delete": "Hapus Frasa"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Anda telah mencapai batas penggunaan bulanan Anda. Tingkatkan paket Anda untuk mendapatkan lebih banyak kredit."
   },
   "settings": {
     "title": "Pengaturan",
@@ -626,6 +627,7 @@
     "search": "Cari",
     "loading": "Memuat...",
     "error": {
+      "title": "Kesalahan",
       "required": "Bidang ini wajib diisi",
       "maxLength": "Maksimal {{max}} karakter diperbolehkan"
     },
@@ -637,11 +639,25 @@
     "disable": "Nonaktifkan",
     "notSpecified": "Tidak ditentukan",
     "general": "Umum",
-    "stop": "Berhenti"
+    "stop": "Berhenti",
+    "later": "Nanti",
+    "upgrade": "Tingkatkan",
+    "subscriptionRequired": "Langganan Diperlukan",
+    "couldNotOpenBrowser": "Tidak dapat membuka browser"
   },
   "language": {
     "select": "Pilih Bahasa",
     "more_coming": "Lebih banyak bahasa akan segera hadir"
+  },
+  "subscription": {
+    "noCreditsTitle": "Kredit Habis",
+    "noCreditsMessage": "Anda telah menggunakan semua kredit Anda untuk bulan ini.",
+    "indieDevMessage": "SpeechLink dibuat oleh pengembang independen. Berlangganan membantu kami terus meningkatkan aplikasi dan menambahkan fitur baru untuk orang yang membutuhkannya.",
+    "upgrade": "Tingkatkan Paket",
+    "later": "Mungkin Nanti",
+    "limitReached": "Batas langganan tercapai. Ketuk untuk meningkatkan.",
+    "limitTitle": "Batas Langganan Tercapai",
+    "limitMessage": "Anda telah mencapai batas penggunaan bulanan Anda. Tingkatkan paket Anda untuk mendapatkan lebih banyak kredit."
   },
   "tabs": {
     "home": "Beranda",

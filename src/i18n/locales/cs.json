@@ -388,7 +388,8 @@
       "add": "Přidat frázi",
       "edit": "Upravit frázi",
       "delete": "Smazat frázi"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Dosáhli jste svého měsíčního limitu použití. Upgradujte svůj plán pro více kreditů."
   },
   "settings": {
     "title": "Nastavení",
@@ -570,6 +571,7 @@
     "search": "Hledat",
     "loading": "Načítání...",
     "error": {
+      "title": "Chyba",
       "required": "Toto pole je povinné",
       "maxLength": "Maximum {{max}} povolených znaků"
     },
@@ -581,11 +583,25 @@
     "disable": "Zakázat",
     "notSpecified": "Nespecifikováno",
     "general": "Obecné",
-    "stop": "Zastavit"
+    "stop": "Zastavit",
+    "later": "Později",
+    "upgrade": "Upgradovat",
+    "subscriptionRequired": "Vyžaduje se předplatné",
+    "couldNotOpenBrowser": "Nelze otevřít prohlížeč"
   },
   "language": {
     "select": "Vyberte jazyk",
     "more_coming": "Brzy budou k dispozici další jazyky"
+  },
+  "subscription": {
+    "noCreditsTitle": "Kredity vyčerpány",
+    "noCreditsMessage": "Použili jste všechny své kredity za tento měsíc.",
+    "indieDevMessage": "SpeechLink je vytvořen nezávislými vývojáři. Předplatné nám pomáhá pokračovat v zlepšování aplikace a přidávání nových funkcí pro lidi, kteří je potřebují.",
+    "upgrade": "Upgradovat plán",
+    "later": "Možná později",
+    "limitReached": "Dosažen limit předplatného. Klepněte pro upgrade.",
+    "limitTitle": "Dosažen limit předplatného",
+    "limitMessage": "Dosáhli jste svého měsíčního limitu použití. Upgradujte svůj plán pro více kreditů."
   },
   "tabs": {
     "home": "Domů",

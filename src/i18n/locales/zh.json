@@ -386,7 +386,8 @@
       "add": "添加短语",
       "edit": "编辑短语",
       "delete": "删除短语"
-    }
+    },
+    "subscriptionLimitReachedMessage": "您已达到每月使用限额。升级您的计划以获得更多积分。"
   },
   "settings": {
     "title": "设置",
@@ -568,6 +569,7 @@
     "search": "搜索",
     "loading": "加载中...",
     "error": {
+      "title": "错误",
       "required": "此字段为必填项",
       "maxLength": "最多允许{{max}}个字符"
     },
@@ -579,11 +581,25 @@
     "disable": "禁用",
     "notSpecified": "未指定",
     "general": "通用",
-    "stop": "停止"
+    "stop": "停止",
+    "later": "稍后",
+    "upgrade": "升级",
+    "subscriptionRequired": "需要订阅",
+    "couldNotOpenBrowser": "无法打开浏览器"
   },
   "language": {
     "select": "选择语言",
     "more_coming": "更多语言即将推出"
+  },
+  "subscription": {
+    "noCreditsTitle": "积分已用完",
+    "noCreditsMessage": "您已用完本月的所有积分。",
+    "indieDevMessage": "SpeechLink由独立开发者制作。订阅帮助我们继续改进应用程序，并为需要的人添加新功能。",
+    "upgrade": "升级计划",
+    "later": "稍后",
+    "limitReached": "已达到订阅限额。点击升级。",
+    "limitTitle": "已达到订阅限额",
+    "limitMessage": "您已达到每月使用限额。升级您的计划以获得更多积分。"
   },
   "tabs": {
     "home": "首页",

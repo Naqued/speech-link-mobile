@@ -292,7 +292,8 @@
       "add": "Dodaj frazu",
       "edit": "Uredi frazu",
       "delete": "Izbriši frazu"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Dostigli ste svoj mjesečni limit korištenja. Nadogradite svoj plan za više kredita."
   },
   "settings": {
     "title": "Postavke",
@@ -489,18 +490,36 @@
     "create": "Stvori",
     "search": "Pretraži",
     "loading": "Učitavanje...",
-    "error": "Greška",
+    "error": {
+      "title": "Greška",
+      "required": "Ovo polje je obavezno",
+      "maxLength": "Maksimalno {{max}} znakova dopušteno"
+    },
     "success": "Uspjeh",
     "retry": "Pokušaj ponovno",
     "back": "Natrag",
     "ok": "U redu",
     "enable": "Omogući",
     "disable": "Onemogući",
-    "stop": "Zaustavi"
+    "stop": "Zaustavi",
+    "later": "Kasnije",
+    "upgrade": "Nadogradi",
+    "subscriptionRequired": "Pretplata je potrebna",
+    "couldNotOpenBrowser": "Nije moguće otvoriti preglednik"
   },
   "language": {
     "select": "Odaberi jezik",
     "more_coming": "Uskoro više jezika"
+  },
+  "subscription": {
+    "noCreditsTitle": "Krediti iscrpljeni",
+    "noCreditsMessage": "Iskoristili ste sve svoje kredite za ovaj mjesec.",
+    "indieDevMessage": "SpeechLink je napravljen od strane neovisnih programera. Pretplata nam pomaže da nastavimo poboljšavati aplikaciju i dodavati nove funkcije za ljude koji ih trebaju.",
+    "upgrade": "Nadogradi plan",
+    "later": "Možda kasnije",
+    "limitReached": "Dostignuta granica pretplate. Dodirnite za nadogradnju.",
+    "limitTitle": "Dostignuta Granica Pretplate",
+    "limitMessage": "Dostigli ste svoj mjesečni limit korištenja. Nadogradite svoj plan za više kredita."
   },
   "tabs": {
     "home": "Početna",

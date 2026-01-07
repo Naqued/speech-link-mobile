@@ -444,7 +444,8 @@
       "add": "Adicionar Frase",
       "edit": "Editar Frase",
       "delete": "Excluir Frase"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Você atingiu seu limite de uso mensal. Atualize seu plano para obter mais créditos."
   },
   "settings": {
     "title": "Configurações",
@@ -626,6 +627,7 @@
     "search": "Pesquisar",
     "loading": "Carregando...",
     "error": {
+      "title": "Erro",
       "required": "Este campo é obrigatório",
       "maxLength": "Máximo de {{max}} caracteres permitidos"
     },
@@ -637,11 +639,25 @@
     "disable": "Desativar",
     "notSpecified": "Não especificado",
     "general": "Geral",
-    "stop": "Parar"
+    "stop": "Parar",
+    "later": "Mais tarde",
+    "upgrade": "Atualizar",
+    "subscriptionRequired": "Assinatura Necessária",
+    "couldNotOpenBrowser": "Não foi possível abrir o navegador"
   },
   "language": {
     "select": "Selecionar Idioma",
     "more_coming": "Mais idiomas em breve"
+  },
+  "subscription": {
+    "noCreditsTitle": "Créditos Esgotados",
+    "noCreditsMessage": "Você usou todos os seus créditos para este mês.",
+    "indieDevMessage": "SpeechLink é feito por desenvolvedores independentes. Assinar nos ajuda a continuar melhorando o aplicativo e adicionar novos recursos para pessoas que precisam deles.",
+    "upgrade": "Atualizar Plano",
+    "later": "Talvez Mais Tarde",
+    "limitReached": "Limite de assinatura atingido. Toque para atualizar.",
+    "limitTitle": "Limite de Assinatura Atingido",
+    "limitMessage": "Você atingiu seu limite de uso mensal. Atualize seu plano para obter mais créditos."
   },
   "tabs": {
     "home": "Início",

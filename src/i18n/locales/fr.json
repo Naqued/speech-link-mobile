@@ -445,7 +445,8 @@
       "add": "Ajouter une Phrase",
       "edit": "Modifier la Phrase",
       "delete": "Supprimer la Phrase"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Vous avez atteint votre limite d'utilisation mensuelle. Améliorez votre plan pour obtenir plus de crédits."
   },
   "settings": {
     "title": "Paramètres",
@@ -487,6 +488,9 @@
     "help": "Aide",
     "hideDefaultSentences": "Masquer les Phrases par Défaut",
     "hideDefaultSentencesDesc": "Lorsqu'il est activé, les phrases par défaut fournies par l'application seront masquées de votre tableau AAC. Seules vos phrases personnalisées seront affichées.",
+    "resources": "Ressources",
+    "resourcesDesc": "Accédez aux ressources communautaires et au soutien pour les personnes ayant des troubles de la parole.",
+    "resourcesError": "Impossible d'ouvrir la page des ressources. Veuillez réessayer.",
     "speechEnhancement": {
       "title": "Amélioration de la Parole",
       "enable": "Activer l'Amélioration de la Parole",
@@ -660,11 +664,24 @@
     "notSpecified": "Non spécifié",
     "general": "Général",
     "couldNotOpenBrowser": "Impossible d'ouvrir le navigateur",
-    "stop": "Arrêter"
+    "stop": "Arrêter",
+    "later": "Plus tard",
+    "upgrade": "Améliorer",
+    "subscriptionRequired": "Abonnement Requis"
   },
   "language": {
     "select": "Sélectionner la Langue",
     "more_coming": "Plus de langues à venir"
+  },
+  "subscription": {
+    "noCreditsTitle": "Crédits Épuisés",
+    "noCreditsMessage": "Vous avez utilisé tous vos crédits pour ce mois.",
+    "indieDevMessage": "SpeechLink est créé par des développeurs indépendants. S'abonner nous aide à continuer d'améliorer l'application et d'ajouter de nouvelles fonctionnalités pour les personnes qui en ont besoin.",
+    "upgrade": "Améliorer le Plan",
+    "later": "Peut-être Plus Tard",
+    "limitReached": "Limite d'abonnement atteinte. Appuyez pour améliorer.",
+    "limitTitle": "Limite d'Abonnement Atteinte",
+    "limitMessage": "Vous avez atteint votre limite d'utilisation mensuelle. Améliorez votre plan pour obtenir plus de crédits."
   },
   "tabs": {
     "home": "Accueil",

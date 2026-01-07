@@ -292,7 +292,8 @@
       "add": "Lisää fraasi",
       "edit": "Muokkaa fraasia",
       "delete": "Poista fraasi"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Olet saavuttanut kuukausittaisen käyttörajan. Päivitä suunnitelma saadaksesi lisää luottoja."
   },
   "settings": {
     "title": "Asetukset",
@@ -489,18 +490,36 @@
     "create": "Luo",
     "search": "Haku",
     "loading": "Ladataan...",
-    "error": "Virhe",
+    "error": {
+      "title": "Virhe",
+      "required": "Tämä kenttä on pakollinen",
+      "maxLength": "Maksimi {{max}} merkkiä sallittu"
+    },
     "success": "Onnistui",
     "retry": "Yritä uudelleen",
     "back": "Takaisin",
     "ok": "OK",
     "enable": "Ota käyttöön",
     "disable": "Poista käytöstä",
-    "stop": "Pysäytä"
+    "stop": "Pysäytä",
+    "later": "Myöhemmin",
+    "upgrade": "Päivitä",
+    "subscriptionRequired": "Tilaus vaaditaan",
+    "couldNotOpenBrowser": "Selainta ei voitu avata"
   },
   "language": {
     "select": "Valitse kieli",
     "more_coming": "Lisää kieliä tulossa pian"
+  },
+  "subscription": {
+    "noCreditsTitle": "Luotot loppuivat",
+    "noCreditsMessage": "Olet käyttänyt kaikki luottosi tälle kuukaudelle.",
+    "indieDevMessage": "SpeechLink on itsenäisten kehittäjien tekemä. Tilaaminen auttaa meitä jatkamaan sovelluksen parantamista ja lisäämään uusia ominaisuuksia niille, jotka niitä tarvitsevat.",
+    "upgrade": "Päivitä suunnitelma",
+    "later": "Ehkä myöhemmin",
+    "limitReached": "Tilausraja saavutettu. Napauta päivittääksesi.",
+    "limitTitle": "Tilausraja Saavutettu",
+    "limitMessage": "Olet saavuttanut kuukausittaisen käyttörajan. Päivitä suunnitelma saadaksesi lisää luottoja."
   },
   "tabs": {
     "home": "Koti",

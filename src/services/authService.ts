@@ -56,7 +56,7 @@ class AuthService {
   }
 
   // Trigger auth failed callbacks
-  private triggerAuthFailedCallbacks(): void {
+  public triggerAuthFailedCallbacks(): void {
     this.authFailedCallbacks.forEach(callback => callback());
   }
 
@@ -148,23 +148,43 @@ class AuthService {
 
     this.refreshTokenPromise = (async () => {
       try {
-        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
+        // Get the current access token
+        const currentToken = await this.getToken();
+        if (!currentToken || !currentToken.access_token) {
+          throw new Error('No access token available to refresh');
         }
 
-        const response = await refreshTokens(refreshToken);
+        console.log('[Auth] Attempting to refresh token');
+
+        // Call the mobile refresh endpoint with the current token
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/mobile/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: currentToken.access_token })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('[Auth] Token refresh failed:', response.status, errorData);
+          throw new Error(`Token refresh failed: ${response.status}`);
+        }
+
+        const data = await response.json();
         
-        // Update the stored token
+        // Update the stored token with the new one
         const tokenObj: AuthToken = {
-          access_token: response.accessToken,
-          token_type: 'bearer'
+          access_token: data.access_token,
+          token_type: 'bearer',
+          user: data.user
         };
         
         await this.saveToken(tokenObj);
+        console.log('[Auth] Token refresh successful');
         return true;
       } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error('[Auth] Token refresh failed:', error);
         // If refresh fails, log the user out
         await this.clearToken();
         this.triggerAuthFailedCallbacks();

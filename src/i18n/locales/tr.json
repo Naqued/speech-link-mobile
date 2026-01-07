@@ -444,7 +444,8 @@
       "add": "Cümle Ekle",
       "edit": "Cümleyi Düzenle",
       "delete": "Cümleyi Sil"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Aylık kullanım limitinize ulaştınız. Daha fazla kredi için planınızı yükseltin."
   },
   "settings": {
     "title": "Ayarlar",
@@ -626,6 +627,7 @@
     "search": "Ara",
     "loading": "Yükleniyor...",
     "error": {
+      "title": "Hata",
       "required": "Bu alan zorunludur",
       "maxLength": "Maksimum {{max}} karakter izin verilir"
     },
@@ -637,11 +639,25 @@
     "disable": "Devre Dışı Bırak",
     "notSpecified": "Belirtilmemiş",
     "general": "Genel",
-    "stop": "Durdur"
+    "stop": "Durdur",
+    "later": "Daha sonra",
+    "upgrade": "Yükselt",
+    "subscriptionRequired": "Abonelik Gerekli",
+    "couldNotOpenBrowser": "Tarayıcı açılamadı"
   },
   "language": {
     "select": "Dil Seç",
     "more_coming": "Yakında daha fazla dil eklenecek"
+  },
+  "subscription": {
+    "noCreditsTitle": "Krediler Tükendi",
+    "noCreditsMessage": "Bu ay için tüm kredilerinizi kullandınız.",
+    "indieDevMessage": "SpeechLink bağımsız geliştiriciler tarafından yapılmıştır. Abone olmak, uygulamayı geliştirmeye devam etmemize ve ihtiyacı olan insanlar için yeni özellikler eklememize yardımcı olur.",
+    "upgrade": "Planı Yükselt",
+    "later": "Belki Daha Sonra",
+    "limitReached": "Abonelik limiti ulaşıldı. Yükseltmek için dokunun.",
+    "limitTitle": "Abonelik Limiti Ulaşıldı",
+    "limitMessage": "Aylık kullanım limitinize ulaştınız. Daha fazla kredi için planınızı yükseltin."
   },
   "tabs": {
     "home": "Ana Sayfa",

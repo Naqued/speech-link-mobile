@@ -329,18 +329,39 @@
     "create": "Cipta",
     "search": "Cari",
     "loading": "Memuatkan...",
-    "error": "Ralat",
+    "error": {
+      "title": "Ralat",
+      "required": "Medan ini diperlukan",
+      "maxLength": "Maksimum {{max}} aksara dibenarkan"
+    },
     "success": "Berjaya",
     "retry": "Cuba Lagi",
     "back": "Kembali",
     "ok": "OK",
     "enable": "Dayakan",
     "disable": "Nyahdayakan",
-    "stop": "Berhenti"
+    "stop": "Berhenti",
+    "later": "Kemudian",
+    "upgrade": "Naik taraf",
+    "subscriptionRequired": "Langganan Diperlukan",
+    "couldNotOpenBrowser": "Tidak dapat membuka pelayar"
   },
   "language": {
     "select": "Pilih Bahasa",
     "more_coming": "Lebih banyak bahasa akan datang"
+  },
+  "subscription": {
+    "noCreditsTitle": "Kredit Habis",
+    "noCreditsMessage": "Anda telah menggunakan semua kredit anda untuk bulan ini.",
+    "indieDevMessage": "SpeechLink dibuat oleh pembangun bebas. Langganan membantu kami terus meningkatkan aplikasi dan menambah ciri baharu untuk orang yang memerlukannya.",
+    "upgrade": "Naik taraf Pelan",
+    "later": "Mungkin Kemudian",
+    "limitReached": "Had langganan dicapai. Ketik untuk naik taraf.",
+    "limitTitle": "Had Langganan Dicapai",
+    "limitMessage": "Anda telah mencapai had penggunaan bulanan anda. Naik taraf pelan anda untuk lebih banyak kredit."
+  },
+  "aac": {
+    "subscriptionLimitReachedMessage": "Anda telah mencapai had penggunaan bulanan anda. Naik taraf pelan anda untuk lebih banyak kredit."
   },
   "tabs": {
     "home": "Utama",

@@ -329,18 +329,39 @@
     "create": "Vytvoriť",
     "search": "Hľadať",
     "loading": "Načítavanie...",
-    "error": "Chyba",
+    "error": {
+      "title": "Chyba",
+      "required": "Toto pole je povinné",
+      "maxLength": "Maximum {{max}} povolených znakov"
+    },
     "success": "Úspech",
     "retry": "Skúsiť znova",
     "back": "Späť",
     "ok": "OK",
     "enable": "Povoliť",
     "disable": "Zakázať",
-    "stop": "Zastaviť"
+    "stop": "Zastaviť",
+    "later": "Neskôr",
+    "upgrade": "Upgradovať",
+    "subscriptionRequired": "Vyžaduje sa predplatné",
+    "couldNotOpenBrowser": "Nepodarilo sa otvoriť prehliadač"
   },
   "language": {
     "select": "Vybrať jazyk",
     "more_coming": "Čoskoro ďalšie jazyky"
+  },
+  "subscription": {
+    "noCreditsTitle": "Kredity Vyčerpané",
+    "noCreditsMessage": "Použili ste všetky svoje kredity za tento mesiac.",
+    "indieDevMessage": "SpeechLink je vytvorený nezávislými vývojármi. Predplatné nám pomáha pokračovať v zlepšovaní aplikácie a pridávaní nových funkcií pre ľudí, ktorí ich potrebujú.",
+    "upgrade": "Upgradovať Plán",
+    "later": "Možno Neskôr",
+    "limitReached": "Dosiahnutý limit predplatného. Klepnite pre upgrade.",
+    "limitTitle": "Dosiahnutý Limit Predplatného",
+    "limitMessage": "Dosiahli ste svoj mesačný limit použitia. Upgradnite svoj plán pre viac kreditov."
+  },
+  "aac": {
+    "subscriptionLimitReachedMessage": "Dosiahli ste svoj mesačný limit použitia. Upgradnite svoj plán pre viac kreditov."
   },
   "tabs": {
     "home": "Domov",

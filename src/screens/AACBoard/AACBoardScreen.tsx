@@ -63,6 +63,7 @@ import SentenceFormModal from './components/SentenceFormModal';
 import CategoryFormModal from './components/CategoryFormModal';
 import SentenceReorderMode from './components/SentenceReorderMode';
 import DiscordIndicator from '../../components/UI/DiscordIndicator';
+import { CreditLimitModal } from '../../components/UI/CreditLimitModal';
 
 // Debug utilities (development only)
 import { quickHindiTest } from '../../utils/debugHindiAPI';
@@ -564,6 +565,7 @@ const AACBoardScreen: React.FC = () => {
   
   // Track subscription limit status
   const [subscriptionLimitReached, setSubscriptionLimitReached] = useState(false);
+  const [creditLimitModalVisible, setCreditLimitModalVisible] = useState(false);
   
   // Check if user has premium access for v3 model
   const userPlanId = profileData?.subscription?.tier;
@@ -972,9 +974,25 @@ const AACBoardScreen: React.FC = () => {
           // Non-critical error, don't show to user
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error speaking phrase:', err);
-      setError('Failed to speak phrase');
+      
+      // Check for credit limit error (429 status or LIMIT_EXCEEDED code)
+      const errorMessage = err?.message || '';
+      const isLimitError = 
+        errorMessage.includes('LIMIT_EXCEEDED') || 
+        errorMessage.includes('429') || 
+        errorMessage.includes('limit') ||
+        err?.status === 429;
+      
+      if (isLimitError) {
+        console.log('[AACBoard] Credit limit reached, showing upgrade modal');
+        setSubscriptionLimitReached(true);
+        setCreditLimitModalVisible(true);
+      } else {
+        setError('Failed to speak phrase');
+      }
+      
       setIsSpeaking(false);
       setCurrentlyPlayingText(null);
     } finally {
@@ -992,7 +1010,11 @@ const AACBoardScreen: React.FC = () => {
 
   const handleSubscriptionUpgrade = () => {
     // Navigate to subscription page or open a web link
-    Linking.openURL('https://speechlink.example.com/subscribe');
+    const lang = i18n.language || 'en';
+    const url = `https://speech-aac.link/${lang}/profile?upgrade=true`;
+    Linking.openURL(url).catch(err => {
+      console.error('Failed to open upgrade URL:', err);
+    });
   };
 
   // Handler for saving model selection to database
@@ -1083,9 +1105,25 @@ const AACBoardScreen: React.FC = () => {
         
         // Clear the input
         setCustomMessage('');
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error speaking custom message:', err);
-        setError('Failed to speak custom message');
+        
+        // Check for credit limit error (429 status or LIMIT_EXCEEDED code)
+        const errorMessage = err?.message || '';
+        const isLimitError = 
+          errorMessage.includes('LIMIT_EXCEEDED') || 
+          errorMessage.includes('429') || 
+          errorMessage.includes('limit') ||
+          err?.status === 429;
+        
+        if (isLimitError) {
+          console.log('[AACBoard] Credit limit reached, showing upgrade modal');
+          setSubscriptionLimitReached(true);
+          setCreditLimitModalVisible(true);
+        } else {
+          setError('Failed to speak custom message');
+        }
+        
         setIsSpeaking(false);
         setCurrentlyPlayingText(null);
       } finally {
@@ -2081,6 +2119,13 @@ const AACBoardScreen: React.FC = () => {
         visible={modelInfoVisible}
         onClose={() => setModelInfoVisible(false)}
         theme={theme}
+      />
+      
+      {/* Credit Limit Modal */}
+      <CreditLimitModal
+        visible={creditLimitModalVisible}
+        onClose={() => setCreditLimitModalVisible(false)}
+        onUpgrade={handleSubscriptionUpgrade}
       />
     </SafeAreaView>
   );

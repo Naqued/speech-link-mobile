@@ -444,7 +444,8 @@
       "add": "Lägg till fras",
       "edit": "Redigera fras",
       "delete": "Ta bort fras"
-    }
+    },
+    "subscriptionLimitReachedMessage": "Du har nått din månatliga användningsgräns. Uppgradera din plan för fler krediter."
   },
   "settings": {
     "title": "Inställningar",
@@ -626,6 +627,7 @@
     "search": "Sök",
     "loading": "Laddar...",
     "error": {
+      "title": "Fel",
       "required": "Detta fält är obligatoriskt",
       "maxLength": "Maximalt {{max}} tecken tillåtna"
     },
@@ -637,11 +639,25 @@
     "disable": "Inaktivera",
     "notSpecified": "Ej specificerat",
     "general": "Allmänt",
-    "stop": "Stoppa"
+    "stop": "Stoppa",
+    "later": "Senare",
+    "upgrade": "Uppgradera",
+    "subscriptionRequired": "Prenumeration Krävs",
+    "couldNotOpenBrowser": "Kunde inte öppna webbläsaren"
   },
   "language": {
     "select": "Välj språk",
     "more_coming": "Fler språk kommer snart"
+  },
+  "subscription": {
+    "noCreditsTitle": "Krediter Uppbrukade",
+    "noCreditsMessage": "Du har använt alla dina krediter för denna månad.",
+    "indieDevMessage": "SpeechLink är gjort av oberoende utvecklare. Prenumerera hjälper oss att fortsätta förbättra appen och lägga till nya funktioner för människor som behöver dem.",
+    "upgrade": "Uppgradera Plan",
+    "later": "Kanske Senare",
+    "limitReached": "Prenumerationsgräns nådd. Tryck för att uppgradera.",
+    "limitTitle": "Prenumerationsgräns Nådd",
+    "limitMessage": "Du har nått din månatliga användningsgräns. Uppgradera din plan för fler krediter."
   },
   "tabs": {
     "home": "Hem",

@@ -448,7 +448,8 @@
       "add": "Add Phrase",
       "edit": "Edit Phrase",
       "delete": "Delete Phrase"
-    }
+    },
+    "subscriptionLimitReachedMessage": "You have reached your monthly usage limit. Upgrade your plan for more credits."
   },
   "settings": {
     "title": "Settings",
@@ -490,6 +491,9 @@
     "help": "Help",
     "hideDefaultSentences": "Hide Default Sentences",
     "hideDefaultSentencesDesc": "When enabled, default sentences provided by the app will be hidden from your AAC board. Only your custom sentences will be displayed.",
+    "resources": "Resources",
+    "resourcesDesc": "Access community resources and support for people with speech impairments.",
+    "resourcesError": "Failed to open resources page. Please try again.",
     "speechEnhancement": {
       "title": "Speech Enhancement",
       "enable": "Enable Speech Enhancement",
@@ -666,11 +670,24 @@
     "couldNotOpenBrowser": "Could not open browser",
     "stop": "Stop",
     "fast": "Fast",
-    "warning": "Warning"
+    "warning": "Warning",
+    "later": "Later",
+    "upgrade": "Upgrade",
+    "subscriptionRequired": "Subscription Required"
   },
   "language": {
     "select": "Select Language",
     "more_coming": "More languages coming soon"
+  },
+  "subscription": {
+    "noCreditsTitle": "Credits Exhausted",
+    "noCreditsMessage": "You've used all your credits for this month.",
+    "indieDevMessage": "SpeechLink is made by indie developers. Subscribing helps us keep improving the app and adding new features for people who need it.",
+    "upgrade": "Upgrade Plan",
+    "later": "Maybe Later",
+    "limitReached": "Subscription limit reached. Tap to upgrade.",
+    "limitTitle": "Subscription Limit Reached",
+    "limitMessage": "You have reached your monthly usage limit. Upgrade your plan for more credits."
   },
   "tabs": {
     "home": "Home",

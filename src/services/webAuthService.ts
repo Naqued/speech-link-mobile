@@ -94,6 +94,10 @@ class WebAuthService {
   public async openPricing(): Promise<void> {
     return this.openAuthenticatedWebPage('/pricing');
   }
+  
+  public async openResources(lang: string = 'en'): Promise<void> {
+    return this.openAuthenticatedWebPage(`/${lang}/resources`);
+  }
 }
 
 export default WebAuthService.getInstance();

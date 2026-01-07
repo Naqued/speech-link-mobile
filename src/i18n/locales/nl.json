@@ -444,7 +444,8 @@
       "add": "Zin toevoegen",
       "edit": "Zin bewerken",
       "delete": "Zin verwijderen"
-    }
+    },
+    "subscriptionLimitReachedMessage": "U heeft uw maandelijkse gebruikslimiet bereikt. Upgrade uw plan voor meer credits."
   },
   "settings": {
     "title": "Instellingen",
@@ -626,6 +627,7 @@
     "search": "Zoeken",
     "loading": "Laden...",
     "error": {
+      "title": "Fout",
       "required": "Dit veld is verplicht",
       "maxLength": "Maximaal {{max}} tekens toegestaan"
     },
@@ -637,11 +639,25 @@
     "disable": "Uitschakelen",
     "notSpecified": "Niet gespecificeerd",
     "general": "Algemeen",
-    "stop": "Stop"
+    "stop": "Stop",
+    "later": "Later",
+    "upgrade": "Upgraden",
+    "subscriptionRequired": "Abonnement Vereist",
+    "couldNotOpenBrowser": "Kan browser niet openen"
   },
   "language": {
     "select": "Taal selecteren",
     "more_coming": "Meer talen komen binnenkort"
+  },
+  "subscription": {
+    "noCreditsTitle": "Credits Opgebruikt",
+    "noCreditsMessage": "U heeft al uw credits voor deze maand gebruikt.",
+    "indieDevMessage": "SpeechLink is gemaakt door onafhankelijke ontwikkelaars. Abonneren helpt ons de app te blijven verbeteren en nieuwe functies toe te voegen voor mensen die ze nodig hebben.",
+    "upgrade": "Plan Upgraden",
+    "later": "Misschien Later",
+    "limitReached": "Abonnementslimiet bereikt. Tik om te upgraden.",
+    "limitTitle": "Abonnementslimiet Bereikt",
+    "limitMessage": "U heeft uw maandelijkse gebruikslimiet bereikt. Upgrade uw plan voor meer credits."
   },
   "tabs": {
     "home": "Home",

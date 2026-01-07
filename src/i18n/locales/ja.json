@@ -386,7 +386,8 @@
       "add": "フレーズを追加",
       "edit": "フレーズを編集",
       "delete": "フレーズを削除"
-    }
+    },
+    "subscriptionLimitReachedMessage": "月間使用制限に達しました。より多くのクレジットを得るためにプランをアップグレードしてください。"
   },
   "settings": {
     "title": "設定",
@@ -568,6 +569,7 @@
     "search": "検索",
     "loading": "読み込み中...",
     "error": {
+      "title": "エラー",
       "required": "この項目は必須です",
       "maxLength": "最大{{max}}文字まで入力可能です"
     },
@@ -579,11 +581,25 @@
     "disable": "無効化",
     "notSpecified": "指定なし",
     "general": "一般",
-    "stop": "停止"
+    "stop": "停止",
+    "later": "後で",
+    "upgrade": "アップグレード",
+    "subscriptionRequired": "サブスクリプションが必要です",
+    "couldNotOpenBrowser": "ブラウザを開けませんでした"
   },
   "language": {
     "select": "言語を選択",
     "more_coming": "もっと多くの言語が近日中に追加されます"
+  },
+  "subscription": {
+    "noCreditsTitle": "クレジットが不足しています",
+    "noCreditsMessage": "今月のクレジットをすべて使用しました。",
+    "indieDevMessage": "SpeechLinkは独立系開発者によって作成されています。購読することで、アプリの改善を続け、必要な人々のために新機能を追加することができます。",
+    "upgrade": "プランをアップグレード",
+    "later": "後で",
+    "limitReached": "サブスクリプション制限に達しました。タップしてアップグレード。",
+    "limitTitle": "サブスクリプション制限に達しました",
+    "limitMessage": "月間使用制限に達しました。より多くのクレジットを得るためにプランをアップグレードしてください。"
   },
   "tabs": {
     "home": "ホーム",
