@@ -29,6 +29,12 @@ import {
   mapToBackendSentenceModel
 } from '../../../models/AAC';
 
+// Components
+import { IconPicker, IconSelection } from '../../../components/AAC/IconPicker';
+import { ColorPicker } from '../../../components/AAC/ColorPicker';
+import { EmotionalTagSelector } from '../../../components/EmotionalTagSelector';
+import { insertTagAtPosition, EmotionalTag } from '../../../utils/emotionalTags';
+
 interface SentenceFormModalProps {
   visible: boolean;
   onClose: () => void;
@@ -51,8 +57,15 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   
   const [text, setText] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [color, setColor] = useState<string | null>(null);
+  const [iconSelection, setIconSelection] = useState<IconSelection | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showEmotionalTags, setShowEmotionalTags] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{ text?: string; categoryId?: string }>({});
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const textInputRef = React.useRef<TextInput>(null);
   
   // Reset form when visibility changes or editSentence changes
   useEffect(() => {
@@ -60,14 +73,42 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       if (editSentence) {
         setText(editSentence.text);
         setCategoryId(editSentence.categoryId);
+        setColor(editSentence.color || null);
+        // Set cursor position to end of text when editing
+        setCursorPosition(editSentence.text.length);
+        if (editSentence.icon && editSentence.iconType) {
+          setIconSelection({
+            icon: editSentence.icon,
+            iconType: editSentence.iconType as 'ionicon' | 'emoji',
+          });
+        } else {
+          setIconSelection(null);
+        }
       } else {
         // For new sentences, pre-select first category if available
         setText('');
-        setCategoryId(categories.length > 0 ? categories[0].id : '');
+        // Find the first category that's not "all"
+        const firstRealCategory = categories.find(c => c.id !== 'all');
+        setCategoryId(firstRealCategory ? firstRealCategory.id : '');
+        setColor(null);
+        setIconSelection(null);
+        setCursorPosition(0);
       }
       setErrors({});
+      setShowColorPicker(false);
+      setShowIconPicker(false);
+      setShowEmotionalTags(false);
     }
   }, [visible, editSentence, categories]);
+  
+  // Handle emotional tag selection
+  const handleTagSelect = (tag: EmotionalTag) => {
+    const result = insertTagAtPosition(text, tag.value, cursorPosition);
+    setText(result.newText);
+    setCursorPosition(result.newCursorPosition);
+    // Focus back on input
+    setTimeout(() => textInputRef.current?.focus(), 100);
+  };
   
   const styles = makeStyles(theme);
   
@@ -99,7 +140,10 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         id: editSentence?.id || `temp-${Date.now()}`,
         text: text.trim(),
         categoryId,
-        isFavorite: editSentence?.isFavorite || false
+        isFavorite: editSentence?.isFavorite || false,
+        color: color || undefined,
+        icon: iconSelection?.icon || undefined,
+        iconType: iconSelection?.iconType || undefined,
       };
       
       // Map to backend model
@@ -107,8 +151,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       
       let savedSentence: SampleSentence;
       
-      if (editSentence) {
-        // Update existing sentence
+      if (editSentence && editSentence.id) {
+        // Update existing sentence (only if it has a valid ID)
         savedSentence = await aacService.updateSentence(editSentence.id, backendModel);
       } else {
         // Create new sentence
@@ -120,7 +164,10 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
         id: savedSentence.id,
         text: savedSentence.text,
         categoryId: savedSentence.categoryId,
-        isFavorite: savedSentence.isFavorite
+        isFavorite: savedSentence.isFavorite,
+        color: savedSentence.color,
+        icon: savedSentence.icon,
+        iconType: savedSentence.iconType,
       };
       
       onSave(result);
@@ -128,7 +175,7 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
     } catch (error) {
       console.error('Error saving sentence:', error);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('aacBoard.errorSavingSentence')
       );
     } finally {
@@ -139,6 +186,8 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
   const getCategoryById = (id: string) => {
     return categories.find(c => c.id === id);
   };
+
+  const categoryName = getCategoryById(categoryId)?.name || '';
   
   return (
     <Modal
@@ -148,8 +197,9 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardAvoid}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -162,26 +212,11 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
               </TouchableOpacity>
             </View>
             
-            <ScrollView style={styles.content}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>{t('aacBoard.phraseText')}</Text>
-                <TextInput
-                  style={[styles.input, errors.text ? styles.inputError : null]}
-                  value={text}
-                  onChangeText={setText}
-                  placeholder={t('aacBoard.enterPhraseText')}
-                  placeholderTextColor={theme.text + '60'}
-                  multiline
-                  maxLength={200}
-                />
-                {errors.text ? (
-                  <Text style={styles.errorText}>{errors.text}</Text>
-                ) : null}
-                <Text style={styles.charCounter}>
-                  {text.length}/200
-                </Text>
-              </View>
-              
+            <ScrollView 
+              style={styles.content}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               <View style={styles.formGroup}>
                 <Text style={styles.label}>{t('aacBoard.category')}</Text>
                 <ScrollView 
@@ -210,7 +245,7 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                           categoryId === category.id && styles.selectedCategoryChipText
                         ]}
                       >
-                        {category.isGlobal ? t(`aac.categories.${category.id}`) : category.name}
+                        {category.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -218,27 +253,157 @@ const SentenceFormModal: React.FC<SentenceFormModalProps> = ({
                 {errors.categoryId ? (
                   <Text style={styles.errorText}>{errors.categoryId}</Text>
                 ) : null}
-              </View>
-              
-              {categoryId && (
-                <View style={styles.selectedCategory}>
-                  <Text style={styles.selectedCategoryLabel}>
-                    {t('aacBoard.selectedCategory')}:
-                  </Text>
-                  <View 
-                    style={[
-                      styles.selectedCategoryBadge,
-                      { backgroundColor: getCategoryById(categoryId)?.color || theme.primary }
-                    ]}
-                  >
-                    <Text style={styles.selectedCategoryText}>
-                      {getCategoryById(categoryId)?.isGlobal 
-                        ? t(`aac.categories.${categoryId}`) 
-                        : getCategoryById(categoryId)?.name || ''}
+                
+                {categoryId && (
+                  <View style={styles.selectedCategory}>
+                    <Text style={styles.selectedCategoryLabel}>
+                      {t('aacBoard.selectedCategory')}:
                     </Text>
+                    <View 
+                      style={[
+                        styles.selectedCategoryBadge,
+                        { backgroundColor: getCategoryById(categoryId)?.color || theme.primary }
+                      ]}
+                    >
+                      <Text style={styles.selectedCategoryText}>
+                        {getCategoryById(categoryId)?.isGlobal 
+                          ? categoryName 
+                          : categoryName}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              )}
+                )}
+              </View>
+
+              {/* Color Customization */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('aacBoard.color') || 'Color'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowColorPicker(!showColorPicker)}
+                >
+                  <View
+                    style={[
+                      styles.colorPreview,
+                      { backgroundColor: color || getCategoryById(categoryId)?.color || '#8B5CF6' },
+                    ]}
+                  />
+                  <Text style={styles.customizationButtonText}>
+                    {color ? 'Custom color' : 'Using category color'}
+                  </Text>
+                  <Ionicons
+                    name={showColorPicker ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showColorPicker && (
+                  <View style={styles.pickerContainer}>
+                    <ColorPicker
+                      value={color}
+                      onSelect={setColor}
+                      categoryColor={getCategoryById(categoryId)?.color || '#8B5CF6'}
+                      theme={theme}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Icon Customization */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('aacBoard.icon') || 'Icon (Optional)'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowIconPicker(!showIconPicker)}
+                >
+                  {iconSelection ? (
+                    iconSelection.iconType === 'emoji' ? (
+                      <Text style={styles.iconPreviewEmoji}>{iconSelection.icon}</Text>
+                    ) : (
+                      <Ionicons name={iconSelection.icon as any} size={24} color={theme.text} />
+                    )
+                  ) : (
+                    <Ionicons
+                      name={(getCategoryById(categoryId)?.icon || 'chatbubble-outline') as any}
+                      size={24}
+                      color={theme.text + '60'}
+                    />
+                  )}
+                  <Text style={styles.customizationButtonText}>
+                    {iconSelection ? 'Custom icon' : 'Using category icon'}
+                  </Text>
+                  <Ionicons
+                    name={showIconPicker ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showIconPicker && (
+                  <View style={styles.pickerContainer}>
+                    <IconPicker
+                      value={iconSelection}
+                      onSelect={(icon, iconType) => setIconSelection({ icon, iconType })}
+                      categoryIcon={getCategoryById(categoryId)?.icon}
+                      theme={theme}
+                    />
+                  </View>
+                )}
+              </View>
+
+              {/* Emotional Tags */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>{t('emotionalTags.title') || 'Emotional Tags'}</Text>
+                <TouchableOpacity
+                  style={styles.customizationButton}
+                  onPress={() => setShowEmotionalTags(!showEmotionalTags)}
+                >
+                  <Ionicons
+                    name="happy-outline"
+                    size={24}
+                    color={theme.text}
+                  />
+                  <Text style={styles.customizationButtonText}>
+                    {t('emotionalTags.title')}
+                  </Text>
+                  <Ionicons
+                    name={showEmotionalTags ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={theme.text}
+                  />
+                </TouchableOpacity>
+                {showEmotionalTags && (
+                  <View style={styles.pickerContainer}>
+                    <EmotionalTagSelector
+                      onTagSelect={handleTagSelect}
+                      theme={theme}
+                      maxHeight={300}
+                    />
+                  </View>
+                )}
+              </View>
+
+              <View style={[styles.formGroup, styles.phraseFormGroup]}>
+                <Text style={styles.label}>{t('aacBoard.phraseText')}</Text>
+                <TextInput
+                  ref={textInputRef}
+                  style={[styles.input, errors.text ? styles.inputError : null]}
+                  value={text}
+                  onChangeText={setText}
+                  onSelectionChange={(e) => {
+                    setCursorPosition(e.nativeEvent.selection.start);
+                  }}
+                  placeholder={t('aacBoard.enterPhraseText')}
+                  placeholderTextColor={theme.text + '60'}
+                  multiline
+                  maxLength={200}
+                />
+                {errors.text ? (
+                  <Text style={styles.errorText}>{errors.text}</Text>
+                ) : null}
+                <Text style={styles.charCounter}>
+                  {text.length}/200
+                </Text>
+              </View>
             </ScrollView>
             
             <View style={styles.footer}>
@@ -366,7 +531,10 @@ const makeStyles = (theme: any) => StyleSheet.create({
   selectedCategory: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
   },
   selectedCategoryLabel: {
     fontSize: 14,
@@ -422,6 +590,49 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
+  },
+  phraseFormGroup: {
+    marginTop: 20,
+  },
+  customizationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  customizationButtonText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    color: theme.text,
+  },
+  colorPreview: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  iconPreviewEmoji: {
+    fontSize: 28,
+  },
+  pickerContainer: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: theme.background,
+    borderWidth: 1,
+    borderColor: theme.border,
+    maxHeight: 400,
+    overflow: 'hidden',
   },
 });
 

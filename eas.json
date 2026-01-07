@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.9.1"
+    "version": ">= 5.9.1",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -20,6 +21,7 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       }
@@ -28,9 +30,9 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./speechlink-mobile-90ba7d74a3f0.json",
+        "serviceAccountKeyPath": "./credentials/google-service-account.json",
         "track": "internal"
       }
     }
   }
-} 
+}

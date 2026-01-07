@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { voiceSettingsService, VoiceSettings, UserSettings, FavoriteVoice } from '../services/voiceSettingsService';
 import { Voice } from '../services/ttsService';
 import { ttsService } from '../services/ttsService';
+import { apiService } from '../services/apiService';
+import { voiceAccessService, VoiceAccessResult } from '../services/voiceAccessService';
 
 export interface UseVoiceSettingsResult {
   userSettings: UserSettings | null;
@@ -11,6 +13,7 @@ export interface UseVoiceSettingsResult {
   loadingVoices: boolean;
   favoriteVoices: FavoriteVoice[];
   loadingFavorites: boolean;
+  profileData: any;
   updateVoiceSettings: (settings: VoiceSettings) => Promise<void>;
   toggleFavoriteVoice: (
     voiceId: string, 
@@ -28,8 +31,9 @@ export interface UseVoiceSettingsResult {
   ) => Promise<void>;
   refreshSettings: () => Promise<void>;
   getFavoriteVoices: () => Promise<FavoriteVoice[]>;
-  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => Promise<string>;
+  previewVoice: (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string, language?: string) => Promise<string>;
   setPreferredLanguage: (language: string) => Promise<void>;
+  fetchProfileData: () => Promise<any>;
   searchVoices: (params: {
     search?: string;
     provider?: string;
@@ -44,6 +48,15 @@ export interface UseVoiceSettingsResult {
     page?: number;
     page_size?: number;
   }) => Promise<{ voices: Voice[], hasMore: boolean }>;
+  // Voice access control methods
+  canPreviewVoice: (voiceId: string) => boolean;
+  canSelectVoice: (voiceId: string) => boolean;
+  canFavoriteVoice: (voiceId: string) => boolean;
+  getUserPlan: () => string | undefined;
+  getVoiceAccess: (voiceId: string) => VoiceAccessResult | null;
+  getAccessibleVoices: () => Voice[];
+  getPremiumVoices: () => Voice[];
+  getBasicVoices: () => Voice[];
 }
 
 export const useVoiceSettings = (): UseVoiceSettingsResult => {
@@ -54,6 +67,7 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
   const [loadingVoices, setLoadingVoices] = useState<boolean>(true);
   const [favoriteVoices, setFavoriteVoices] = useState<FavoriteVoice[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState<boolean>(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
   const fetchUserSettings = useCallback(async () => {
     try {
@@ -96,17 +110,48 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     }
   }, []);
 
+  const fetchProfileData = useCallback(async () => {
+    try {
+      console.log('Fetching profile data...');
+      const response = await apiService.get('/api/auth/mobile-profile');
+      console.log('Profile data fetched successfully');
+      setProfileData(response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching profile data:', error);
+      return null;
+    }
+  }, []);
+
   const updateVoiceSettings = useCallback(async (settings: VoiceSettings) => {
     try {
       setIsLoading(true);
       setError(null);
       const updatedSettings = await voiceSettingsService.updateVoiceSettings(settings);
       
-      // Update local state with new settings
+      // Map database format to mobile format (same as getUserSettings)
+      const mappedSettings: VoiceSettings = {
+        provider: updatedSettings.provider || 'ELEVENLABS',
+        voiceId: (updatedSettings as any).selectedVoice || updatedSettings.voiceId || '',
+        settings: {
+          speed: (updatedSettings as any).speed || updatedSettings.settings?.speed,
+          pitch: (updatedSettings as any).pitch || updatedSettings.settings?.pitch
+        },
+        enhancementEnabled: updatedSettings.enhancementEnabled,
+        autoSpeakEnabled: updatedSettings.autoSpeakEnabled,
+        audioRoutingEnabled: updatedSettings.audioRoutingEnabled,
+        sttProvider: updatedSettings.sttProvider,
+        confidenceThreshold: updatedSettings.confidenceThreshold,
+        modelId: updatedSettings.modelId
+      };
+      
+      // Update local state with mapped settings
       setUserSettings(prev => prev ? {
         ...prev,
-        voiceSettings: updatedSettings
+        voiceSettings: mappedSettings
       } : null);
+      
+      console.log('[useVoiceSettings] Settings updated:', { modelId: mappedSettings.modelId });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update voice settings');
       console.error('Error updating voice settings:', err);
@@ -195,9 +240,21 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     }
   }, [userSettings, getFavoriteVoices]);
 
-  const previewVoice = useCallback(async (voiceId: string, provider: 'ELEVENLABS' | 'OPENAI', publicOwnerId?: string, voiceName?: string) => {
+  const previewVoice = useCallback(async (
+    voiceId: string, 
+    provider: 'ELEVENLABS' | 'OPENAI', 
+    publicOwnerId?: string, 
+    voiceName?: string,
+    language?: string
+  ) => {
     try {
-      return await voiceSettingsService.getVoicePreview(voiceId, provider, publicOwnerId, voiceName);
+      return await voiceSettingsService.getVoicePreview(
+        voiceId, 
+        provider, 
+        publicOwnerId, 
+        voiceName,
+        language
+      );
     } catch (err) {
       console.error('Error previewing voice:', err);
       throw err;
@@ -226,12 +283,30 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
 
   const refreshSettings = useCallback(async () => {
     voiceSettingsService.clearCache();
-    await Promise.all([
-      fetchUserSettings(),
-      fetchAvailableVoices(),
-      getFavoriteVoices()
-    ]);
-  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices]);
+    setIsLoading(true);
+    try {
+      const [settingsResponse, profileResponse, voicesResponse] = await Promise.all([
+        voiceSettingsService.getUserSettings(),
+        apiService.get('/api/auth/mobile-profile'),
+        ttsService.getAvailableVoices(),
+        voiceSettingsService.getFavoriteVoices().then(favorites => {
+          setFavoriteVoices(favorites);
+          return favorites;
+        })
+      ]);
+      
+      setUserSettings(settingsResponse);
+      setProfileData(profileResponse);
+      setAvailableVoices(voicesResponse);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to refresh voice settings', err);
+      setError('Failed to load settings');
+    } finally {
+      setIsLoading(false);
+      setLoadingVoices(false);
+    }
+  }, []);
 
   const searchVoices = useCallback(async (params: {
     search?: string;
@@ -255,11 +330,66 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     }
   }, []);
 
+  // Voice access control methods
+  const getUserPlan = useCallback((): string | undefined => {
+    return profileData?.subscription?.tier;
+  }, [profileData]);
+
+  const findVoiceById = useCallback((voiceId: string): Voice | undefined => {
+    return availableVoices.find(voice => voice.id === voiceId);
+  }, [availableVoices]);
+
+  const canPreviewVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return false;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canPreviewVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const canSelectVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return false;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canSelectVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const canFavoriteVoice = useCallback((voiceId: string): boolean => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return true; // Allow favoriting unknown voices
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.canFavoriteVoice(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const getVoiceAccess = useCallback((voiceId: string): VoiceAccessResult | null => {
+    const voice = findVoiceById(voiceId);
+    if (!voice) return null;
+    
+    const userPlan = getUserPlan();
+    return voiceAccessService.getVoiceAccess(voice, userPlan);
+  }, [findVoiceById, getUserPlan]);
+
+  const getAccessibleVoices = useCallback((): Voice[] => {
+    const userPlan = getUserPlan();
+    return voiceAccessService.filterAccessibleVoices(availableVoices, userPlan);
+  }, [availableVoices, getUserPlan]);
+
+  const getPremiumVoices = useCallback((): Voice[] => {
+    return availableVoices.filter(voice => voice.isPremium || voice.accessLevel === 'premium');
+  }, [availableVoices]);
+
+  const getBasicVoices = useCallback((): Voice[] => {
+    return availableVoices.filter(voice => !voice.isPremium && voice.accessLevel !== 'premium');
+  }, [availableVoices]);
+
   useEffect(() => {
     fetchUserSettings();
     fetchAvailableVoices();
     getFavoriteVoices();
-  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices]);
+    fetchProfileData();
+  }, [fetchUserSettings, fetchAvailableVoices, getFavoriteVoices, fetchProfileData]);
 
   return {
     userSettings,
@@ -269,12 +399,23 @@ export const useVoiceSettings = (): UseVoiceSettingsResult => {
     loadingVoices,
     favoriteVoices,
     loadingFavorites,
+    profileData,
     updateVoiceSettings,
     toggleFavoriteVoice,
     refreshSettings,
     getFavoriteVoices,
     previewVoice,
     setPreferredLanguage,
-    searchVoices
+    fetchProfileData,
+    searchVoices,
+    // Voice access control methods
+    canPreviewVoice,
+    canSelectVoice,
+    canFavoriteVoice,
+    getUserPlan,
+    getVoiceAccess,
+    getAccessibleVoices,
+    getPremiumVoices,
+    getBasicVoices
   };
 }; 

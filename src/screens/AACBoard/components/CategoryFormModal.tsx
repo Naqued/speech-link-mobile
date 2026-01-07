@@ -175,7 +175,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
     } catch (error) {
       console.error('Error saving category:', error);
       Alert.alert(
-        t('general.error'),
+        t('general.error.title'),
         t('aacBoard.errorSavingCategory')
       );
     } finally {
@@ -223,8 +223,9 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardAvoid}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -237,7 +238,11 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
               </TouchableOpacity>
             </View>
             
-            <ScrollView style={[styles.content, { flexGrow: 1 }]}>
+            <ScrollView 
+              style={[styles.content, { flexGrow: 1 }]}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               {/* Category Preview */}
               <View style={styles.previewContainer}>
                 <View 

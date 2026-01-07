@@ -1,3 +1,19 @@
 node_modules
 *.env.*
+credentials/google-service-account.json
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS generated files
+.DS_Store
+*.sw?
 

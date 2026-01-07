@@ -1,6 +1,7 @@
 import { authService, AuthToken } from './authService';
 import { API_CONFIG } from '../config/api';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 interface ApiResponse<T> {
   data?: T;
@@ -18,8 +19,8 @@ class ApiService {
   private requestCache: Map<string, { data: any, timestamp: number }> = new Map();
 
   private constructor() {
-    // Get API URL from environment or use default
-    this.baseUrl = Constants.expoConfig?.extra?.apiUrl || 'http://192.168.1.14:3000';
+    // Use the baseUrl from API_CONFIG
+    this.baseUrl = API_CONFIG.BASE_URL;
     
     this.defaultHeaders = {
       'Content-Type': 'application/json',
@@ -62,20 +63,23 @@ class ApiService {
     
     console.log(`Using auth header format: ${authHeader.substring(0, 15)}...`);
     
+    // Include a clear client type header to identify this as a mobile app request
     return {
       'Content-Type': 'application/json',
       'Authorization': authHeader,
       'X-Client-Type': 'mobile-app',
+      'X-App-Platform': Platform.OS,
+      'X-App-Version': Constants.expoConfig?.version || '1.0.0',
       'User-Agent': 'SpeechLink-Mobile-App/1.0'
     };
   }
 
-  private async fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
+  private async fetchWithAuth(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<Response> {
     try {
       // Try the request with the current token
       const headers = await this.getAuthHeaders();
       const url = `${this.baseUrl}${endpoint}`;
-      console.log(`[API Request] ${options.method || 'GET'} ${url}`);
+      console.log(`[API Request] ${options.method || 'GET'} ${url}${isRetry ? ' (retry after refresh)' : ''}`);
       
       console.log('Request has authorization header:', headers.hasOwnProperty('Authorization'));
       
@@ -89,10 +93,47 @@ class ApiService {
       
       console.log(`[API Response] ${url} - Status: ${response.status}`);
       
- 
+      // Handle 401 Unauthorized - attempt token refresh
+      if (response.status === 401 && !isRetry && !this.authFailureHandled) {
+        console.log('[Auth] 401 detected, attempting token refresh');
+        
+        // Prevent multiple simultaneous refresh attempts
+        if (this.authFailureHandled) {
+          console.log('[Auth] Token refresh already in progress, skipping');
+          throw new Error('Authentication failed');
+        }
+        
+        // Mark that we're handling auth failure
+        this.authFailureHandled = true;
+        
+        try {
+          // Try to refresh the token
+          const refreshSuccess = await authService.refreshAccessToken();
+          
+          if (refreshSuccess) {
+            console.log('[Auth] Token refresh successful, retrying original request');
+            // Reset the flag since refresh succeeded
+            this.authFailureHandled = false;
+            // Retry the original request with the new token
+            return this.fetchWithAuth(endpoint, options, true);
+          } else {
+            console.log('[Auth] Token refresh failed, logging out user');
+            // Refresh failed, trigger logout
+            authService.triggerAuthFailedCallbacks();
+            throw new Error('Authentication failed - please log in again');
+          }
+        } catch (refreshError) {
+          console.error('[Auth] Token refresh error:', refreshError);
+          // Ensure logout is triggered
+          authService.triggerAuthFailedCallbacks();
+          throw new Error('Authentication failed - please log in again');
+        }
+      }
       
-      // Reset auth failure flag for future requests
-      this.authFailureHandled = false;
+      // Reset auth failure flag for successful requests
+      if (response.ok) {
+        this.authFailureHandled = false;
+      }
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -108,7 +149,10 @@ class ApiService {
       
       return response;
     } catch (error) {
-      this.authFailureHandled = false; // Reset for future auth failures
+      // Only reset if this is not an auth error
+      if (!(error instanceof Error && error.message.includes('Authentication failed'))) {
+        this.authFailureHandled = false;
+      }
       console.error('API fetch error:', error);
       throw error;
     }

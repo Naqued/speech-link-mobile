@@ -29,6 +29,9 @@ export interface SampleSentence {
   categoryId: string;     // Reference to parent category
   frequency: number;      // Usage count (for favorites)
   order: number;          // Sorting order within category
+  color?: string;         // Custom color (hex), defaults to category color if null
+  icon?: string;          // Icon identifier (Ionicon name or emoji)
+  iconType?: string;      // Type: "ionicon" or "emoji"
   language: string;       // Language code (e.g., "en", "fr")
   isGlobal: boolean;      // Whether this is a system-provided sentence
   isFavorite: boolean;    // Whether user has marked as favorite
@@ -58,6 +61,9 @@ export interface SentenceUIModel {
   text: string;
   categoryId: string;
   isFavorite: boolean;
+  color?: string;         // Custom color (hex)
+  icon?: string;          // Icon identifier
+  iconType?: string;      // Type: "ionicon" or "emoji"
 }
 
 /**
@@ -88,6 +94,17 @@ export interface TTSPreviewRequest {
   text: string;
   language?: string;
   voice?: string;
+}
+
+/**
+ * AAC Preferences model
+ */
+export interface AACPreferences {
+  id: string;
+  userId: string;
+  hideDefaultSentences: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
@@ -138,7 +155,10 @@ export function mapToUISentenceModel(sentence: SampleSentence): SentenceUIModel 
     id: sentence.id,
     text: sentence.text,
     categoryId: sentence.categoryId,
-    isFavorite: sentence.isFavorite
+    isFavorite: sentence.isFavorite,
+    color: sentence.color,
+    icon: sentence.icon,
+    iconType: sentence.iconType
   };
 }
 
@@ -157,8 +177,8 @@ export function mapToBackendSentenceModel(sentence: SentenceUIModel, language: s
 
 // Map default backend category IDs to icons
 export const getDefaultCategoryIcon = (categoryId: string): string => {
-  // Handle both language variants (en/fr)
-  const baseId = categoryId.replace(/_en$|_fr$/, '');
+  // Handle all language variants by removing language suffix (e.g., _en, _fr, _ja, _zh, etc.)
+  const baseId = categoryId.replace(/_[a-z]{2,3}$/i, '');
   
   console.log('Getting icon for category:', categoryId, 'baseId:', baseId);
   
@@ -199,8 +219,8 @@ export const getDefaultCategoryIcon = (categoryId: string): string => {
 
 // Map default backend category IDs to colors
 export const getDefaultCategoryColor = (categoryId: string): string => {
-  // Handle both language variants (en/fr)
-  const baseId = categoryId.replace(/_en$|_fr$/, '');
+  // Handle all language variants by removing language suffix (e.g., _en, _fr, _ja, _zh, etc.)
+  const baseId = categoryId.replace(/_[a-z]{2,3}$/i, '');
   
   switch (baseId) {
     case 'cat_basic_needs':
@@ -214,4 +234,57 @@ export const getDefaultCategoryColor = (categoryId: string): string => {
     default:
       return '#8B5CF6'; // Purple fallback
   }
-}; 
+};
+
+/**
+ * Deduplicates sentences by text content, prioritizing user sentences over global/default sentences
+ * This solves the issue where users see duplicate sentences after using default sentences
+ * that get copied to their personal collection.
+ * 
+ * @param sentences Array of sentences that may contain duplicates
+ * @returns Deduplicated array with user sentences prioritized over global ones
+ */
+export function deduplicateSentences(sentences: SampleSentence[]): SampleSentence[] {
+  // Group sentences by their text content (case-insensitive)
+  const sentencesByText = new Map<string, SampleSentence[]>();
+  
+  sentences.forEach(sentence => {
+    const normalizedText = sentence.text.trim().toLowerCase();
+    if (!sentencesByText.has(normalizedText)) {
+      sentencesByText.set(normalizedText, []);
+    }
+    sentencesByText.get(normalizedText)!.push(sentence);
+  });
+  
+  // For each group of sentences with the same text, pick the best one
+  const deduplicatedSentences: SampleSentence[] = [];
+  
+  sentencesByText.forEach((duplicateSentences) => {
+    if (duplicateSentences.length === 1) {
+      // No duplicates, keep the sentence
+      deduplicatedSentences.push(duplicateSentences[0]);
+    } else {
+      // Multiple sentences with same text - prioritize user sentences
+      const userSentences = duplicateSentences.filter(s => !s.isGlobal);
+      const globalSentences = duplicateSentences.filter(s => s.isGlobal);
+      
+      if (userSentences.length > 0) {
+        // User has personalized this sentence, use the user version
+        // If multiple user versions exist, pick the most recently created/updated
+        const bestUserSentence = userSentences.sort((a, b) => {
+          const dateA = a.updatedAt || a.createdAt || new Date(0);
+          const dateB = b.updatedAt || b.createdAt || new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        })[0];
+        
+        deduplicatedSentences.push(bestUserSentence);
+      } else {
+        // No user version, keep the global sentence
+        // If multiple global versions exist, pick the first one
+        deduplicatedSentences.push(globalSentences[0]);
+      }
+    }
+  });
+  
+  return deduplicatedSentences;
+} 

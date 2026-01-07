@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,32 @@ import {
   ScrollView,
   TextInput,
   Platform,
+  Image,
+  Linking,
+  Modal,
+  SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVoiceSettings } from '../../hooks/useVoiceSettings';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
 import { Voice } from '../../services/ttsService';
 import { ThemeContext } from '../../contexts/ThemeContext';
+import { useFeatureGate } from '../../contexts/FeatureGateContext';
 import { VoiceSettings } from '../../services/voiceSettingsService';
 import { Audio } from 'expo-av';
 import { apiService } from '../../services/apiService';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '../../components/UI/ToastProvider';
+import { ScreenHeader } from '../../components/UI/ScreenHeader';
+import { PremiumBadge, UpgradePrompt } from '../../components/UI';
+import { ModelSelector } from '../../components/ModelSelector';
+import { canUseElevenV3 } from '../../utils/subscriptionUtils';
 
 const VoiceSettingsScreen: React.FC = () => {
   const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
+  const featureGate = useFeatureGate();
   const { 
     userSettings, 
     availableVoices, 
@@ -31,16 +45,44 @@ const VoiceSettingsScreen: React.FC = () => {
     error, 
     updateVoiceSettings,
     toggleFavoriteVoice,
-    refreshSettings
+    refreshSettings,
+    profileData,
+    fetchProfileData
   } = useVoiceSettings();
   
-  const { speak, isLoading: isSpeaking, previewVoice } = useTextToSpeech();
+  const { 
+    speak, 
+    isLoading: isSpeaking, 
+    previewVoice,
+    isAudioRoutingEnabled,
+    toggleAudioRouting 
+  } = useTextToSpeech();
   
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [previewSound, setPreviewSound] = useState<Audio.Sound | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const styles = makeStyles(theme);
+
+  // Clean up audio resources on unmount
+  useEffect(() => {
+    return () => {
+      if (previewSound) {
+        previewSound.unloadAsync().catch(err => {
+          console.error('Error unloading sound on cleanup:', err);
+        });
+      }
+    };
+  }, [previewSound]);
+
+  // Add a useEffect to fetch profile data if needed
+  useEffect(() => {
+    if (!profileData) {
+      fetchProfileData();
+    }
+  }, [profileData, fetchProfileData]);
 
   // Filter voices based on current filters
   const filteredVoices = availableVoices.filter(voice => {
@@ -109,13 +151,16 @@ const VoiceSettingsScreen: React.FC = () => {
 
       // Use the previewVoice function from useTextToSpeech hook
       // Pass the publicOwnerId and voiceName for shared voices
-      await previewVoice(
+      const sound = await previewVoice(
         voice.id, 
         voice.provider, 
         voice.public_owner_id || voice.publicOwnerId, 
-        voice.name
+        voice.name,
+        voice.language || voice.languageCode
       );
-      
+
+      // Store the sound for cleanup later
+      setPreviewSound(sound);
       setIsPreviewLoading(false);
     } catch (error) {
       console.error('Error previewing voice:', error);
@@ -151,57 +196,154 @@ const VoiceSettingsScreen: React.FC = () => {
     }
   };
 
-  const renderVoiceItem = ({ item }: { item: Voice }) => {
-    const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
-    // Only use API favorites (from userSettings.favorites.voices), not the item.isFavorite property
-    const isFavorite = userSettings?.favorites?.voices?.includes(item.id);
-    const isPreviewing = isPreviewLoading && userSettings?.voiceSettings?.voiceId === item.id;
+  const handleModelChange = async (modelId: string) => {
+    if (!userSettings?.voiceSettings) return;
     
+    try {
+      await updateVoiceSettings({
+        ...userSettings.voiceSettings,
+        modelId
+      });
+      Alert.alert('Success', 'Voice model updated successfully');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update voice model');
+    }
+  };
+
+  const handleToggleAudioRouting = async (value: boolean) => {
+    if (value) {
+      // Show confirmation dialog when enabling
+      Alert.alert(
+        t('voice_settings.audio_routing.confirmation_title'),
+        t('voice_settings.audio_routing.confirmation_message'),
+        [
+          {
+            text: t('general.cancel'),
+            style: 'cancel',
+          },
+          {
+            text: t('general.enable'),
+            onPress: async () => {
+              const success = await toggleAudioRouting(true);
+              if (!success) {
+                Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.enable_failed', 'Failed to enable audio routing'));
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      // No confirmation needed when disabling
+      const success = await toggleAudioRouting(false);
+      if (!success) {
+        Alert.alert(t('general.error.title'), t('voice_settings.audio_routing.disable_failed', 'Failed to disable audio routing'));
+      }
+    }
+  };
+
+  const isVoiceLoading = (voiceId: string) => {
+    return (isSpeaking || isPreviewLoading) && userSettings?.voiceSettings?.voiceId === voiceId;
+  };
+
+  const renderVoiceItem = ({ item }: { item: Voice }) => {
+    const isFavorite = userSettings?.favorites?.voices?.includes(item.id);
+    const isSelected = userSettings?.voiceSettings?.voiceId === item.id;
+    const isLoading = isVoiceLoading(item.id);
+    
+    // Voice access control - NOW USING FEATUREGATE
+    const isPremiumVoice = item.isPremium || item.accessLevel === 'premium';
+    const canPreview = featureGate.canPreviewVoice(isPremiumVoice);
+    const canSelect = featureGate.canSelectVoice(isPremiumVoice);
+    const requiresUpgrade = isPremiumVoice && !featureGate.canAccessPremiumVoices;
+
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=4A6FEA&color=fff`;
+
     return (
-      <TouchableOpacity
+      <TouchableOpacity 
         style={[
           styles.voiceItem,
-          isSelected && { backgroundColor: theme.background + '30' },
+          isSelected && styles.selectedVoiceItem,
+          // Add disabled styling for inaccessible voices
+          !canSelect && !isSelected && styles.voiceItemDisabled
         ]}
-        onPress={() => handleVoiceSelect(item)}
+        onPress={() => {
+          if (canSelect || isSelected) {
+            handleVoiceSelect(item);
+          }
+        }}
+        disabled={!canSelect && !isSelected}
       >
+        <Image 
+          source={{ uri: avatarUrl }} 
+          style={[
+            styles.voiceAvatar,
+            // Dim avatar for inaccessible voices
+            !canSelect && !isSelected && styles.avatarDisabled
+          ]} 
+        />
         <View style={styles.voiceInfo}>
-          <Text style={[styles.voiceName, { color: theme.text }]}>
-            {item.name}
-          </Text>
-          <Text style={[styles.voiceDetails, { color: theme.text + '80' }]}>
-            {item.provider} • {item.language || 'English'}
-          </Text>
-        </View>
-        
-        <View style={styles.voiceActions}>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => handleToggleFavorite(item)}
-          >
-            <Ionicons
-              name={isFavorite ? "heart" : "heart-outline"}
-              size={24}
-              color={isFavorite ? "#FF3B30" : theme.text + '80'}
-            />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={() => handlePreviewVoice(item)}
-            disabled={isPreviewing}
-          >
-            {isPreviewing ? (
-              <ActivityIndicator size="small" color={theme.primary} />
-            ) : (
-              <Ionicons
-                name="play-circle-outline"
-                size={26}
-                color={theme.primary}
+          <View style={styles.voiceNameContainer}>
+            <Text style={[
+              styles.voiceName,
+              isSelected && styles.selectedVoiceName,
+              // Dim text for inaccessible voices
+              !canSelect && !isSelected && styles.textDisabled
+            ]}>
+              {item.name}
+            </Text>
+            {isPremiumVoice && (
+              <PremiumBadge 
+                size="small" 
+                style={styles.premiumBadge}
+                iconOnly={true}
               />
             )}
-          </TouchableOpacity>
+            {isSelected && (
+              <Ionicons name="checkmark-circle" size={16} color={theme.primary} style={styles.checkIcon} />
+            )}
+          </View>
+          <Text style={[
+            styles.voiceProvider,
+            !canSelect && !isSelected && styles.textDisabled
+          ]}>
+            {item.provider} • {item.language || 'English'}
+          </Text>
+          
+          {/* Show upgrade prompt for premium voices that require upgrade */}
+          {requiresUpgrade && (
+            <UpgradePrompt
+              variant="inline"
+              size="small"
+              title={t('upgrade.premiumRequired', 'Premium Required')}
+              message={t('upgrade.upgradeForVoice', 'Upgrade to access this premium voice.')}
+              style={styles.upgradePromptInline}
+            />
+          )}
         </View>
+        <TouchableOpacity
+          style={[
+            styles.playButton,
+            // Style play button based on access
+            !canPreview && styles.playButtonDisabled
+          ]}
+          onPress={(e) => {
+            e.stopPropagation();
+            if (canPreview) {
+              handlePreviewVoice(item);
+            }
+          }}
+          disabled={isLoading || !canPreview}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Ionicons 
+              name={canPreview ? "play" : "lock-closed"} 
+              size={16} 
+              color="#FFFFFF" 
+            />
+          )}
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -252,6 +394,51 @@ const VoiceSettingsScreen: React.FC = () => {
               thumbColor={userSettings?.voiceSettings?.enhancementEnabled ? theme.primary : '#f4f3f4'}
             />
           </View>
+          
+          {/* Voice Model Selection (Premium Only) */}
+          {canUseElevenV3(profileData?.subscription?.tier) && (
+            <>
+              <View style={styles.sectionDivider} />
+              <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+                <Text style={[styles.settingLabel, { color: theme.text }]}>Voice Model</Text>
+              </View>
+              <ModelSelector
+                selectedModel={userSettings?.voiceSettings?.modelId}
+                onModelChange={handleModelChange}
+                theme={theme}
+              />
+            </>
+          )}
+        </View>
+        
+        <View style={styles.section}>
+          {/* Audio routing feature hidden until native implementation is complete
+          <View style={[styles.settingItem, { backgroundColor: theme.card }]}>
+            <View style={styles.settingLabelContainer}>
+              <Text style={[styles.settingLabel, { color: theme.text }]}>
+                Route Audio to Microphone
+              </Text>
+              <Text style={[styles.settingDescription, { color: theme.text + '80' }]}>
+                Send synthesized speech to the microphone for use in other apps
+              </Text>
+            </View>
+            <Switch
+              value={isAudioRoutingEnabled}
+              onValueChange={handleToggleAudioRouting}
+              disabled={isLoading}
+              trackColor={{ false: '#767577', true: theme.primary + '50' }}
+              thumbColor={isAudioRoutingEnabled ? theme.primary : '#f4f3f4'}
+            />
+          </View>
+          
+          {isAudioRoutingEnabled && (
+            <View style={styles.warningContainer}>
+              <Text style={[styles.warningText, { color: '#FF9500' }]}>
+                This feature routes audio to your microphone, allowing other apps to receive your synthesized voice.
+              </Text>
+            </View>
+          )}
+          */}
         </View>
         
         <View style={styles.section}>
@@ -304,12 +491,12 @@ const VoiceSettingsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
   },
   section: {
-    marginVertical: 16,
+    marginVertical: 12,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -319,8 +506,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: theme.border || theme.text + '20',
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
   settingItem: {
     flexDirection: 'row',
@@ -333,6 +526,23 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
+  },
+  settingLabelContainer: {
+    flex: 1,
+  },
+  settingDescription: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  warningContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    padding: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
   },
   filterButton: {
     flexDirection: 'row',
@@ -349,48 +559,90 @@ const styles = StyleSheet.create({
   voiceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     marginBottom: 8,
+    backgroundColor: theme.card,
+  },
+  voiceItemDisabled: {
+    opacity: 0.6,
+    backgroundColor: theme.background + '40',
   },
   voiceInfo: {
     flex: 1,
   },
+  voiceNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   voiceName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    fontWeight: '500',
+    color: theme.text,
   },
-  voiceDetails: {
+  selectedVoiceItem: {
+    backgroundColor: theme.primary + '20',
+    borderColor: theme.primary,
+    borderWidth: 2,
+  },
+  textDisabled: {
+    opacity: 0.5,
+  },
+  voiceAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 16,
+  },
+  avatarDisabled: {
+    opacity: 0.5,
+  },
+  premiumBadge: {
+    marginLeft: 8,
+  },
+  checkIcon: {
+    marginLeft: 8,
+  },
+  voiceProvider: {
     fontSize: 14,
+    color: theme.text + '80',
+    marginTop: 2,
   },
-  voiceActions: {
-    flexDirection: 'row',
-  },
-  favoriteButton: {
-    padding: 8,
-    marginLeft: 4,
+  upgradePromptInline: {
+    marginTop: 4,
   },
   playButton: {
-    padding: 8,
-    marginLeft: 4,
+    backgroundColor: theme.primary,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonDisabled: {
+    backgroundColor: theme.text + '40',
+    opacity: 0.5,
   },
   separator: {
     height: 1,
     backgroundColor: 'transparent',
   },
   loadingContainer: {
-    padding: 20,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
+    color: theme.text,
+    marginTop: 16,
   },
   emptyText: {
+    fontSize: 16,
+    color: theme.text + '80',
     textAlign: 'center',
-    padding: 20,
-    fontSize: 14,
+    marginTop: 16,
   },
   errorText: {
     fontSize: 16,
@@ -406,6 +658,10 @@ const styles = StyleSheet.create({
   retryText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  selectedVoiceName: {
+    fontWeight: 'bold',
+    color: theme.primary,
   },
 });
 

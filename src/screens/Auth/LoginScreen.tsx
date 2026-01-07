@@ -11,23 +11,22 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Context
 import { ThemeContext } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 
-// API
-import { loginWithGoogle } from '../../api/auth';
-import { API_CONFIG } from '../../config/api';
+// Components
+import GoogleAuthButton from '../../components/UI/GoogleAuthButton';
 
 // Types
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
@@ -38,10 +37,6 @@ import { authService } from '../../services/authService';
 type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 WebBrowser.maybeCompleteAuthSession();
-
-const redirectUri = makeRedirectUri({
-  native: 'com.naqued.speechlinkmobile://'
-});
 
 const LoginScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -62,12 +57,6 @@ const LoginScreen: React.FC = () => {
     }
   }, [authError]);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com",
-    clientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com",
-    iosClientId: "220772687588-n757jb7i6ii314bkq39nommo5umgh07a.apps.googleusercontent.com"
-  });
-
   const handleLogin = async () => {
     if (!email || !password) {
       setLoginError('Please enter email and password');
@@ -77,69 +66,84 @@ const LoginScreen: React.FC = () => {
     try {
       setIsLoading(true);
       setLoginError(null);
-      // For demonstration, we're using a mock token
-      // In a real app, you'd make an API call here
-      await signIn('mock-token');
+      
+      // Use our authService to login with credentials
+      const response = await authService.loginWithCredentials({
+        email,
+        password
+      });
+      
+      console.log('Login response received:', {
+        hasAccessToken: !!response.accessToken,
+        hasToken: !!response.token,
+        hasUser: !!response.user
+      });
+      
+      // Check if we have a token in either location
+      const token = response.accessToken || response.token;
+      
+      if (!token) {
+        setLoginError('Login successful but no authentication token received');
+        console.error('No token in login response:', response);
+        return;
+      }
+      
+      // Update auth context with the received token
+      await signIn(token);
     } catch (error) {
-      setLoginError('Login failed');
-      console.error(error);
+      console.error('Login error:', error);
+      
+      // Extract the specific error message
+      let errorMessage = 'Login failed';
+      
+      if (error instanceof Error) {
+        // Try to extract the most useful part of the error message
+        const message = error.message;
+        
+        if (message.includes('Password:')) {
+          // Extract just the password requirements if available
+          const passwordError = message.split('Password:')[1]?.trim();
+          if (passwordError) {
+            errorMessage = `Password error: ${passwordError}`;
+          } else {
+            errorMessage = 'Invalid password';
+          }
+        } else if (message.includes('Email:')) {
+          // Extract just the email error if available
+          const emailError = message.split('Email:')[1]?.split(';')[0]?.trim();
+          if (emailError) {
+            errorMessage = `Email error: ${emailError}`;
+          } else {
+            errorMessage = 'Invalid email address';
+          }
+        } else if (message.includes('INVALID_CREDENTIALS')) {
+          errorMessage = 'Invalid email or password';
+        } else if (message.includes('USER_NOT_FOUND')) {
+          errorMessage = 'No account found with this email address';
+        } else if (message.includes('USER_DISABLED')) {
+          errorMessage = 'This account has been disabled';
+        } else if (message.includes('TOO_MANY_REQUESTS') || message.includes('RATE_LIMITED')) {
+          errorMessage = 'Too many attempts. Please try again later';
+        } else {
+          // Use the full error message if it's not too long
+          errorMessage = message.length > 100 ? message.substring(0, 100) + '...' : message;
+        }
+      }
+      
+      setLoginError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      setLoginError(null);
-      const result = await promptAsync();
-      
-      if (result?.type === 'success') {
-        const { authentication } = result;
-        const response = await loginWithGoogle(authentication?.accessToken || '');
-        await signIn(response.token);
-      }
-    } catch (error) {
-      console.error('Google Sign-In error:', error);
-      setLoginError('Google Sign-In failed');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleSignInSuccess = () => {
+    console.log('Google sign-in successful');
+    // No need to do anything here as the AuthContext will handle updating the token
   };
-
-  const handleDevLogin = async () => {
-    try {
-      setIsLoading(true);
-      setLoginError(null);
-      console.log('Attempting to fetch dev token');
-      
-      // Use the authService to fetch and save the dev token
-      const authToken = await authService.getDevelopmentToken();
-      console.log('Received dev token:', {
-        hasAccessToken: !!authToken.access_token,
-        tokenType: authToken.token_type || 'bearer',
-        userId: authToken.user?.id
-      });
-      
-      // Then use the signIn method to update the AuthContext
-      // Use the formatted token with the token_type prefix
-      const accessToken = authToken.access_token;
-      
-      // Make sure token is valid before proceeding
-      if (!accessToken) {
-        throw new Error('Invalid token received from server');
-      }
-      
-      await signIn(accessToken);
-    } catch (error) {
-      console.error('Dev login error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      setLoginError(`Development login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsLoading(false);
-    }
+  
+  const handleGoogleSignInError = (error: string) => {
+    console.error('Google sign-in error:', error);
+    setLoginError(error);
   };
 
   const togglePasswordVisibility = () => {
@@ -150,13 +154,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity
-        style={styles.devButton}
-        onPress={handleDevLogin}
-        disabled={isLoading}
-      >
-        <Text style={styles.devButtonText}>🔧 Dev Login</Text>
-      </TouchableOpacity>
+      {/* Dev login button removed for production */}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -227,29 +225,25 @@ const LoginScreen: React.FC = () => {
                 onPress={handleLogin}
                 disabled={isLoading}
               >
-                <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginButtonText}>{t('auth.signIn')}</Text>
+                )}
               </TouchableOpacity>
               
               <View style={styles.dividerContainer}>
                 <View style={styles.divider} />
-                <Text style={styles.dividerText}>or</Text>
+                <Text style={styles.dividerText}>{t('auth.orContinueWith')}</Text>
                 <View style={styles.divider} />
               </View>
               
               <View style={styles.socialButtonsContainer}>
-                <TouchableOpacity 
-                  style={[styles.socialButton, styles.googleButton]}
-                  onPress={handleGoogleSignIn}
-                  disabled={isLoading}
-                >
-                  <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-                  <Text style={styles.socialButtonText}>{t('auth.continueWithGoogle')}</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={[styles.socialButton, styles.appleButton]}>
-                  <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
-                  <Text style={styles.socialButtonText}>{t('auth.continueWithApple')}</Text>
-                </TouchableOpacity>
+                <GoogleAuthButton 
+                  onSuccess={handleGoogleSignInSuccess}
+                  onError={handleGoogleSignInError}
+                  style={styles.googleButtonStyle}
+                />
               </View>
               
               <View style={styles.signupContainer}>
@@ -446,6 +440,9 @@ const makeStyles = (theme: any) => StyleSheet.create({
     color: theme.primary,
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  googleButtonStyle: {
+    width: '100%',
   },
 });
 

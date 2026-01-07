@@ -178,12 +178,16 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
       }
     });
 
-    // Apply filters first
+    // Apply filters - keep loading state active during this process
+    // to visually indicate to the user that something is happening
     onApplyFilters(filters);
     
-    // Reset loading state and close modal
-    setIsLoading(false);
-    onClose();
+    // Use a short timeout to allow the parent component to begin its search
+    // before dismissing the modal, which gives a better UX impression
+    setTimeout(() => {
+      setIsLoading(false);
+      onClose();
+    }, 300);
   };
 
   // Count active filters for the Apply button
@@ -362,7 +366,7 @@ const AdvancedFilterModal: React.FC<AdvancedFilterModalProps> = ({
           )}
           
           {renderFilterSection(
-            t('voice.filters.descriptives', 'Voice Style'),
+            t('voice.filters.descriptives.all', 'Voice Style'),
             DESCRIPTIVES(t),
             selectedDescriptive,
             setSelectedDescriptive

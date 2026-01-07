@@ -2,8 +2,8 @@
   "expo": {
     "name": "Speech Link",
     "slug": "speech-link-mobile",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "2.0",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -15,7 +15,14 @@
       "**/*"
     ],
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "viewport": {
+        "width": "device-width",
+        "initialScale": 1,
+        "maximumScale": 1,
+        "userScalable": false,
+        "viewportFit": "cover"
+      }
     },
     "extra": {
       "eas": {
@@ -23,13 +30,25 @@
       }
     },
     "newArchEnabled": true,
-    "scheme": "speechlinkmobile",
+    "scheme": "com.naqued.speechlinkmobile",
     "owner": "naqued",
     "android": {
       "package": "com.naqued.speechlinkmobile",
-      "permissions": ["INTERNET"],
+      "versionCode": 39,
+      "permissions": [
+        "INTERNET",
+        "MODIFY_AUDIO_SETTINGS",
+        "RECORD_AUDIO"
+      ],
+      "icon": "./assets/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/favicon.png",
+        "backgroundColor": "#4A6FEA"
+      },
+      "edgeToEdgeEnabled": true,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
+      "minSdkVersion": 24,
       "buildToolsVersion": "35.0.0",
       "manifest": {
         "application": {
@@ -43,6 +62,37 @@
     },
     "cli": {
       "appVersionSource": "remote"
+    },
+    "plugins": [
+      "./app.plugin.js",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useNewNdkIntegration": true,
+            "useLegacyPackaging": false,
+            "minSdkVersion": 24,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "ndkVersion": "27.0.12077973"
+          }
+        }
+      ]
+    ],
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-audio-recorder-player",
+          "react-native-fs",
+          "react-native-sound",
+          "@expo/metro-runtime",
+          "i18next",
+          "socket.io-client",
+          "@naqued/speech-link-mobile"
+        ],
+        "listUnknownPackages": false
+      }
     }
   }
 }
